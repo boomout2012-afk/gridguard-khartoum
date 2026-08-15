@@ -176,6 +176,14 @@ class LocalityMapView(QGraphicsView):
             self.locality_items[locality_id] = item
             self._scene.addItem(item)
 
+        # Keep every callout above every polygon and river. Child-item stacking is
+        # bounded by its parent locality, so neighboring polygons could otherwise
+        # obscure a label near a shared boundary (notably central Khartoum).
+        for item in self.locality_items.values():
+            label_group = item._label_group
+            label_group.setParentItem(None)
+            label_group.setZValue(5)
+
     def _navigate(self, direction: str) -> None:
         current_id = self.selected_locality_id or self.asset.keyboard_order[0]
         neighbors = self.locality_items[current_id].locality.neighbors

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QPointF, Qt
 from PySide6.QtGui import QMouseEvent, QWheelEvent
-from PySide6.QtWidgets import QApplication, QGraphicsPathItem
+from PySide6.QtWidgets import QApplication, QGraphicsItem, QGraphicsPathItem
 
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import load_map_asset
@@ -37,6 +37,14 @@ def test_map_renders_complete_administrative_geometry_and_all_river_lines(qtbot)
         )
         assert rendered.path().fillRule() == Qt.FillRule.OddEvenFill
         assert rendered.path().elementCount() >= source_vertex_count
+        assert (
+            rendered._label_group.flags()
+            & QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations
+        )
+        assert rendered._label_group.parentItem() is None
+        assert rendered._label_group.zValue() > max(
+            river_item.zValue() for river_item in view.river_items
+        )
 
     expected_river_lines = sum(len(river.lines) for river in asset.river_context.paths)
     assert len(view.river_items) == expected_river_lines
