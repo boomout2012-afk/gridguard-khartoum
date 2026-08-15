@@ -1,8 +1,13 @@
 param(
-    [switch]$VerifyOnly
+    [switch]$VerifyOnly,
+    [switch]$RefreshManifest
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($VerifyOnly -and $RefreshManifest) {
+    throw "VerifyOnly and RefreshManifest cannot be used together."
+}
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $repositoryParent = Split-Path -Parent $projectRoot
@@ -11,6 +16,11 @@ $executable = Join-Path $distribution "GridGuard Khartoum.exe"
 $smokeRoot = Join-Path $projectRoot "build\gridguard"
 $smokeReport = Join-Path $smokeRoot "frozen-smoke.json"
 $releaseManifestPath = Join-Path $projectRoot "RELEASE_MANIFEST.json"
+$releaseIntegrityHelper = Join-Path $PSScriptRoot "release-integrity.ps1"
+if (-not (Test-Path -LiteralPath $releaseIntegrityHelper -PathType Leaf)) {
+    throw "Release-integrity helper is unavailable: $releaseIntegrityHelper"
+}
+. $releaseIntegrityHelper
 
 function Assert-NativeCommandSucceeded {
     param(
@@ -64,6 +74,8 @@ function Get-ValidatedFrozenSmokePayload {
 function Assert-ReleaseManifestBinding {
     param(
         [Parameter(Mandatory = $true)]
+        [string]$ProjectRoot,
+        [Parameter(Mandatory = $true)]
         [string]$ManifestPath,
         [Parameter(Mandatory = $true)]
         [string]$DistributionPath,
@@ -75,12 +87,15 @@ function Assert-ReleaseManifestBinding {
         [pscustomobject]$SmokePayload
     )
 
-    if (-not (Test-Path -LiteralPath $ManifestPath -PathType Leaf)) {
-        throw "Release manifest is unavailable: $ManifestPath"
-    }
-    $releaseManifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json
-    if ($releaseManifest.schema_version -ne 1) {
-        throw "Release manifest schema_version must be 1."
+    $releaseManifest = Assert-ReleaseManifestCore `
+        -ProjectRoot $ProjectRoot `
+        -ManifestPath $ManifestPath `
+        -DistributionPath $DistributionPath `
+        -ExecutablePath $ExecutablePath `
+        -SmokeReportPath $SmokeReportPath `
+        -SmokePayload $SmokePayload
+    if ($releaseManifest.schema_version -ne 2) {
+        throw "Release manifest schema_version must be 2."
     }
 
     $expectedExecutablePath = "dist/GridGuard Khartoum/GridGuard Khartoum.exe"
@@ -115,11 +130,14 @@ function Assert-ReleaseManifestBinding {
     ).Sum
     if (
         $releaseManifest.windows_build.distribution_file_count -ne $distributionFiles.Count -or
-        $releaseManifest.windows_build.distribution_size_bytes -ne $distributionBytes
+        $releaseManifest.windows_build.distribution_size_bytes -ne $distributionBytes -or
+        $releaseManifest.windows_build.distribution_tree_sha256 -ne
+        $releaseManifest.windows_build.distribution.tree_sha256
     ) {
         throw (
             "Release manifest does not bind the built distribution: " +
-            "files=$($distributionFiles.Count), bytes=$distributionBytes."
+            "files=$($distributionFiles.Count), bytes=$distributionBytes, " +
+            "tree_sha256=$($releaseManifest.windows_build.distribution.tree_sha256)."
         )
     }
 
@@ -221,7 +239,13 @@ if (-not $VerifyOnly) {
         Assert-NativeCommandSucceeded -Operation "Locked dependency sync" -ExitCode $LASTEXITCODE
         uv run gridguard-doctor
         Assert-NativeCommandSucceeded -Operation "GPU preflight" -ExitCode $LASTEXITCODE
-        uv run pytest -q --junitxml $testReport
+        $releaseTestArguments = @("run", "pytest", "-q", "--junitxml", $testReport)
+        if ($RefreshManifest) {
+            # The old manifest cannot validate a build that does not exist yet. This contract is
+            # run explicitly after the freshly smoke-tested distribution is bound below.
+            $releaseTestArguments += "--ignore=tests/test_release_manifest.py"
+        }
+        uv @releaseTestArguments
         $pytestExitCode = $LASTEXITCODE
         if (-not (Test-Path -LiteralPath $testReport -PathType Leaf)) {
             throw "Pytest did not create its JUnit report: $testReport"
@@ -313,7 +337,21 @@ if (-not $VerifyOnly) {
 }
 
 $smokePayload = Get-ValidatedFrozenSmokePayload -ReportPath $smokeReport
+if ($RefreshManifest) {
+    Update-ReleaseManifestBindings `
+        -ProjectRoot $projectRoot `
+        -ManifestPath $releaseManifestPath `
+        -DistributionPath $distribution `
+        -ExecutablePath $executable `
+        -SmokeReportPath $smokeReport
+    uv run pytest -q tests/test_release_manifest.py
+    Assert-NativeCommandSucceeded `
+        -Operation "Refreshed release manifest contract" `
+        -ExitCode $LASTEXITCODE
+    Write-Host "Refreshed RELEASE_MANIFEST.json from the verified build outputs."
+}
 Assert-ReleaseManifestBinding `
+    -ProjectRoot $projectRoot `
     -ManifestPath $releaseManifestPath `
     -DistributionPath $distribution `
     -ExecutablePath $executable `
