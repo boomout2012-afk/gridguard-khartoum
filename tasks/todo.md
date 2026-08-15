@@ -68,5 +68,5 @@
 - [x] Run full tests, lint, claim audit, and evidence verification.
 - [x] Freeze the final provenance manifest after all documents are stable.
 - [x] Review tracked files and secrets; confirm the intended release tree is clean.
-- [ ] Commit in reviewed atomic increments.
-- [ ] Push to the approved GitHub repository and open the appropriate PR.
+- [x] Create reviewed release commits from sanitized history.
+- [x] Publish the approved private GitHub repository; no PR is required for the initial main release.
