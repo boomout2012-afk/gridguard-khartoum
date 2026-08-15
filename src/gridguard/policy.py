@@ -93,6 +93,12 @@ class PPOActor(nn.Module):
     def forward(self, observation: torch.Tensor) -> torch.Tensor:
         """Return joint-action logits for one observation or a batch."""
 
+        self._validate_observation_metadata(observation)
+        if not bool(torch.isfinite(observation).all().item()):
+            raise ValueError("observation must contain only finite values")
+        return self._forward_layers(observation)
+
+    def _validate_observation_metadata(self, observation: torch.Tensor) -> None:
         if observation.ndim == 0 or observation.shape[-1] != OBSERVATION_DIM:
             raise ValueError(
                 f"expected observation width {OBSERVATION_DIM}, received {tuple(observation.shape)}"
@@ -104,9 +110,13 @@ class PPOActor(nn.Module):
             raise ValueError(
                 f"observation dtype must be {parameter.dtype}; received {observation.dtype}"
             )
-        if not bool(torch.isfinite(observation).all().item()):
-            raise ValueError("observation must contain only finite values")
+
+    def _forward_layers(self, observation: torch.Tensor) -> torch.Tensor:
         return self.actor(self.actor_encoder(observation))
+
+    def _decode_action_indices_unchecked(self, encoded_action: torch.Tensor) -> torch.Tensor:
+        encoded = encoded_action.to(dtype=torch.long)
+        return (encoded[..., None] // self.action_divisors) % ACTION_LEVELS
 
     def decode_action_indices(self, encoded_action: torch.Tensor) -> torch.Tensor:
         """Decode indices using the source policy's little-endian base-three order."""
@@ -124,8 +134,7 @@ class PPOActor(nn.Module):
             )
         if not bool(((encoded_action >= 0) & (encoded_action < ACTION_COUNT)).all().item()):
             raise ValueError(f"encoded action indices must be in range [0, {ACTION_COUNT})")
-        encoded = encoded_action.to(dtype=torch.long)
-        return (encoded[..., None] // self.action_divisors) % ACTION_LEVELS
+        return self._decode_action_indices_unchecked(encoded_action)
 
     @torch.inference_mode()
     def act(self, observation: torch.Tensor) -> torch.Tensor:
@@ -138,7 +147,22 @@ class PPOActor(nn.Module):
             raise ValueError(
                 f"observation must be on {parameter.device}; received {observation.device}"
             )
-        return self.decode_action_indices(self(observation).argmax(dim=-1))
+        return self._decode_action_indices_unchecked(self(observation).argmax(dim=-1))
+
+    @torch.inference_mode()
+    def act_prevalidated(self, observation: torch.Tensor) -> torch.Tensor:
+        """Infer after simulation-boundary validation without host scalar synchronization."""
+
+        parameter = next(self.parameters())
+        if parameter.device.type != "cuda" or parameter.device.index != 0:
+            raise PolicyArtifactError("PPO actor is not loaded on required device cuda:0")
+        if observation.device != parameter.device:
+            raise ValueError(
+                f"observation must be on {parameter.device}; received {observation.device}"
+            )
+        self._validate_observation_metadata(observation)
+        encoded = self._forward_layers(observation).argmax(dim=-1)
+        return self._decode_action_indices_unchecked(encoded)
 
 
 def load_ppo_policy(

@@ -263,8 +263,6 @@ def _validate_controller_action(
         raise TypeError("controller action must use torch.long")
     if action.device != device:
         raise ValueError("controller action must remain on the scenario device")
-    if bool(((action < ServiceTier.OFF) | (action > ServiceTier.FULL_SERVICE)).any().item()):
-        raise ValueError("controller action contains an invalid service tier")
     return action
 
 
@@ -311,7 +309,9 @@ def simulate(scenario: Scenario, controller: Controller) -> SimulationResult:
             locality_peaks=locality_peaks,
         )
         tiers = _validate_controller_action(
-            controller.act(DecisionContext(hour=hour, observation=observation)),
+            controller.act(
+                DecisionContext(hour=hour, observation=observation, _validate_finite=False)
+            ),
             batch_size=batch_size,
             device=device,
         )

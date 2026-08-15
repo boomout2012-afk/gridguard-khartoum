@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 import torch
 
-from gridguard.controllers import DecisionContext, FixedRotationController
+from gridguard.controllers import DecisionContext, FixedRotationController, PPOController
 from gridguard.domain import ControllerName, Scenario, ShortageLevel
+from gridguard.policy import BUNDLED_ARTIFACT_SHA256, load_ppo_policy
 from gridguard.scenarios import SYSTEM_PEAK_MW, generate_scenarios
 from gridguard.simulation import build_observation, dispatch_service_tiers, simulate
 
@@ -142,6 +144,33 @@ def test_simulation_rejects_controller_actions_with_invalid_tiers_immediately() 
         simulate(scenario, _InvalidTierController())
 
 
+def test_simulation_has_no_per_hour_tensor_scalar_transfers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scenario = generate_scenarios(
+        2,
+        seed=3,
+        shortage_level=ShortageLevel.MILD,
+        device="cpu",
+        demand_noise=0.0,
+        supply_noise=0.0,
+    )
+    original_item = torch.Tensor.item
+    item_calls = 0
+
+    def counted_item(tensor: torch.Tensor):
+        nonlocal item_calls
+        item_calls += 1
+        return original_item(tensor)
+
+    monkeypatch.setattr(torch.Tensor, "item", counted_item)
+
+    result = simulate(scenario, FixedRotationController())
+
+    assert result.service_tiers.shape == (2, 24, 7)
+    assert item_calls == 0
+
+
 def test_simulation_reward_uses_only_the_locked_five_components() -> None:
     demand = torch.ones((1, 24, 7, 5), dtype=torch.float32)
     supply = torch.full((1, 24), 35.0)
@@ -186,3 +215,31 @@ def test_cuda_end_to_end_simulation_preserves_device_and_power_balance() -> None
     assert torch.all(result.served <= result.scenario.demand + 1e-3)
     assert torch.all(result.served.sum(dim=(-1, -2)) <= result.scenario.supply + 1e-3)
     assert math.isfinite(result.reward.sum().item())
+
+
+@pytest.mark.gpu
+def test_cuda_matched_pair_stays_within_presentation_latency_budget() -> None:
+    assert torch.cuda.is_available(), "the presentation CUDA runtime is required"
+    scenario = generate_scenarios(
+        32,
+        seed=20260815,
+        shortage_level=ShortageLevel.MODERATE,
+        device="cuda:0",
+    )
+    actor = load_ppo_policy(
+        Path("data/model/manifest.json"),
+        expected_artifact_sha256=BUNDLED_ARTIFACT_SHA256,
+    )
+    controllers = (FixedRotationController(), PPOController(actor))
+    for controller in controllers:
+        simulate(scenario, controller)
+
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
+    for controller in controllers:
+        simulate(scenario, controller)
+    end.record()
+    end.synchronize()
+
+    assert start.elapsed_time(end) < 300.0

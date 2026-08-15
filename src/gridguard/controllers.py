@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from typing import ClassVar, Protocol, runtime_checkable
 
 import torch
@@ -18,8 +18,9 @@ class DecisionContext:
 
     hour: int
     observation: torch.Tensor
+    _validate_finite: InitVar[bool] = True
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, _validate_finite: bool) -> None:
         if isinstance(self.hour, bool) or not isinstance(self.hour, int):
             raise TypeError("hour must be an integer")
         if not 0 <= self.hour < HORIZON_HOURS:
@@ -32,7 +33,7 @@ class DecisionContext:
             raise ValueError("observation batch must contain at least one scenario")
         if not self.observation.is_floating_point():
             raise TypeError("observation must be a floating-point tensor")
-        if not bool(torch.isfinite(self.observation).all().item()):
+        if _validate_finite and not bool(torch.isfinite(self.observation).all().item()):
             raise ValueError("observation must contain only finite values")
 
 
@@ -51,6 +52,13 @@ class PPOInferencePolicy(Protocol):
     """The narrow policy surface needed by the simulator."""
 
     def act(self, observation: torch.Tensor) -> torch.Tensor: ...
+
+
+@runtime_checkable
+class PrevalidatedPPOInferencePolicy(Protocol):
+    """Optional fast path for observations validated by the simulation boundary."""
+
+    def act_prevalidated(self, observation: torch.Tensor) -> torch.Tensor: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,4 +91,6 @@ class PPOController:
 
     @torch.inference_mode()
     def act(self, context: DecisionContext) -> torch.Tensor:
+        if isinstance(self.policy, PrevalidatedPPOInferencePolicy):
+            return self.policy.act_prevalidated(context.observation)
         return self.policy.act(context.observation)

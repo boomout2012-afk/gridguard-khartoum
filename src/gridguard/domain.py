@@ -177,8 +177,6 @@ class SimulationResult:
             raise ValueError("service_tiers must have shape [batch, 24, 7]")
         if tiers.dtype != torch.long:
             raise TypeError("service_tiers must use torch.long")
-        if bool(((tiers < ServiceTier.OFF) | (tiers > ServiceTier.FULL_SERVICE)).any().item()):
-            raise ValueError("service_tiers contains an invalid tier")
         expected_power_shape = self.scenario.demand.shape
         if requested.shape != expected_power_shape:
             raise ValueError("requested must have shape [batch, 24, 7, 5]")
@@ -193,19 +191,42 @@ class SimulationResult:
         dtype = self.scenario.demand.dtype
         if any(tensor.dtype != dtype for tensor in (requested, served, reward)):
             raise ValueError("power and reward tensors must use the scenario dtype")
-        _validate_floating_power("requested", requested)
-        _validate_floating_power("served", served)
-        if not reward.is_floating_point() or not bool(torch.isfinite(reward).all().item()):
+        if not requested.is_floating_point():
+            raise TypeError("requested must be a floating-point tensor")
+        if not served.is_floating_point():
+            raise TypeError("served must be a floating-point tensor")
+        if not reward.is_floating_point():
             raise ValueError("reward must be a finite floating-point tensor")
 
         tolerance = 1e-4
-        if bool((requested > self.scenario.demand + tolerance).any().item()):
-            raise ValueError("requested power must not exceed scenario demand")
-        if bool((served > requested + tolerance).any().item()):
-            raise ValueError("served power must not exceed requested power")
         served_total = served.sum(dim=(-1, -2))
-        if bool((served_total > self.scenario.supply + tolerance).any().item()):
-            raise ValueError("served power must not exceed available supply")
+        failed_checks = torch.stack(
+            (
+                ((tiers < ServiceTier.OFF) | (tiers > ServiceTier.FULL_SERVICE)).any(),
+                ~torch.isfinite(requested).all(),
+                (requested < 0).any(),
+                ~torch.isfinite(served).all(),
+                (served < 0).any(),
+                ~torch.isfinite(reward).all(),
+                (requested > self.scenario.demand + tolerance).any(),
+                (served > requested + tolerance).any(),
+                (served_total > self.scenario.supply + tolerance).any(),
+            )
+        ).to(device="cpu")
+        messages = (
+            "service_tiers contains an invalid service tier",
+            "requested must contain only finite power values",
+            "requested must not contain negative power",
+            "served must contain only finite power values",
+            "served must not contain negative power",
+            "reward must be a finite floating-point tensor",
+            "requested power must not exceed scenario demand",
+            "served power must not exceed requested power",
+            "served power must not exceed available supply",
+        )
+        for failed, message in zip(failed_checks.tolist(), messages, strict=True):
+            if failed:
+                raise ValueError(message)
 
     @property
     def requested_mw(self) -> torch.Tensor:
