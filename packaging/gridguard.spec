@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import torch
 from PyInstaller.utils.hooks import (
     collect_all,
     collect_data_files,
@@ -12,9 +13,27 @@ from PyInstaller.utils.hooks import (
 
 PROJECT_ROOT = Path(SPECPATH).resolve().parent
 
+
+def _filter_nvidia_payload(entries):
+    """Drop link-time archives and DLLs already supplied by the pinned torch wheel."""
+
+    torch_library_names = {
+        path.name.casefold()
+        for path in (Path(torch.__file__).resolve().parent / "lib").glob("*.dll")
+    }
+    return [
+        (source, target)
+        for source, target in entries
+        if Path(source).suffix.casefold() != ".lib"
+        and not (
+            Path(source).suffix.casefold() == ".dll"
+            and Path(source).name.casefold() in torch_library_names
+        )
+    ]
+
 cupy_datas, cupy_binaries, cupy_hiddenimports = collect_all("cupy")
-nvidia_datas = collect_data_files("nvidia")
-nvidia_binaries = collect_dynamic_libs("nvidia")
+nvidia_datas = _filter_nvidia_payload(collect_data_files("nvidia"))
+nvidia_binaries = _filter_nvidia_payload(collect_dynamic_libs("nvidia"))
 
 datas = [
     *cupy_datas,

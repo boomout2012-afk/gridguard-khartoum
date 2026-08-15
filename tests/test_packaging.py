@@ -23,8 +23,23 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
     captured: dict[str, Any] = {}
 
     monkeypatch.setattr(pyinstaller_hooks, "collect_all", lambda _package: ([], [], []))
-    monkeypatch.setattr(pyinstaller_hooks, "collect_data_files", lambda _package: [])
-    monkeypatch.setattr(pyinstaller_hooks, "collect_dynamic_libs", lambda _package: [])
+    monkeypatch.setattr(
+        pyinstaller_hooks,
+        "collect_data_files",
+        lambda _package: [
+            ("C:/cuda/vJitLink_static.lib", "nvidia/vjitlink/lib/x64"),
+            ("C:/cuda/cublasLt64_12.dll", "nvidia/cublas/bin"),
+            ("C:/cuda/LICENSE.txt", "nvidia/cublas"),
+        ],
+    )
+    monkeypatch.setattr(
+        pyinstaller_hooks,
+        "collect_dynamic_libs",
+        lambda _package: [
+            ("C:/cuda/cublasLt64_12.dll", "nvidia/cublas/bin"),
+            ("C:/cuda/cupy_only.dll", "nvidia/runtime/bin"),
+        ],
+    )
     monkeypatch.setattr(pyinstaller_hooks, "collect_submodules", lambda _package: [])
 
     def analysis(scripts, **kwargs):
@@ -48,8 +63,18 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
     assert captured["scripts"] == [str(REPOSITORY_ROOT / "packaging" / "gridguard_launcher.py")]
     assert all(
         Path(source).is_relative_to(REPOSITORY_ROOT) for source, _target in captured["datas"]
+        if not source.startswith("C:/cuda/")
     )
     assert "graphlib" in captured["hiddenimports"]
+    bundled_cuda_sources = {
+        source
+        for source, _target in (*captured["datas"], *namespace["binaries"])
+        if source.startswith("C:/cuda/")
+    }
+    assert "C:/cuda/vJitLink_static.lib" not in bundled_cuda_sources
+    assert "C:/cuda/cublasLt64_12.dll" not in bundled_cuda_sources
+    assert "C:/cuda/LICENSE.txt" in bundled_cuda_sources
+    assert "C:/cuda/cupy_only.dll" in bundled_cuda_sources
 
 
 def test_pyinstaller_spec_is_one_directory_and_bundles_trusted_runtime_assets() -> None:
@@ -64,6 +89,15 @@ def test_pyinstaller_spec_is_one_directory_and_bundles_trusted_runtime_assets() 
     assert "gridguard/assets" in spec
     assert 'collect_all("cupy")' in spec
     assert 'collect_dynamic_libs("nvidia")' in spec
+
+
+def test_runtime_hook_searches_torch_libraries_before_unique_nvidia_components() -> None:
+    runtime_hook = (REPOSITORY_ROOT / "packaging" / "runtime_gpu_paths.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'bundle_root / "torch" / "lib"' in runtime_hook
+    assert 'nvidia_root.glob("*/bin")' in runtime_hook
 
 
 def test_frozen_launcher_only_delegates_to_the_verified_desktop_entry_point() -> None:

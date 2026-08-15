@@ -12,11 +12,12 @@ _DLL_HANDLES: list[object] = []
 def _configure_bundled_cuda_paths() -> None:
     bundle_root = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
     nvidia_root = bundle_root / "nvidia"
-    if not nvidia_root.is_dir():
-        return
-
-    binary_directories = sorted(
-        directory for directory in nvidia_root.glob("*/bin") if directory.is_dir()
+    torch_library_directory = bundle_root / "torch" / "lib"
+    binary_directories = []
+    if torch_library_directory.is_dir():
+        binary_directories.append(torch_library_directory)
+    binary_directories.extend(
+        sorted(directory for directory in nvidia_root.glob("*/bin") if directory.is_dir())
     )
     if not binary_directories:
         return
