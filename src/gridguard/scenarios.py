@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from numbers import Real
 
 import torch
@@ -20,6 +21,50 @@ DEFAULT_DEVICE = "cuda:0"
 SYSTEM_PEAK_MW = 700.0
 DEFAULT_DEMAND_NOISE = 0.05
 DEFAULT_SUPPLY_NOISE = 0.05
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class ScenarioBaseDraws:
+    """Immutable references to one batch of severity-neutral stochastic draws."""
+
+    demand_uniform: torch.Tensor
+    supply_uniform: torch.Tensor
+    seed: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.demand_uniform, torch.Tensor):
+            raise TypeError("demand_uniform must be a torch.Tensor")
+        if not isinstance(self.supply_uniform, torch.Tensor):
+            raise TypeError("supply_uniform must be a torch.Tensor")
+        if self.demand_uniform.ndim != 4 or self.demand_uniform.shape[1:] != (
+            HORIZON_HOURS,
+            len(LOCALITIES),
+            len(SECTOR_SHARES),
+        ):
+            raise ValueError("demand_uniform must have shape [batch, 24, 7, 5]")
+        if self.demand_uniform.shape[0] < 1:
+            raise ValueError("base draws must contain at least one scenario")
+        expected_supply_shape = (self.demand_uniform.shape[0], HORIZON_HOURS)
+        if self.supply_uniform.shape != expected_supply_shape:
+            raise ValueError(f"supply_uniform must have shape {list(expected_supply_shape)}")
+        if self.demand_uniform.dtype != torch.float32 or self.supply_uniform.dtype != torch.float32:
+            raise TypeError("scenario base draws must use torch.float32")
+        if self.demand_uniform.device != self.supply_uniform.device:
+            raise ValueError("scenario base draws must remain on one device")
+        draws = (self.demand_uniform, self.supply_uniform)
+        if any(not bool(torch.isfinite(value).all().item()) for value in draws):
+            raise ValueError("scenario base draws must contain only finite values")
+        if any(bool(((value < 0.0) | (value >= 1.0)).any().item()) for value in draws):
+            raise ValueError("scenario base draws must be in the interval [0, 1)")
+        _validate_seed(self.seed)
+
+    @property
+    def batch_size(self) -> int:
+        return self.demand_uniform.shape[0]
+
+    @property
+    def device(self) -> torch.device:
+        return self.demand_uniform.device
 
 
 def _validate_batch_size(batch_size: int) -> None:
@@ -94,6 +139,89 @@ def _supply_fraction(
     return fraction
 
 
+def generate_scenario_base_draws(
+    batch_size: int,
+    seed: int,
+    *,
+    device: str | torch.device = DEFAULT_DEVICE,
+) -> ScenarioBaseDraws:
+    """Draw one severity-neutral stochastic batch for reuse across shortage levels."""
+
+    _validate_batch_size(batch_size)
+    _validate_seed(seed)
+    resolved_device = _resolve_device(device)
+    try:
+        generator = torch.Generator(device=resolved_device).manual_seed(seed)
+    except RuntimeError as error:
+        raise RuntimeError(
+            f"could not initialize the scenario generator on {resolved_device}: {error}"
+        ) from error
+    demand_uniform = torch.rand(
+        (batch_size, HORIZON_HOURS, len(LOCALITIES), len(SECTOR_SHARES)),
+        dtype=torch.float32,
+        device=resolved_device,
+        generator=generator,
+    )
+    supply_uniform = torch.rand(
+        (batch_size, HORIZON_HOURS),
+        dtype=torch.float32,
+        device=resolved_device,
+        generator=generator,
+    )
+    return ScenarioBaseDraws(
+        demand_uniform=demand_uniform,
+        supply_uniform=supply_uniform,
+        seed=seed,
+    )
+
+
+def scenario_from_base_draws(
+    base_draws: ScenarioBaseDraws,
+    shortage_level: ShortageLevel | str,
+    *,
+    demand_noise: float = DEFAULT_DEMAND_NOISE,
+    supply_noise: float = DEFAULT_SUPPLY_NOISE,
+) -> Scenario:
+    """Purely transform shared stochastic draws into one shortage-level scenario."""
+
+    if not isinstance(base_draws, ScenarioBaseDraws):
+        raise TypeError("base_draws must be ScenarioBaseDraws")
+    try:
+        normalized_shortage = ShortageLevel(shortage_level)
+    except (TypeError, ValueError) as error:
+        raise ValueError("shortage_level must be mild, moderate, or severe") from error
+    normalized_demand_noise = _validate_noise("demand_noise", demand_noise)
+    normalized_supply_noise = _validate_noise("supply_noise", supply_noise)
+
+    locality_weights = torch.tensor(
+        LOCALITY_DEMAND_WEIGHTS,
+        dtype=torch.float32,
+        device=base_draws.device,
+    )
+    locality_peaks = SYSTEM_PEAK_MW * locality_weights / locality_weights.sum()
+    sector_shares = torch.tensor(SECTOR_SHARES, dtype=torch.float32, device=base_draws.device)
+    base_demand = locality_peaks[:, None] * sector_shares[None, :]
+    profiles = _sector_profiles(base_draws.device)
+
+    demand = base_demand[None, None, :, :] * profiles[None, :, None, :]
+    demand = demand.expand(base_draws.batch_size, -1, len(LOCALITIES), -1).clone()
+    demand_multiplier = 1.0 + normalized_demand_noise * (2.0 * base_draws.demand_uniform - 1.0)
+    demand *= demand_multiplier
+
+    fraction = _supply_fraction(base_draws.batch_size, normalized_shortage, base_draws.device)
+    supply_multiplier = 1.0 + normalized_supply_noise * (2.0 * base_draws.supply_uniform - 1.0)
+    total_demand = demand.sum(dim=(-1, -2))
+    supply = total_demand * fraction * supply_multiplier
+    supply = torch.minimum(supply, total_demand * 0.95)
+
+    return Scenario(
+        demand=demand,
+        supply=supply,
+        shortage_level=normalized_shortage,
+        seed=base_draws.seed,
+    )
+
+
 def generate_scenarios(
     batch_size: int,
     seed: int,
@@ -115,52 +243,12 @@ def generate_scenarios(
     normalized_supply_noise = _validate_noise("supply_noise", supply_noise)
     resolved_device = _resolve_device(device)
 
-    try:
-        generator = torch.Generator(device=resolved_device).manual_seed(seed)
-    except RuntimeError as error:
-        raise RuntimeError(
-            f"could not initialize the scenario generator on {resolved_device}: {error}"
-        ) from error
-
-    locality_weights = torch.tensor(
-        LOCALITY_DEMAND_WEIGHTS,
-        dtype=torch.float32,
-        device=resolved_device,
-    )
-    locality_peaks = SYSTEM_PEAK_MW * locality_weights / locality_weights.sum()
-    sector_shares = torch.tensor(SECTOR_SHARES, dtype=torch.float32, device=resolved_device)
-    base_demand = locality_peaks[:, None] * sector_shares[None, :]
-    profiles = _sector_profiles(resolved_device)
-
-    demand = base_demand[None, None, :, :] * profiles[None, :, None, :]
-    demand = demand.expand(batch_size, -1, len(LOCALITIES), -1).clone()
-    demand_multiplier = 1.0 + normalized_demand_noise * (
-        2.0
-        * torch.rand(demand.shape, dtype=torch.float32, device=resolved_device, generator=generator)
-        - 1.0
-    )
-    demand *= demand_multiplier
-
-    fraction = _supply_fraction(batch_size, normalized_shortage, resolved_device)
-    supply_multiplier = 1.0 + normalized_supply_noise * (
-        2.0
-        * torch.rand(
-            fraction.shape,
-            dtype=torch.float32,
-            device=resolved_device,
-            generator=generator,
-        )
-        - 1.0
-    )
-    total_demand = demand.sum(dim=(-1, -2))
-    supply = total_demand * fraction * supply_multiplier
-    supply = torch.minimum(supply, total_demand * 0.95)
-
-    return Scenario(
-        demand=demand,
-        supply=supply,
-        shortage_level=normalized_shortage,
-        seed=seed,
+    base_draws = generate_scenario_base_draws(batch_size, seed, device=resolved_device)
+    return scenario_from_base_draws(
+        base_draws,
+        normalized_shortage,
+        demand_noise=normalized_demand_noise,
+        supply_noise=normalized_supply_noise,
     )
 
 

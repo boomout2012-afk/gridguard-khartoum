@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import json
+from importlib.metadata import version
 from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
 
+import gridguard
 from gridguard.controllers import PPOController
 from gridguard.evaluation import (
     BATCH_SIZE,
@@ -19,6 +22,7 @@ from gridguard.evaluation import (
     SEEDS,
     SEVERITIES,
     EvaluationArtifactError,
+    assert_paired_benchmark_release_claims,
     build_paired_benchmark_payload,
     canonical_paired_json_bytes,
     evaluate_scenario_pair,
@@ -33,6 +37,7 @@ from gridguard.scenarios import generate_scenarios
 PROJECT_ROOT = Path(__file__).parents[1]
 PPO_MANIFEST = PROJECT_ROOT / "data" / "model" / "manifest.json"
 FROZEN_BENCHMARK = PROJECT_ROOT / "data" / "evidence" / "frozen-benchmark.json"
+PAIRED_BENCHMARK = PROJECT_ROOT / "data" / "evidence" / "paired-benchmark.json"
 
 
 class _FullServicePolicy:
@@ -70,7 +75,11 @@ def _provenance() -> dict[str, object]:
     }
 
 
-def _valid_payload() -> dict[str, object]:
+def _valid_payload(
+    *,
+    ppo_outperforms: bool = True,
+    frozen_benchmark_path: Path = FROZEN_BENCHMARK,
+) -> dict[str, object]:
     shape = (len(SEVERITIES), len(SEEDS), BATCH_SIZE, len(METRIC_ORDER))
     fixed = np.zeros(shape, dtype=np.float64)
     ppo = np.zeros(shape, dtype=np.float64)
@@ -88,6 +97,11 @@ def _valid_payload() -> dict[str, object]:
         "power_balance_violation_rate": (0.0, 0.0),
         "critical_outage_locality_hours": (20.0, 10.0),
     }
+    if not ppo_outperforms:
+        values = {
+            metric: pair if metric in {"demand_mwh", "available_mwh"} else pair[::-1]
+            for metric, pair in values.items()
+        }
     for metric_index, metric in enumerate(METRIC_ORDER):
         fixed[..., metric_index] = values[metric][0]
         ppo[..., metric_index] = values[metric][1]
@@ -104,7 +118,7 @@ def _valid_payload() -> dict[str, object]:
         ppo_values=ppo,
         bootstrap_values=bootstrap,
         provenance=_provenance(),
-        frozen_maximum_absolute_error={metric: 0.0 for metric in FROZEN_ABSOLUTE_TOLERANCES},
+        frozen_benchmark_path=frozen_benchmark_path,
     )
 
 
@@ -164,7 +178,71 @@ def test_payload_builder_rejects_complex_numeric_arrays(complex_input: str) -> N
             ppo_values=ppo,
             bootstrap_values=bootstrap,
             provenance=_provenance(),
-            frozen_maximum_absolute_error={metric: 0.0 for metric in FROZEN_ABSOLUTE_TOLERANCES},
+            frozen_benchmark_path=FROZEN_BENCHMARK,
+        )
+
+
+def test_payload_builder_requires_the_hashed_frozen_benchmark(tmp_path: Path) -> None:
+    tampered_frozen = tmp_path / "frozen-benchmark.json"
+    tampered_frozen.write_bytes(FROZEN_BENCHMARK.read_bytes() + b" ")
+
+    with pytest.raises(EvaluationArtifactError, match="frozen benchmark SHA-256 mismatch"):
+        _valid_payload(frozen_benchmark_path=tampered_frozen)
+
+
+def test_neutral_serialization_accepts_adverse_results_but_release_gate_fails(
+    tmp_path: Path,
+) -> None:
+    payload = _valid_payload(ppo_outperforms=False)
+    output = tmp_path / "adverse-paired-benchmark.json"
+
+    validate_paired_benchmark_payload(payload)
+    digest = write_paired_benchmark(payload, output)
+
+    assert payload["frozen_parity"]["status"] == "failed"
+    assert verify_paired_benchmark(output, expected_sha256=digest) == payload
+    with pytest.raises(EvaluationArtifactError, match="frozen parity|favorable direction"):
+        assert_paired_benchmark_release_claims(
+            payload,
+            frozen_benchmark_path=FROZEN_BENCHMARK,
+        )
+    trusted_output = tmp_path / "trusted-adverse-paired-benchmark.json"
+    with pytest.raises(EvaluationArtifactError, match="frozen parity|favorable direction"):
+        write_paired_benchmark(
+            payload,
+            trusted_output,
+            frozen_benchmark_path=FROZEN_BENCHMARK,
+        )
+    assert not trusted_output.exists()
+
+
+def test_neutral_serialization_accepts_ambiguous_interval_but_release_gate_fails() -> None:
+    payload = json.loads(PAIRED_BENCHMARK.read_text(encoding="utf-8"))
+    interval = payload["paired_inference"]["critical_service_ratio"]
+    interval["ci95_lower"] = -0.01
+
+    validate_paired_benchmark_payload(payload)
+    canonical_paired_json_bytes(payload)
+
+    with pytest.raises(EvaluationArtifactError, match="favorable direction"):
+        assert_paired_benchmark_release_claims(
+            payload,
+            frozen_benchmark_path=FROZEN_BENCHMARK,
+        )
+
+
+def test_release_gate_recomputes_frozen_parity_instead_of_trusting_declared_errors() -> None:
+    payload = json.loads(PAIRED_BENCHMARK.read_text(encoding="utf-8"))
+    payload["frozen_parity"]["maximum_absolute_error"] = {
+        metric: 0.0 for metric in FROZEN_ABSOLUTE_TOLERANCES
+    }
+
+    validate_paired_benchmark_payload(payload)
+
+    with pytest.raises(EvaluationArtifactError, match="does not match verified cells"):
+        assert_paired_benchmark_release_claims(
+            payload,
+            frozen_benchmark_path=FROZEN_BENCHMARK,
         )
 
 
@@ -259,14 +337,13 @@ def test_validator_rejects_physically_impossible_episode_metrics(
         validate_paired_benchmark_payload(payload)
 
 
-def test_validator_requires_bootstrap_interval_to_contain_point_estimate() -> None:
+def test_validator_allows_percentile_interval_not_containing_point_estimate() -> None:
     payload = _valid_payload()
     inference = payload["paired_inference"]["served_mwh"]
     inference["ci95_lower"] = inference["mean_delta"] + 1.0
     inference["ci95_upper"] = inference["mean_delta"] + 2.0
 
-    with pytest.raises(EvaluationArtifactError, match="contain its mean"):
-        validate_paired_benchmark_payload(payload)
+    validate_paired_benchmark_payload(payload)
 
 
 def test_validator_rejects_available_energy_above_demand() -> None:
@@ -277,20 +354,26 @@ def test_validator_rejects_available_energy_above_demand() -> None:
         validate_paired_benchmark_payload(payload)
 
 
-def test_validator_rejects_well_formed_but_untrusted_provenance() -> None:
+def test_neutral_validator_accepts_well_formed_untrusted_provenance_but_release_gate_rejects() -> (
+    None
+):
     payload = _valid_payload()
     payload["provenance"]["ppo_actor"]["sha256"] = "f" * 64
 
+    validate_paired_benchmark_payload(payload)
+
     with pytest.raises(EvaluationArtifactError, match="locked artifact"):
-        validate_paired_benchmark_payload(payload)
+        assert_paired_benchmark_release_claims(
+            payload,
+            frozen_benchmark_path=FROZEN_BENCHMARK,
+        )
 
 
 def test_release_verifier_cross_checks_paired_cells_against_frozen_evidence() -> None:
-    paired = PROJECT_ROOT / "data" / "evidence" / "paired-benchmark.json"
-    digest = hashlib.sha256(paired.read_bytes()).hexdigest()
+    digest = hashlib.sha256(PAIRED_BENCHMARK.read_bytes()).hexdigest()
 
     verified = verify_paired_benchmark(
-        paired,
+        PAIRED_BENCHMARK,
         expected_sha256=digest,
         frozen_benchmark_path=FROZEN_BENCHMARK,
     )
@@ -327,4 +410,15 @@ def test_full_cuda_protocol_matches_frozen_cells_and_is_self_verifying(tmp_path:
     )
     output = tmp_path / "paired-benchmark.json"
     digest = write_paired_benchmark(payload, output)
-    assert verify_paired_benchmark(output, expected_sha256=digest) == payload
+    assert (
+        verify_paired_benchmark(
+            output,
+            expected_sha256=digest,
+            frozen_benchmark_path=FROZEN_BENCHMARK,
+        )
+        == payload
+    )
+
+
+def test_package_version_is_derived_from_distribution_metadata() -> None:
+    assert gridguard.__version__ == version("gridguard-khartoum")

@@ -57,6 +57,24 @@ class EpisodeMetrics:
     def device(self) -> torch.device:
         return self.episode_reward.device
 
+    @property
+    def episode_pooled_critical_service_ratio(self) -> torch.Tensor:
+        """Critical energy served / demanded, pooled within each 24-hour episode."""
+
+        return self.critical_service_ratio
+
+    @property
+    def mean_hourly_supply_utilization_ratio(self) -> torch.Tensor:
+        """Episode mean of hourly served / min(available supply, demand)."""
+
+        return self.utilization
+
+    @property
+    def mean_hourly_cumulative_locality_jain_fairness(self) -> torch.Tensor:
+        """Episode mean of hourly Jain fairness over cumulative locality service ratios."""
+
+        return self.fairness
+
     def as_dict(self) -> dict[str, torch.Tensor]:
         """Expose named tensors without transferring or scalarizing them."""
 
@@ -96,16 +114,20 @@ def compute_episode_metrics(result: SimulationResult) -> EpisodeMetrics:
     cumulative_service = locality_served.cumsum(dim=1) / locality_demand.cumsum(dim=1).clamp_min(
         EPSILON
     )
-    fairness = _jain_fairness(cumulative_service)
-    utilization = served_total / torch.minimum(supply, demand_total).clamp_min(EPSILON)
-    switching = torch.cat(
+    hourly_cumulative_locality_jain_fairness = _jain_fairness(cumulative_service)
+    hourly_supply_utilization_ratio = served_total / torch.minimum(supply, demand_total).clamp_min(
+        EPSILON
+    )
+    hourly_switching_rate = torch.cat(
         (
             torch.zeros_like(supply[:, :1]),
             (tiers[:, 1:] != tiers[:, :-1]).to(dtype).mean(dim=-1),
         ),
         dim=1,
     )
-    oversubscription = torch.relu(requested_total - supply) / demand_total.clamp_min(EPSILON)
+    hourly_oversubscription_ratio = torch.relu(requested_total - supply) / demand_total.clamp_min(
+        EPSILON
+    )
     locality_critical_service = locality_critical_served / locality_critical_demand.clamp_min(
         EPSILON
     )
@@ -117,6 +139,9 @@ def compute_episode_metrics(result: SimulationResult) -> EpisodeMetrics:
     served_mwh = served_total.sum(dim=1) * STEP_HOURS
     critical_demand_mwh = critical_demand.sum(dim=1) * STEP_HOURS
     critical_served_mwh = critical_served.sum(dim=1) * STEP_HOURS
+    episode_pooled_critical_service_ratio = critical_served_mwh / critical_demand_mwh.clamp_min(
+        EPSILON
+    )
 
     return EpisodeMetrics(
         episode_reward=result.reward.sum(dim=1),
@@ -124,11 +149,11 @@ def compute_episode_metrics(result: SimulationResult) -> EpisodeMetrics:
         available_mwh=supply.sum(dim=1) * STEP_HOURS,
         served_mwh=served_mwh,
         curtailed_mwh=(demand_total - served_total).sum(dim=1) * STEP_HOURS,
-        critical_service_ratio=critical_served_mwh / critical_demand_mwh.clamp_min(EPSILON),
-        utilization=utilization.mean(dim=1),
-        fairness=fairness.mean(dim=1),
-        switching_rate=switching.mean(dim=1),
-        oversubscription=oversubscription.mean(dim=1),
+        critical_service_ratio=episode_pooled_critical_service_ratio,
+        utilization=hourly_supply_utilization_ratio.mean(dim=1),
+        fairness=hourly_cumulative_locality_jain_fairness.mean(dim=1),
+        switching_rate=hourly_switching_rate.mean(dim=1),
+        oversubscription=hourly_oversubscription_ratio.mean(dim=1),
         power_balance_violation_rate=(served_total > supply + POWER_BALANCE_TOLERANCE_MW)
         .to(dtype)
         .mean(dim=1),

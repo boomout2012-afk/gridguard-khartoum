@@ -104,6 +104,21 @@ def test_metrics_expose_one_tensor_per_episode_without_materializing_rows() -> N
     )
 
 
+def test_metric_aliases_state_the_episode_aggregation_rules_explicitly() -> None:
+    scenario = generate_scenarios(
+        2,
+        seed=23,
+        shortage_level=ShortageLevel.MODERATE,
+        device="cpu",
+    )
+
+    metrics = compute_episode_metrics(simulate(scenario, FixedRotationController()))
+
+    assert metrics.episode_pooled_critical_service_ratio is metrics.critical_service_ratio
+    assert metrics.mean_hourly_supply_utilization_ratio is metrics.utilization
+    assert metrics.mean_hourly_cumulative_locality_jain_fairness is metrics.fairness
+
+
 def test_episode_metrics_reject_nonfinite_values() -> None:
     values = {
         name: torch.ones(2, dtype=torch.float32) for name in EpisodeMetrics.__dataclass_fields__

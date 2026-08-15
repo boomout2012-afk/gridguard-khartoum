@@ -25,7 +25,7 @@ from gridguard.policy import (
     load_ppo_policy,
 )
 from gridguard.provenance import sha256_file
-from gridguard.scenarios import generate_scenarios
+from gridguard.scenarios import generate_scenario_base_draws, scenario_from_base_draws
 from gridguard.simulation import simulate
 from gridguard.statistics import (
     DEFAULT_BOOTSTRAP_REPLICATES,
@@ -279,9 +279,9 @@ def build_paired_benchmark_payload(
     ppo_values: np.ndarray[Any, Any],
     bootstrap_values: np.ndarray[Any, Any],
     provenance: Mapping[str, object],
-    frozen_maximum_absolute_error: Mapping[str, float],
+    frozen_benchmark_path: str | Path,
 ) -> dict[str, Any]:
-    """Build canonical-ready evidence at the single final host serialization boundary."""
+    """Build canonical-ready evidence and measure parity against the frozen artifact."""
 
     expected_shape = (len(SEVERITIES), len(SEEDS), BATCH_SIZE, len(METRIC_ORDER))
     for name, values in (("fixed_values", fixed_values), ("ppo_values", ppo_values)):
@@ -301,6 +301,21 @@ def build_paired_benchmark_payload(
         )
     if bool((bootstrap_values[1] > bootstrap_values[2]).any()):
         raise EvaluationArtifactError("bootstrap lower limits must not exceed upper limits")
+
+    frozen_cells, _ = _load_frozen_cells(Path(frozen_benchmark_path))
+    frozen_maximum_absolute_error = _measure_frozen_cell_errors(
+        fixed_values,
+        ppo_values,
+        frozen_cells,
+    )
+    frozen_parity_status = (
+        "passed"
+        if all(
+            frozen_maximum_absolute_error[metric] <= tolerance
+            for metric, tolerance in FROZEN_ABSOLUTE_TOLERANCES.items()
+        )
+        else "failed"
+    )
 
     paired_rows: list[dict[str, Any]] = []
     cells: list[dict[str, Any]] = []
@@ -369,7 +384,7 @@ def build_paired_benchmark_payload(
             "absolute_tolerances": dict(FROZEN_ABSOLUTE_TOLERANCES),
             "comparison_granularity": "18 controller batch-cell summaries",
             "maximum_absolute_error": dict(frozen_maximum_absolute_error),
-            "status": "passed",
+            "status": frozen_parity_status,
         },
         "limitations": list(_LIMITATIONS),
         "metric_definitions": {
@@ -422,10 +437,20 @@ def canonical_paired_json_bytes(payload: object) -> bytes:
     return f"{encoded}\n".encode()
 
 
-def write_paired_benchmark(payload: Mapping[str, object], path: str | Path) -> str:
-    """Validate and atomically write a canonical paired benchmark."""
+def write_paired_benchmark(
+    payload: Mapping[str, object],
+    path: str | Path,
+    *,
+    frozen_benchmark_path: str | Path | None = None,
+) -> str:
+    """Atomically write neutral evidence, optionally enforcing the release claim gate."""
 
     validate_paired_benchmark_payload(payload)
+    if frozen_benchmark_path is not None:
+        assert_paired_benchmark_release_claims(
+            payload,
+            frozen_benchmark_path=frozen_benchmark_path,
+        )
     encoded = canonical_paired_json_bytes(payload)
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -444,7 +469,7 @@ def verify_paired_benchmark(
     expected_sha256: str,
     frozen_benchmark_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Verify trust anchor, canonical bytes, duplicate safety, and all identities."""
+    """Verify neutral integrity, plus release claims when the frozen artifact is supplied."""
 
     if type(expected_sha256) is not str or not _SHA256_PATTERN.fullmatch(expected_sha256):
         raise EvaluationArtifactError("expected_sha256 must be a lowercase SHA-256 digest")
@@ -474,7 +499,10 @@ def verify_paired_benchmark(
         raise EvaluationArtifactError("paired benchmark bytes are not in canonical form")
     validate_paired_benchmark_payload(mapping)
     if frozen_benchmark_path is not None:
-        _cross_check_frozen_parity(mapping, Path(frozen_benchmark_path))
+        assert_paired_benchmark_release_claims(
+            mapping,
+            frozen_benchmark_path=frozen_benchmark_path,
+        )
     return mapping
 
 
@@ -592,62 +620,66 @@ def _validate_protocol(value: object) -> None:
         )
 
 
-def _validate_provenance(value: object) -> None:
+def _validate_provenance_schema(value: object) -> None:
     provenance = _require_mapping(value, field="provenance")
     _require_exact_fields(
         provenance,
         frozenset({"frozen_benchmark", "ppo_actor", "ppo_manifest", "source_checkpoint"}),
         "provenance",
     )
-    expected_paths = {
-        "frozen_benchmark": "data/evidence/frozen-benchmark.json",
-        "ppo_actor": "data/model/ppo-policy.npz",
-        "ppo_manifest": "data/model/manifest.json",
-    }
-    expected_artifacts = {
-        "frozen_benchmark": {
-            "path": expected_paths["frozen_benchmark"],
-            "sha256": FROZEN_BENCHMARK_SHA256,
-            "size_bytes": FROZEN_BENCHMARK_SIZE_BYTES,
-        },
-        "ppo_actor": {
-            "path": expected_paths["ppo_actor"],
-            "sha256": BUNDLED_ARTIFACT_SHA256,
-            "size_bytes": PPO_ARTIFACT_SIZE_BYTES,
-        },
-        "ppo_manifest": {
-            "path": expected_paths["ppo_manifest"],
-            "sha256": PPO_MANIFEST_SHA256,
-            "size_bytes": PPO_MANIFEST_SIZE_BYTES,
-        },
-    }
-    for name, expected_path in expected_paths.items():
+    for name in ("frozen_benchmark", "ppo_actor", "ppo_manifest"):
         artifact = _require_mapping(provenance[name], field=f"provenance.{name}")
         _require_exact_fields(
             artifact, frozenset({"path", "sha256", "size_bytes"}), f"provenance.{name}"
         )
-        if artifact["path"] != expected_path:
-            raise EvaluationArtifactError(f"provenance.{name}.path is not the locked relative path")
+        if type(artifact["path"]) is not str or not artifact["path"]:
+            raise EvaluationArtifactError(f"provenance.{name}.path must be a non-empty string")
         if type(artifact["sha256"]) is not str or not _SHA256_PATTERN.fullmatch(artifact["sha256"]):
             raise EvaluationArtifactError(f"provenance.{name}.sha256 is invalid")
         if type(artifact["size_bytes"]) is not int or artifact["size_bytes"] <= 0:
             raise EvaluationArtifactError(f"provenance.{name}.size_bytes must be positive")
-        if artifact != expected_artifacts[name]:
-            raise EvaluationArtifactError(f"provenance.{name} is not the locked artifact")
     source = _require_mapping(provenance["source_checkpoint"], field="provenance.source_checkpoint")
     _require_exact_fields(
         source,
         frozenset({"path", "sha256", "source_revision"}),
         "provenance.source_checkpoint",
     )
-    if source["path"] != "artifacts/checkpoints/best.pt":
-        raise EvaluationArtifactError("provenance.source_checkpoint.path is invalid")
+    if type(source["path"]) is not str or not source["path"]:
+        raise EvaluationArtifactError(
+            "provenance.source_checkpoint.path must be a non-empty string"
+        )
     if type(source["sha256"]) is not str or not _SHA256_PATTERN.fullmatch(source["sha256"]):
         raise EvaluationArtifactError("provenance.source_checkpoint.sha256 is invalid")
     if type(source["source_revision"]) is not str or not _REVISION_PATTERN.fullmatch(
         source["source_revision"]
     ):
         raise EvaluationArtifactError("provenance.source_checkpoint.source_revision is invalid")
+
+
+def _assert_locked_provenance(value: object) -> None:
+    provenance = _require_mapping(value, field="provenance")
+    expected_artifacts = {
+        "frozen_benchmark": {
+            "path": "data/evidence/frozen-benchmark.json",
+            "sha256": FROZEN_BENCHMARK_SHA256,
+            "size_bytes": FROZEN_BENCHMARK_SIZE_BYTES,
+        },
+        "ppo_actor": {
+            "path": "data/model/ppo-policy.npz",
+            "sha256": BUNDLED_ARTIFACT_SHA256,
+            "size_bytes": PPO_ARTIFACT_SIZE_BYTES,
+        },
+        "ppo_manifest": {
+            "path": "data/model/manifest.json",
+            "sha256": PPO_MANIFEST_SHA256,
+            "size_bytes": PPO_MANIFEST_SIZE_BYTES,
+        },
+    }
+    for name, expected in expected_artifacts.items():
+        artifact = _require_mapping(provenance[name], field=f"provenance.{name}")
+        if artifact != expected:
+            raise EvaluationArtifactError(f"provenance.{name} is not the locked artifact")
+    source = _require_mapping(provenance["source_checkpoint"], field="provenance.source_checkpoint")
     expected_source = {
         "path": SOURCE_CHECKPOINT_PATH,
         "sha256": SOURCE_CHECKPOINT_SHA256,
@@ -658,7 +690,7 @@ def _validate_provenance(value: object) -> None:
 
 
 def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
-    """Fail closed on schema, counts, pairing, aggregates, and inference drift."""
+    """Validate neutral schema, physical identities, pairing, and arithmetic integrity."""
 
     root = _require_mapping(payload, field="paired benchmark")
     _require_exact_fields(root, _TOP_LEVEL_FIELDS, "paired benchmark")
@@ -667,7 +699,7 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
     if root["benchmark_id"] != "proposal-ppo-vs-fixed-rotation-paired":
         raise EvaluationArtifactError("unexpected paired benchmark identity")
     _validate_protocol(root["protocol"])
-    _validate_provenance(root["provenance"])
+    _validate_provenance_schema(root["provenance"])
     if root["limitations"] != _LIMITATIONS:
         raise EvaluationArtifactError("limitations do not match the reviewed evidence scope")
     if root["metric_definitions"] != METRIC_DEFINITIONS:
@@ -780,17 +812,6 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
             raise EvaluationArtifactError(f"paired_inference.{metric}.mean_delta drifted")
         if lower > upper:
             raise EvaluationArtifactError(f"paired_inference.{metric} interval is reversed")
-        if not lower <= mean_delta <= upper:
-            raise EvaluationArtifactError(
-                f"paired_inference.{metric} interval must contain its mean delta"
-            )
-        direction = METRIC_DEFINITIONS[metric]["direction"]
-        if (direction == "higher_is_better" and lower <= 0.0) or (
-            direction == "lower_is_better" and upper >= 0.0
-        ):
-            raise EvaluationArtifactError(
-                f"paired_inference.{metric} interval does not support its favorable direction"
-            )
 
     parity = _require_mapping(root["frozen_parity"], field="frozen_parity")
     _require_exact_fields(
@@ -800,22 +821,66 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
         ),
         "frozen_parity",
     )
-    if parity["status"] != "passed" or parity["comparison_granularity"] != (
-        "18 controller batch-cell summaries"
-    ):
-        raise EvaluationArtifactError("frozen_parity did not pass the reviewed comparison")
+    if parity["status"] not in {"passed", "failed"}:
+        raise EvaluationArtifactError("frozen_parity.status must be passed or failed")
+    if parity["comparison_granularity"] != "18 controller batch-cell summaries":
+        raise EvaluationArtifactError("frozen_parity comparison granularity drifted")
     if parity["absolute_tolerances"] != FROZEN_ABSOLUTE_TOLERANCES:
         raise EvaluationArtifactError("frozen_parity tolerances drifted")
     errors = _require_mapping(
         parity["maximum_absolute_error"], field="frozen_parity.maximum_absolute_error"
     )
     _require_exact_fields(errors, frozenset(FROZEN_METRICS), "frozen_parity.maximum_absolute_error")
-    for metric, tolerance in FROZEN_ABSOLUTE_TOLERANCES.items():
+    normalized_errors: dict[str, float] = {}
+    for metric in FROZEN_ABSOLUTE_TOLERANCES:
         error = _number(errors[metric], field=f"frozen_parity.maximum_absolute_error.{metric}")
-        if error < 0.0 or error > tolerance:
+        if error < 0.0:
             raise EvaluationArtifactError(
-                f"frozen parity failed for {metric}: error {error} exceeds {tolerance}"
+                f"frozen_parity.maximum_absolute_error.{metric} must not be negative"
             )
+        normalized_errors[metric] = error
+    expected_status = (
+        "passed"
+        if all(
+            normalized_errors[metric] <= tolerance
+            for metric, tolerance in FROZEN_ABSOLUTE_TOLERANCES.items()
+        )
+        else "failed"
+    )
+    if parity["status"] != expected_status:
+        raise EvaluationArtifactError(
+            "frozen_parity.status is inconsistent with its declared errors"
+        )
+
+
+def assert_paired_benchmark_release_claims(
+    payload: Mapping[str, object],
+    *,
+    frozen_benchmark_path: str | Path,
+) -> None:
+    """Assert the locked release claims using the mandatory hashed frozen benchmark."""
+
+    validate_paired_benchmark_payload(payload)
+    root = _require_mapping(payload, field="paired benchmark")
+    _assert_locked_provenance(root["provenance"])
+
+    inference = _require_mapping(root["paired_inference"], field="paired_inference")
+    for metric in INFERENCE_METRICS:
+        item = _require_mapping(inference[metric], field=f"paired_inference.{metric}")
+        lower = _number(item["ci95_lower"], field=f"paired_inference.{metric}.ci95_lower")
+        upper = _number(item["ci95_upper"], field=f"paired_inference.{metric}.ci95_upper")
+        direction = METRIC_DEFINITIONS[metric]["direction"]
+        if (direction == "higher_is_better" and lower <= 0.0) or (
+            direction == "lower_is_better" and upper >= 0.0
+        ):
+            raise EvaluationArtifactError(
+                f"paired_inference.{metric} interval does not support its favorable direction"
+            )
+
+    _cross_check_frozen_parity(root, Path(frozen_benchmark_path))
+    parity = _require_mapping(root["frozen_parity"], field="frozen_parity")
+    if parity["status"] != "passed":
+        raise EvaluationArtifactError("frozen parity did not pass the reviewed comparison")
 
 
 def _reject_duplicate_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -964,13 +1029,12 @@ def _episode_metric_matrix(metrics: EpisodeMetrics) -> torch.Tensor:
     return matrix
 
 
-def _compare_frozen_cells(
+def _measure_frozen_cell_errors(
     fixed_values: np.ndarray[Any, Any],
     ppo_values: np.ndarray[Any, Any],
     frozen_cells: Mapping[tuple[str, int, str], Mapping[str, float]],
 ) -> dict[str, float]:
     maximum_error = {metric: 0.0 for metric in FROZEN_METRICS}
-    failures: list[str] = []
     for severity_index, severity in enumerate(SEVERITIES):
         for seed_index, seed in enumerate(SEEDS):
             for controller, values in (
@@ -988,17 +1052,6 @@ def _compare_frozen_cells(
                     )
                     error = abs(actual - accepted[metric])
                     maximum_error[metric] = max(maximum_error[metric], error)
-                    tolerance = FROZEN_ABSOLUTE_TOLERANCES[metric]
-                    if error > tolerance:
-                        failures.append(
-                            f"{severity}/{seed}/{controller}/{metric}: "
-                            f"expected={accepted[metric]!r}, actual={actual!r}, "
-                            f"absolute_error={error!r}, tolerance={tolerance!r}"
-                        )
-    if failures:
-        raise EvaluationArtifactError(
-            "regenerated evidence differs from the frozen benchmark; " + "; ".join(failures)
-        )
     return maximum_error
 
 
@@ -1070,7 +1123,7 @@ def run_full_paired_evaluation(
 
     manifest_path = Path(ppo_manifest_path)
     frozen_path = Path(frozen_benchmark_path)
-    frozen_cells, frozen_size_bytes = _load_frozen_cells(frozen_path)
+    _, frozen_size_bytes = _load_frozen_cells(frozen_path)
     policy = load_ppo_policy(
         manifest_path,
         expected_artifact_sha256=expected_ppo_artifact_sha256,
@@ -1079,13 +1132,15 @@ def run_full_paired_evaluation(
 
     fixed_cells: list[torch.Tensor] = []
     ppo_cells: list[torch.Tensor] = []
+    base_draws_by_seed = {
+        seed: generate_scenario_base_draws(BATCH_SIZE, seed, device=resolved_device)
+        for seed in SEEDS
+    }
     for shortage_level in SEVERITIES:
         for seed in SEEDS:
-            scenario = generate_scenarios(
-                BATCH_SIZE,
-                seed,
+            scenario = scenario_from_base_draws(
+                base_draws_by_seed[seed],
                 shortage_level,
-                device=resolved_device,
             )
             evaluated = evaluate_scenario_pair(scenario, ppo_controller=ppo_controller)
             if (
@@ -1135,7 +1190,6 @@ def run_full_paired_evaluation(
         3, len(INFERENCE_METRICS)
     )
 
-    maximum_error = _compare_frozen_cells(fixed_host, ppo_host, frozen_cells)
     provenance = _build_provenance(
         manifest_path=manifest_path,
         expected_actor_sha256=expected_ppo_artifact_sha256,
@@ -1146,5 +1200,5 @@ def run_full_paired_evaluation(
         ppo_values=ppo_host,
         bootstrap_values=bootstrap_host,
         provenance=provenance,
-        frozen_maximum_absolute_error=maximum_error,
+        frozen_benchmark_path=frozen_path,
     )

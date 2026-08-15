@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+from dataclasses import FrozenInstanceError
 
 import pytest
 import torch
 
 from gridguard.domain import ShortageLevel
-from gridguard.scenarios import generate_scenario, generate_scenarios
+from gridguard.scenarios import (
+    ScenarioBaseDraws,
+    generate_scenario,
+    generate_scenario_base_draws,
+    generate_scenarios,
+    scenario_from_base_draws,
+)
 
 
 def _fingerprint(demand: torch.Tensor, supply: torch.Tensor) -> str:
@@ -51,6 +58,37 @@ def test_different_seeds_change_both_noisy_traces() -> None:
 
     assert not torch.equal(first.demand, second.demand)
     assert not torch.equal(first.supply, second.supply)
+
+
+def test_all_shortage_levels_are_pure_transforms_of_one_immutable_base_draw() -> None:
+    base_draws = generate_scenario_base_draws(3, 917, device="cpu")
+    demand_draws_before = base_draws.demand_uniform.clone()
+    supply_draws_before = base_draws.supply_uniform.clone()
+
+    scenarios = tuple(
+        scenario_from_base_draws(base_draws, shortage_level) for shortage_level in ShortageLevel
+    )
+
+    assert isinstance(base_draws, ScenarioBaseDraws)
+    assert all(torch.equal(scenario.demand, scenarios[0].demand) for scenario in scenarios[1:])
+    assert all(scenario.seed == base_draws.seed for scenario in scenarios)
+    assert torch.equal(base_draws.demand_uniform, demand_draws_before)
+    assert torch.equal(base_draws.supply_uniform, supply_draws_before)
+    with pytest.raises(FrozenInstanceError):
+        base_draws.seed = 918  # type: ignore[misc]
+
+
+@pytest.mark.parametrize("shortage_level", list(ShortageLevel))
+def test_compatibility_generator_matches_explicit_base_draw_transform(
+    shortage_level: ShortageLevel,
+) -> None:
+    base_draws = generate_scenario_base_draws(3, 481, device="cpu")
+
+    explicit = scenario_from_base_draws(base_draws, shortage_level)
+    compatible = generate_scenarios(3, 481, shortage_level, device="cpu")
+
+    assert torch.equal(explicit.demand, compatible.demand)
+    assert torch.equal(explicit.supply, compatible.supply)
 
 
 @pytest.mark.parametrize(
