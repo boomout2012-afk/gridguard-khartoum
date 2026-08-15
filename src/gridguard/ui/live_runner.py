@@ -17,16 +17,26 @@ from gridguard.domain import (
     SimulationResult,
 )
 from gridguard.forecast import causal_demand_projection
+from gridguard.metrics import EpisodeMetrics, compute_episode_metrics
 from gridguard.policy import BUNDLED_ARTIFACT_SHA256, load_ppo_policy
 from gridguard.resources import resource_path
 from gridguard.scenarios import generate_scenario
 from gridguard.simulation import simulate
 from gridguard.ui.live_models import (
+    LiveEpisodeSummary,
     LiveScenarioComparison,
     LiveScenarioFrame,
     LocalityHourDetail,
 )
 from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS
+
+_LIVE_METRIC_FIELDS = (
+    "served_mwh",
+    "critical_service_ratio",
+    "fairness",
+    "curtailed_mwh",
+    "power_balance_violation_rate",
+)
 
 
 @dataclass(frozen=True, slots=True, eq=False)
@@ -137,9 +147,27 @@ def build_live_comparison(execution: LiveCudaExecution) -> LiveScenarioCompariso
     if packed_display.device.type != "cuda" or packed_display.device.index != 0:
         raise ValueError("live display tensor left cuda:0 before final transfer")
 
-    # This is the only bulk device-to-host transfer in the UI runner. All simulation,
-    # dispatch, and PPO inference tensors stay on cuda:0 until this 24×127 display tensor.
-    host_rows = packed_display.to(device="cpu", non_blocking=False).tolist()
+    # Frame and summary tensors remain device-resident until the transfer below.
+    ppo_metrics = compute_episode_metrics(execution.ppo)
+    fixed_metrics = compute_episode_metrics(execution.fixed_rotation)
+    packed_metrics = torch.cat(
+        tuple(
+            getattr(metrics, name)
+            for metrics in (ppo_metrics, fixed_metrics)
+            for name in _LIVE_METRIC_FIELDS
+        )
+    )
+    packed_transfer = torch.cat((packed_display.reshape(-1), packed_metrics))
+
+    # Simulation, inference, frame data, and aggregate metrics stay on cuda:0
+    # until this single bulk device-to-host presentation transfer.
+    host_values = packed_transfer.to(device="cpu", non_blocking=False).tolist()
+    frame_value_count = 24 * expected_width
+    host_rows = [
+        host_values[start : start + expected_width]
+        for start in range(0, frame_value_count, expected_width)
+    ]
+    host_metrics = host_values[frame_value_count:]
     ppo_frames: list[LiveScenarioFrame] = []
     fixed_frames: list[LiveScenarioFrame] = []
     for hour, row in enumerate(host_rows):
@@ -170,6 +198,12 @@ def build_live_comparison(execution: LiveCudaExecution) -> LiveScenarioCompariso
         frames_by_controller={
             ControllerName.PPO.value: tuple(ppo_frames),
             ControllerName.FIXED_ROTATION.value: tuple(fixed_frames),
+        },
+        metrics_by_controller={
+            ControllerName.PPO.value: _episode_summary(host_metrics[:5], ppo_metrics),
+            ControllerName.FIXED_ROTATION.value: _episode_summary(
+                host_metrics[5:], fixed_metrics
+            ),
         },
     )
 
@@ -225,4 +259,15 @@ def _frame(
         demand_mw=sum(demand_values),
         supply_mw=supply_mw,
         locality_details=details,
+    )
+
+
+def _episode_summary(
+    values: Sequence[float],
+    metrics: EpisodeMetrics,
+) -> LiveEpisodeSummary:
+    if metrics.batch_size != 1 or len(values) != len(_LIVE_METRIC_FIELDS):
+        raise ValueError("live aggregate metrics have an unexpected shape")
+    return LiveEpisodeSummary(
+        **dict(zip(_LIVE_METRIC_FIELDS, values, strict=True)),
     )

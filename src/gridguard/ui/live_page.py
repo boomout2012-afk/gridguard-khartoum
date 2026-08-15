@@ -5,15 +5,22 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QAccessible, QAccessibleEvent
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QComboBox,
     QFormLayout,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
+    QListWidget,
+    QListWidgetItem,
     QPushButton,
     QSlider,
     QSpinBox,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -69,9 +76,36 @@ class LiveScenarioPage(QWidget):
         self.state_label = QLabel("No live scenario has been run. Choose inputs, then run on GPU.")
         self.state_label.setProperty("muted", True)
         self.state_label.setWordWrap(True)
-        self.state_label.setAccessibleName("Live scenario state")
         controls.content.addWidget(self.state_label)
         layout.addWidget(controls)
+
+        self.comparison_caption = QLabel(
+            "Live demonstration · matched aggregate metrics from this run"
+        )
+        self.comparison_caption.setProperty("eyebrow", True)
+        layout.addWidget(self.comparison_caption)
+        self.comparison_table = QTableWidget(2, 6)
+        self.comparison_table.setAccessibleName("Live demonstration aggregate comparison")
+        self.comparison_table.setHorizontalHeaderLabels(
+            (
+                "Controller",
+                "Served energy",
+                "Critical service",
+                "Fairness",
+                "Curtailed",
+                "Balance violations",
+            )
+        )
+        self.comparison_table.verticalHeader().hide()
+        self.comparison_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.comparison_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.comparison_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.comparison_table.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.comparison_table.setFixedHeight(100)
+        self._clear_comparison_metrics()
+        layout.addWidget(self.comparison_table)
 
         body = QHBoxLayout()
         body.setSpacing(12)
@@ -105,6 +139,21 @@ class LiveScenarioPage(QWidget):
 
         side = QVBoxLayout()
         side.setSpacing(8)
+        self.locality_list = QListWidget()
+        self.locality_list.setAccessibleName("Khartoum localities")
+        self.locality_list.setAccessibleDescription(
+            "Select a locality to synchronize the administrative map and detail panel."
+        )
+        self.locality_list.setFixedHeight(112)
+        localities = {locality.locality_id: locality for locality in asset.localities}
+        for locality_id in asset.keyboard_order:
+            item = QListWidgetItem(f"{localities[locality_id].name} — not run")
+            item.setData(Qt.ItemDataRole.UserRole, locality_id)
+            self.locality_list.addItem(item)
+        self.locality_list.currentItemChanged.connect(self._select_locality_from_list)
+        selected_id = self.map_view.selected_locality_id or asset.keyboard_order[0]
+        self._sync_locality_list(selected_id)
+        side.addWidget(self.locality_list)
         self.locality_card = CardFrame(accessible_name="Selected locality details")
         self.locality_card.content.setContentsMargins(12, 10, 12, 10)
         self.locality_card.content.setSpacing(4)
@@ -139,7 +188,6 @@ class LiveScenarioPage(QWidget):
         self.locality_projection.setProperty("muted", True)
         self.locality_projection.setProperty("compact", True)
         self.locality_projection.setWordWrap(True)
-        self.locality_projection.setAccessibleName("Selected locality next-hour demand projection")
         self.locality_projection.setAccessibleDescription(
             "A causal trailing three-hour mean for display only; it is not used by PPO "
             "or frozen evidence."
@@ -178,8 +226,12 @@ class LiveScenarioPage(QWidget):
 
         self._comparison = None
         self.controller_combo.setEnabled(False)
+        self._clear_comparison_metrics()
         self._install_frames(frames)
-        self.state_label.setText("GPU simulation complete · use the hour control to explore.")
+        _set_accessible_text(
+            self.state_label,
+            "GPU simulation complete · use the hour control to explore.",
+        )
 
     def set_comparison(self, comparison: LiveScenarioComparison) -> None:
         """Install both controller timelines from one shared CUDA scenario."""
@@ -191,8 +243,12 @@ class LiveScenarioPage(QWidget):
         self.controller_combo.setCurrentText(ControllerName.PPO.value)
         self.controller_combo.blockSignals(False)
         self.controller_combo.setEnabled(True)
+        self._show_comparison_metrics(comparison)
         self._install_frames(comparison.frames(ControllerName.PPO.value))
-        self.state_label.setText("GPU comparison complete · showing PPO on the shared scenario.")
+        _set_accessible_text(
+            self.state_label,
+            "GPU comparison complete · showing PPO on the shared scenario.",
+        )
 
     def set_busy(self, busy: bool) -> None:
         """Lock scenario inputs while a background GPU run is active."""
@@ -201,7 +257,10 @@ class LiveScenarioPage(QWidget):
         self.seed_input.setEnabled(not busy)
         self.run_button.setEnabled(not busy)
         if busy:
-            self.state_label.setText("Running both controllers on the shared CUDA scenario…")
+            _set_accessible_text(
+                self.state_label,
+                "Running both controllers on the shared CUDA scenario…",
+            )
 
     def _install_frames(
         self,
@@ -225,8 +284,9 @@ class LiveScenarioPage(QWidget):
         self._comparison = None
         self.timeline.setEnabled(False)
         self.controller_combo.setEnabled(False)
+        self._clear_comparison_metrics()
         self.set_busy(False)
-        self.state_label.setText(f"GPU simulation unavailable: {message}")
+        _set_accessible_text(self.state_label, f"GPU simulation unavailable: {message}")
 
     def _request_run(self) -> None:
         shortage = self.shortage_combo.currentText().casefold()
@@ -235,7 +295,11 @@ class LiveScenarioPage(QWidget):
         self._comparison = None
         self.timeline.setEnabled(False)
         self.controller_combo.setEnabled(False)
-        self.state_label.setText("Scenario requested · awaiting verified GPU simulation output.")
+        self._clear_comparison_metrics()
+        _set_accessible_text(
+            self.state_label,
+            "Scenario requested · awaiting verified GPU simulation output.",
+        )
         self.run_requested.emit(shortage, seed)
 
     def _select_controller(self, controller_name: str) -> None:
@@ -245,7 +309,8 @@ class LiveScenarioPage(QWidget):
             self._comparison.frames(controller_name),
             reset_hour=False,
         )
-        self.state_label.setText(
+        _set_accessible_text(
+            self.state_label,
             f"GPU comparison complete · showing {controller_name} on the shared scenario."
         )
 
@@ -253,24 +318,34 @@ class LiveScenarioPage(QWidget):
         frame = self._frames.get(hour)
         if frame is None:
             return
-        self.hour_label.setText(
+        _set_accessible_text(
+            self.hour_label,
             f"Hour {hour:02d}:00  ·  demand {frame.demand_mw:,.0f} MW  ·  "
             f"supply {frame.supply_mw:,.0f} MW"
         )
         self.map_view.set_service_tiers(frame.service_tiers)
+        for row in range(self.locality_list.count()):
+            list_item = self.locality_list.item(row)
+            locality_id = list_item.data(Qt.ItemDataRole.UserRole)
+            map_item = self.map_view.locality_items[locality_id]
+            list_item.setText(f"{map_item.locality.name} — {map_item.status_text}")
         self._update_selected_locality(self.map_view.selected_locality_id or "khartoum")
 
     def _update_selected_locality(self, locality_id: str) -> None:
+        self._sync_locality_list(locality_id)
         item = self.map_view.locality_items[locality_id]
         self.locality_name.setText(item.locality.name)
         frame = self._frames.get(self.timeline.value())
         if frame is None:
             self.locality_context.setText("No controller output · Hour —")
-            self.locality_status.setText("Status: not run")
+            _set_accessible_text(self.locality_status, "Status: not run")
             self.locality_demand.setText("—")
             self.locality_served.setText("—")
             self.locality_critical.setText("—")
-            self.locality_projection.setText("Next hour: — · DISPLAY ONLY\nNot PPO input/evidence.")
+            _set_accessible_text(
+                self.locality_projection,
+                "Next hour: — · DISPLAY ONLY\nNot PPO input/evidence.",
+            )
             for label in self.sector_service_labels.values():
                 label.setText("—")
             return
@@ -278,20 +353,74 @@ class LiveScenarioPage(QWidget):
         controller = self.controller_combo.currentText()
         detail = frame.locality_details[locality_id]
         self.locality_context.setText(f"{controller} · Hour {frame.hour:02d}:00")
-        self.locality_status.setText(f"Service tier: {item.status_text}")
+        _set_accessible_text(self.locality_status, f"Service tier: {item.status_text}")
         self.locality_demand.setText(f"{detail.demand_mw:.1f} MW")
         self.locality_served.setText(f"{detail.served_mw:.1f} MW")
         self.locality_critical.setText(f"{detail.critical_service_ratio:.1%}")
         projected_demand = detail.next_hour_projected_demand_mw
         if projected_demand is None:
             reason = "needs 3-hour history" if frame.hour < 2 else "end of trace"
-            self.locality_projection.setText(
+            _set_accessible_text(
+                self.locality_projection,
                 f"Next hour: unavailable ({reason}) · DISPLAY ONLY\nNot PPO input/evidence."
             )
         else:
-            self.locality_projection.setText(
+            _set_accessible_text(
+                self.locality_projection,
                 f"Next hour {frame.hour + 1:02d}:00: {projected_demand:.1f} MW "
                 "· DISPLAY ONLY\nTrailing 3-hour mean; not PPO input/evidence."
             )
         for sector, ratio in detail.sector_service_ratio.items():
             self.sector_service_labels[sector].setText(f"{ratio:.1%}")
+
+    def _select_locality_from_list(
+        self,
+        current: QListWidgetItem | None,
+        _previous: QListWidgetItem | None,
+    ) -> None:
+        if current is None:
+            return
+        locality_id = current.data(Qt.ItemDataRole.UserRole)
+        if locality_id != self.map_view.selected_locality_id:
+            self.map_view.select_locality(locality_id)
+
+    def _sync_locality_list(self, locality_id: str) -> None:
+        for row in range(self.locality_list.count()):
+            if self.locality_list.item(row).data(Qt.ItemDataRole.UserRole) == locality_id:
+                self.locality_list.blockSignals(True)
+                self.locality_list.setCurrentRow(row)
+                self.locality_list.blockSignals(False)
+                return
+
+    def _clear_comparison_metrics(self) -> None:
+        for row, controller in enumerate(
+            (ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value)
+        ):
+            values = (controller, "—", "—", "—", "—", "—")
+            for column, value in enumerate(values):
+                self.comparison_table.setItem(row, column, QTableWidgetItem(value))
+
+    def _show_comparison_metrics(self, comparison: LiveScenarioComparison) -> None:
+        for row, controller in enumerate(
+            (ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value)
+        ):
+            metrics = comparison.metrics(controller)
+            values = (
+                controller,
+                f"{metrics.served_mwh:,.0f} MWh",
+                f"{metrics.critical_service_ratio:.1%}",
+                f"{metrics.fairness:.1%}",
+                f"{metrics.curtailed_mwh:,.0f} MWh",
+                f"{metrics.power_balance_violation_rate:.1%}",
+            )
+            for column, value in enumerate(values):
+                self.comparison_table.setItem(row, column, QTableWidgetItem(value))
+
+
+def _set_accessible_text(label: QLabel, text: str) -> None:
+    """Update a dynamic label and notify assistive technology of its new name."""
+
+    label.setText(text)
+    QAccessible.updateAccessibility(
+        QAccessibleEvent(label, QAccessible.Event.NameChanged)
+    )

@@ -87,6 +87,43 @@ class LiveScenarioFrame:
 
 
 @dataclass(frozen=True, slots=True)
+class LiveEpisodeSummary:
+    """Host-side aggregate metrics for one live controller episode."""
+
+    served_mwh: float
+    critical_service_ratio: float
+    fairness: float
+    curtailed_mwh: float
+    power_balance_violation_rate: float
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "served_mwh",
+            _nonnegative_number(self.served_mwh, field="served_mwh"),
+        )
+        object.__setattr__(
+            self,
+            "critical_service_ratio",
+            _ratio(self.critical_service_ratio, field="critical_service_ratio"),
+        )
+        object.__setattr__(self, "fairness", _ratio(self.fairness, field="fairness"))
+        object.__setattr__(
+            self,
+            "curtailed_mwh",
+            _nonnegative_number(self.curtailed_mwh, field="curtailed_mwh"),
+        )
+        object.__setattr__(
+            self,
+            "power_balance_violation_rate",
+            _ratio(
+                self.power_balance_violation_rate,
+                field="power_balance_violation_rate",
+            ),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class LiveScenarioComparison:
     """Twenty-four display frames for both controllers on one shared scenario."""
 
@@ -94,6 +131,7 @@ class LiveScenarioComparison:
     seed: int
     device: str
     frames_by_controller: Mapping[str, Sequence[LiveScenarioFrame]]
+    metrics_by_controller: Mapping[str, LiveEpisodeSummary]
 
     def __post_init__(self) -> None:
         try:
@@ -111,6 +149,8 @@ class LiveScenarioComparison:
         names = (ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value)
         if set(self.frames_by_controller) != set(names):
             raise ValueError("live comparison must contain exactly PPO and Fixed Rotation")
+        if set(self.metrics_by_controller) != set(names):
+            raise ValueError("live metrics must contain exactly PPO and Fixed Rotation")
 
         normalized: dict[str, tuple[LiveScenarioFrame, ...]] = {}
         for name in names:
@@ -138,12 +178,27 @@ class LiveScenarioComparison:
 
         object.__setattr__(self, "shortage_level", shortage.value)
         object.__setattr__(self, "frames_by_controller", MappingProxyType(normalized))
+        metrics = {
+            name: self.metrics_by_controller[name]
+            for name in names
+        }
+        if any(not isinstance(value, LiveEpisodeSummary) for value in metrics.values()):
+            raise TypeError("live metrics values must be LiveEpisodeSummary")
+        object.__setattr__(self, "metrics_by_controller", MappingProxyType(metrics))
 
     def frames(self, controller_name: str) -> tuple[LiveScenarioFrame, ...]:
         """Return the immutable timeline for one approved controller."""
 
         try:
             return self.frames_by_controller[ControllerName(controller_name).value]
+        except (KeyError, ValueError) as error:
+            raise KeyError(controller_name) from error
+
+    def metrics(self, controller_name: str) -> LiveEpisodeSummary:
+        """Return aggregate metrics for one approved live controller run."""
+
+        try:
+            return self.metrics_by_controller[ControllerName(controller_name).value]
         except (KeyError, ValueError) as error:
             raise KeyError(controller_name) from error
 
