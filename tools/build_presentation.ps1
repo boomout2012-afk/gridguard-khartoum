@@ -181,10 +181,10 @@ function Add-Chrome {
 
     $foreground = if ($Light) { $script:Ink } else { $script:OffWhite }
     $muted = if ($Light) { "60727D" } else { $script:Muted }
-    Add-Text $Slide "GRIDGUARD KHARTOUM" 48 20 270 18 11 $muted $true | Out-Null
+    Add-Text $Slide "GRIDGUARD KHARTOUM" 48 18 300 22 16 $muted $true | Out-Null
     Add-Line $Slide 48 42 912 42 $(if ($Light) { "CFD8DC" } else { $script:Grid }) 0.8 | Out-Null
-    Add-Text $Slide ([string]$Number) 882 508 30 16 10 $muted $false 3 | Out-Null
-    Add-Text $Slide "OFFLINE GPU RESEARCH SIMULATION" 48 507 280 16 9 $muted | Out-Null
+    Add-Text $Slide ([string]$Number) 878 503 34 22 16 $muted $false 3 | Out-Null
+    Add-Text $Slide "OFFLINE GPU RESEARCH SIMULATION" 48 503 320 22 16 $muted | Out-Null
 }
 
 function Add-SlideTitle {
@@ -253,8 +253,8 @@ function Add-ComparisonBar {
     Add-Box $Slide 270 ($Top + 2) (500 * $FixedFraction) 12 "71838D" "" 1 | Out-Null
     Add-Box $Slide 270 ($Top + 23) 500 12 $trackColor "" 1 | Out-Null
     Add-Box $Slide 270 ($Top + 23) (500 * $PpoFraction) 12 $script:Teal "" 1 | Out-Null
-    Add-Text $Slide $FixedLabel 790 ($Top - 3) 105 20 14 $(if ($Light) { "60727D" } else { $script:Muted }) | Out-Null
-    Add-Text $Slide $PpoLabel 790 ($Top + 18) 105 20 14 $textColor $true | Out-Null
+    Add-Text $Slide $FixedLabel 780 ($Top - 4) 120 22 16 $(if ($Light) { "60727D" } else { $script:Muted }) | Out-Null
+    Add-Text $Slide $PpoLabel 780 ($Top + 17) 120 22 16 $textColor $true | Out-Null
 }
 
 function Format-Percent {
@@ -462,14 +462,14 @@ try {
     # Slide 1 - title
     $slide = $presentation.Slides.Add(1, 12)
     Set-SlideBackground $slide $script:Navy
-    Add-Text $slide "GRADUATION PROJECT DEFENSE" 60 58 420 24 15 $script:Teal $true | Out-Null
+    Add-Text $slide "GRADUATION PROJECT DEFENSE" 60 58 420 24 16 $script:Teal $true | Out-Null
     Add-Text $slide "GridGuard Khartoum" 60 128 780 70 54 $script:OffWhite $true | Out-Null
     Add-Text $slide "PPO-assisted load shedding and energy management for developing countries" 60 212 760 68 26 $script:Gold | Out-Null
     Add-Line $slide 60 302 286 302 $script:Gold 5 | Out-Null
     Add-Text $slide "Murtada Asim Ibrahim Bakhit (18-317)" 60 345 420 24 17 $script:OffWhite | Out-Null
     Add-Text $slide "Suliman Elawad Suliman Babiker (18-310)" 60 374 420 24 17 $script:OffWhite | Out-Null
     Add-Text $slide "Abdalhay Abass Mobarak Abass (15-306)" 60 403 420 24 17 $script:OffWhite | Out-Null
-    Add-Text $slide "Offline research simulation  |  August 2026" 60 472 440 20 13 $script:Muted | Out-Null
+    Add-Text $slide "Offline research simulation  |  August 2026" 60 470 480 24 16 $script:Muted | Out-Null
     Add-Notes $slide ("Open with the project question: can a learned policy allocate limited modeled supply more effectively than a traditional schedule?`r`n`r`n[Sources]`r`n- docs/source/graduation-project-proposal.pdf`r`n- docs/REPORT.md`r`n[/Sources]")
 
     # Slide 2 - problem
@@ -483,9 +483,9 @@ try {
         "Share service across seven modeled localities"
     ) 58 160 330 21 $script:OffWhite 66 | Out-Null
     Add-Box $slide 425 140 485 273 $script:Slate $script:Grid 5 | Out-Null
-    Add-Picture $slide $overviewImage 432 147 471 265 "GridGuard overview showing the seven-locality schematic and frozen controller summary" | Out-Null
+    Add-Picture $slide $overviewImage 432 147 471 265 "GridGuard overview showing seven administrative locality boundaries and the frozen controller summary" | Out-Null
     Add-Text $slide "Synthetic decision-support scope - not a live grid controller" 58 438 790 30 17 $script:Teal $true | Out-Null
-    Add-Notes $slide ("Frame the problem as constrained allocation, not a claim that the simulator models the full electrical network. The schematic provides presentation context only.`r`n`r`n[Sources]`r`n- docs/METHODOLOGY.md (Simulation domain; Limitations)`r`n- docs/assets/screenshots/overview.png`r`n[/Sources]")
+    Add-Notes $slide ("Frame the problem as constrained allocation, not a claim that the simulator models the full electrical network. The administrative boundaries provide presentation context only.`r`n`r`n[Sources]`r`n- docs/METHODOLOGY.md (Simulation domain; Limitations)`r`n- docs/assets/screenshots/overview.png`r`n[/Sources]")
 
     # Slide 3 - system
     $slide = $presentation.Slides.Add(3, 12)
@@ -542,7 +542,7 @@ try {
     Add-Text $slide "scenarios`nsimulation`nPPO inference" 86 232 148 60 16 $script:Muted $false 2 | Out-Null
     Add-Box $slide 390 157 140 158 $script:Teal "" 5 | Out-Null
     Add-Text $slide "cuda:0" 402 199 116 44 31 $script:Navy $true 2 | Out-Null
-    Add-Text $slide "no CPU fallback" 402 250 116 24 15 $script:Navy $true 2 | Out-Null
+    Add-Text $slide "no CPU fallback" 398 250 124 24 16 $script:Navy $true 2 | Out-Null
     Add-Box $slide 715 178 180 116 $script:Slate "" 5 | Out-Null
     Add-Text $slide "CuPy" 731 198 148 30 24 $script:OffWhite $true 2 | Out-Null
     Add-Text $slide "cluster bootstrap`nCUDA sort`nlinear percentiles" 731 232 148 60 16 $script:Muted $false 2 | Out-Null
@@ -560,8 +560,8 @@ try {
     Add-Chrome $slide 6
     Add-SlideTitle $slide "The desktop replays one audited GPU scenario"
     Add-Box $slide 63 123 834 355 $script:Slate $script:Grid 5 | Out-Null
-    Add-Picture $slide $liveImage 70 130 820 346 "Live Scenario page showing a shared GPU run, interactive schematic, and locality detail" | Out-Null
-    Add-Text $slide "Switch controller  |  scrub 24 hours  |  inspect locality  |  forecast is DISPLAY ONLY" 85 482 790 20 14 $script:Teal $true 2 | Out-Null
+    Add-Picture $slide $liveImage 70 130 820 346 "Live Scenario page showing a shared GPU run, interactive administrative map, and locality detail" | Out-Null
+    Add-Text $slide "Switch controller  |  scrub 24 hours  |  inspect locality  |  forecast is DISPLAY ONLY" 78 480 804 24 16 $script:Teal $true 2 | Out-Null
     Add-Notes $slide ("Demo this after the slide: choose a shortage and seed, run once, then change controller and hour without changing the scenario. Point out demand, served MW, critical ratio, sector service, and the display-only next-hour projection.`r`n`r`n[Sources]`r`n- docs/IMPLEMENTATION.md (Desktop presentation)`r`n- docs/assets/screenshots/live.png`r`n[/Sources]")
 
     # Slide 7 - critical result
@@ -609,7 +609,7 @@ try {
         Add-Text $slide $intervalRows[$index][1] 332 $top 180 24 18 $script:Teal $true | Out-Null
         Add-Text $slide $intervalRows[$index][2] 540 $top 330 24 17 $script:Ink | Out-Null
     }
-    Add-Text $slide "$($bootstrapReplicates.ToString('N0', [Globalization.CultureInfo]::InvariantCulture)) deterministic seed-stratified paired cluster replicates" 64 478 820 22 15 "60727D" | Out-Null
+    Add-Text $slide "$($bootstrapReplicates.ToString('N0', [Globalization.CultureInfo]::InvariantCulture)) deterministic seed-stratified paired cluster replicates" 64 476 820 24 16 "60727D" | Out-Null
     Add-Notes $slide ("Positive favors PPO for higher-is-better outcomes; negative favors PPO for lower-is-better outcomes. The bootstrap resamples $independentBaseDrawCount base-draw clusters inside seed strata and keeps all $shortageVariantCount shortage variants together.`r`n`r`n[Sources]`r`n- docs/METHODOLOGY.md (Paired uncertainty calculation)`r`n- docs/RESULTS.md (Paired differences and 95% intervals)`r`n- data/evidence/paired-benchmark.json, SHA-256 $expectedEvidenceSha256`r`n[/Sources]")
 
     # Slide 10 - consistency
@@ -623,7 +623,7 @@ try {
         $top = 299 + ($index * 31)
         Add-Text $slide $primaryMetricLabels[$index] 70 $top 190 22 16 $script:OffWhite | Out-Null
         Add-Line $slide 238 ($top + 11) 405 ($top + 11) $script:Teal 5 | Out-Null
-        Add-Text $slide "$($primaryFavorableCounts[$index])/$cellCount" 417 ($top - 1) 52 22 15 $script:Teal $true | Out-Null
+        Add-Text $slide "$($primaryFavorableCounts[$index])/$cellCount" 417 ($top - 2) 58 24 16 $script:Teal $true | Out-Null
     }
     Add-Line $slide 500 132 500 460 $script:Grid 1 | Out-Null
     Add-Text $slide "Safety and diagnostics" 548 145 330 32 24 $script:Teal $true | Out-Null
@@ -661,7 +661,7 @@ try {
     $slide = $presentation.Slides.Add(12, 12)
     Set-SlideBackground $slide $script:Navy
     Add-Chrome $slide 12
-    Add-Text $slide "THE ANSWER" 60 72 240 22 15 $script:Teal $true | Out-Null
+    Add-Text $slide "THE ANSWER" 60 72 240 24 16 $script:Teal $true | Out-Null
     Add-Text $slide "PPO > Fixed Rotation" 60 128 820 70 49 $script:OffWhite $true | Out-Null
     Add-Text $slide "under the locked synthetic evaluation protocol" 62 205 660 34 24 $script:Gold | Out-Null
     Add-Line $slide 62 271 898 271 $script:Grid 1 | Out-Null

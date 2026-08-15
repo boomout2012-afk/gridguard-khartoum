@@ -25,6 +25,11 @@ def test_presentation_builder_is_evidence_bound_and_uses_native_powerpoint() -> 
     assert "+2,008 MWh" not in source
     assert "docs\\assets\\screenshots\\overview.png" in source
     assert "docs\\assets\\screenshots\\live.png" in source
+    assert "schematic" not in source.casefold()
+    assert "administrative locality boundaries" in source
+    assert '"GRIDGUARD KHARTOUM" 48 18 300 22 16' in source
+    assert '"OFFLINE GPU RESEARCH SIMULATION" 48 503 320 22 16' in source
+    assert '"GRADUATION PROJECT DEFENSE" 60 58 420 24 16' in source
     assert source.count("Add-Notes") >= 13  # Function plus one call for every slide.
 
 
