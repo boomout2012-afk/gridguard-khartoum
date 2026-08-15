@@ -201,9 +201,7 @@ def build_live_comparison(execution: LiveCudaExecution) -> LiveScenarioCompariso
         },
         metrics_by_controller={
             ControllerName.PPO.value: _episode_summary(host_metrics[:5], ppo_metrics),
-            ControllerName.FIXED_ROTATION.value: _episode_summary(
-                host_metrics[5:], fixed_metrics
-            ),
+            ControllerName.FIXED_ROTATION.value: _episode_summary(host_metrics[5:], fixed_metrics),
         },
     )
 

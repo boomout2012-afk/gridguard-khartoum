@@ -62,7 +62,8 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
     assert namespace["PROJECT_ROOT"] == REPOSITORY_ROOT
     assert captured["scripts"] == [str(REPOSITORY_ROOT / "packaging" / "gridguard_launcher.py")]
     assert all(
-        Path(source).is_relative_to(REPOSITORY_ROOT) for source, _target in captured["datas"]
+        Path(source).is_relative_to(REPOSITORY_ROOT)
+        for source, _target in captured["datas"]
         if not source.startswith("C:/cuda/")
     )
     assert "graphlib" in captured["hiddenimports"]

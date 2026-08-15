@@ -178,10 +178,7 @@ class LiveScenarioComparison:
 
         object.__setattr__(self, "shortage_level", shortage.value)
         object.__setattr__(self, "frames_by_controller", MappingProxyType(normalized))
-        metrics = {
-            name: self.metrics_by_controller[name]
-            for name in names
-        }
+        metrics = {name: self.metrics_by_controller[name] for name in names}
         if any(not isinstance(value, LiveEpisodeSummary) for value in metrics.values()):
             raise TypeError("live metrics values must be LiveEpisodeSummary")
         object.__setattr__(self, "metrics_by_controller", MappingProxyType(metrics))

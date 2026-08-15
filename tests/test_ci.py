@@ -6,9 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_quality_workflow_runs_locked_windows_checks_without_release_only_tests() -> None:
-    workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
 
     assert "pull_request:" in workflow
     assert "push:" in workflow
@@ -26,9 +24,9 @@ def test_quality_workflow_runs_locked_windows_checks_without_release_only_tests(
 
 
 def test_release_workflow_is_manual_and_targets_the_presentation_gpu() -> None:
-    workflow = (
-        ROOT / ".github" / "workflows" / "presentation-release.yml"
-    ).read_text(encoding="utf-8")
+    workflow = (ROOT / ".github" / "workflows" / "presentation-release.yml").read_text(
+        encoding="utf-8"
+    )
 
     assert "workflow_dispatch:" in workflow
     assert "runs-on: [self-hosted, Windows, X64, gridguard-presentation-gpu]" in workflow
