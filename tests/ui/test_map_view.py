@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QApplication, QGraphicsPathItem
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import load_map_asset
 from gridguard.ui.map_view import LocalityMapView, SchematicMapView
+from gridguard.ui.theme import PALETTE
 
 
 def test_map_exposes_all_localities_and_accessible_description(qtbot) -> None:
@@ -89,6 +90,10 @@ def test_statuses_have_symbol_and_text_redundancy(qtbot) -> None:
     assert view.locality_items["khartoum"].status_text == "× OFF"
     assert view.locality_items["omdurman"].status_text == "◆ CRITICAL ONLY"
     assert view.locality_items["bahri"].status_text == "● FULL"
+    for locality_id in ("khartoum", "omdurman", "bahri"):
+        item = view.locality_items[locality_id]
+        assert item._name.brush().color().name().upper() == PALETTE.surface
+        assert item._status.brush().color().name().upper() == PALETTE.surface
 
 
 def test_reset_view_restores_initial_zoom(qtbot) -> None:

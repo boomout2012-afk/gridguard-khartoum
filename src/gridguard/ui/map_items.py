@@ -61,7 +61,9 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         }[normalized]
         self.setBrush(QBrush(STATUS_COLORS[normalized.value], brush_style))
         self._status.setText(self.status_text)
-        self._status.setBrush(QColor(PALETTE.text))
+        high_contrast_text = QColor(PALETTE.surface)
+        self._name.setBrush(high_contrast_text)
+        self._status.setBrush(high_contrast_text)
         self.setToolTip(self._tooltip())
         self._position_labels()
 
