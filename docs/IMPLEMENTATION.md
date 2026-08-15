@@ -28,7 +28,7 @@ recalculating the headline claim.
 | Path | Responsibility |
 |---|---|
 | `src/gridguard/domain.py` | Locality, sector, shortage, service-tier, controller, scenario, result, and metric contracts |
-| `src/gridguard/scenarios.py` | Seeded 24-hour synthetic demand and supply batches |
+| `src/gridguard/scenarios.py` | Severity-neutral stochastic base draws and pure shortage-level scenario transformations |
 | `src/gridguard/controllers.py` | Shared controller protocol, Fixed Rotation rule, and PPO adapter |
 | `src/gridguard/simulation.py` | Causal 32-value observation, tier dispatch, reward, and immutable result traces |
 | `src/gridguard/metrics.py` | Per-episode proposal outcomes on the source tensor device |
@@ -39,7 +39,7 @@ recalculating the headline claim.
 | `src/gridguard/gpu.py` | Fail-closed CUDA, PyTorch, CuPy, driver, and DLPack preflight |
 | `src/gridguard/provenance.py` | Pinned source-manifest and artifact verification |
 | `src/gridguard/resources.py` | Safe source-checkout or installed-bundle resource resolution |
-| `src/gridguard/ui/map_asset.py` | Closed-schema validation for the offline locality schematic |
+| `src/gridguard/ui/map_asset.py` | Provenance verification, closed GeoJSON validation, WGS84 projection, and locality keyboard graph |
 | `src/gridguard/ui/app.py` | Desktop entry point and fail-closed startup sequence |
 | `src/gridguard/ui/window.py` | 1366 x 768 shell, page navigation, and presentation shortcuts |
 | `src/gridguard/ui/presentation_model.py` | Strict projection of paired evidence into presentation data |
@@ -120,10 +120,14 @@ argmax actions.
 
 ## Scenario, dispatch, and metrics pipeline
 
-`generate_scenarios()` creates a complete batch directly on the requested PyTorch device. A
-device-local seeded generator supplies both demand and supply perturbations. The simulator then
-iterates the 24 hours while keeping cumulative demand, cumulative served energy, and previous
-tiers on the same device.
+`generate_scenario_base_draws()` creates one severity-neutral stochastic batch directly on the
+requested PyTorch device. A device-local seeded generator supplies the demand and supply uniform
+draws once. `scenario_from_base_draws()` then applies the selected shortage fraction and window as
+a pure transformation. The evaluator reuses the exact same `ScenarioBaseDraws` references across
+Mild, Moderate, and Severe, making cross-severity dependence explicit rather than relying on
+re-seeding side effects. The compatibility `generate_scenarios()` path composes those two steps.
+The simulator then iterates the 24 hours while keeping cumulative demand, cumulative served
+energy, and previous tiers on the same device.
 
 At each hour:
 
@@ -140,14 +144,21 @@ together with invariant tests, enforce `served + curtailed = demand`, verify ser
 cannot exceed demand or availability, and report any hour exceeding the 0.001 MW power-balance
 tolerance.
 
+The canonical aliases on `EpisodeMetrics` make aggregation semantics reviewable in code:
+`episode_pooled_critical_service_ratio`, `mean_hourly_supply_utilization_ratio`, and
+`mean_hourly_cumulative_locality_jain_fairness`. Controller aggregates are equally weighted
+arithmetic means of the 288 episode metrics. Cell means are an equivalent route only because all
+nine cells contain 32 episodes.
+
 ## Paired evaluation and statistics
 
 `evaluate_scenario_pair()` executes Fixed Rotation and PPO on the exact same `Scenario` object.
-The full evaluator loops through three shortage levels and three seeds, generating a batch of 32
-scenario variants for each of nine cells. The three shortage variants at a given
-`(seed, batch_index)` reuse one noise draw, so the design has 96 base-draw clusters. Crossing
-those draws with three shortage levels produces 288 matched scenario conditions, 288 paired
-rows, and 576 controller-scenario evaluations.
+The full evaluator first creates one batch of 32 base draws for each of three seeds, then reuses
+each batch across all three shortage transformations. It evaluates the resulting nine cells in
+the canonical shortage-major, seed-minor order. The three shortage variants at a given
+`(seed, batch_index)` therefore share one stochastic draw, so the design has 96 base-draw
+clusters. Crossing those draws with three shortage levels produces 288 matched scenario
+conditions, 288 paired rows, and 576 controller-scenario evaluations.
 
 Episode metrics are stacked into `[3 shortage levels, 3 seeds, 32 episodes, 12 metrics]` cubes.
 On CUDA, the evaluator calculates `PPO - Fixed Rotation` in float64, selects the seven inferential
@@ -177,12 +188,19 @@ The resulting `data/evidence/paired-benchmark.json` contains:
 - explicit scientific limitations.
 
 Serialization is canonical UTF-8 JSON with sorted keys, finite numbers only, compact separators,
-and a final newline. The verifier requires the external hash, canonical byte representation,
+and a final newline. `validate_paired_benchmark_payload()` is deliberately neutral: it requires a
 closed schema, exact row ordering, unique scenario identities, matched input energy, recomputed
 row deltas, metric physical bounds and energy identities, recomputed cell and aggregate means,
-inference metadata, and passing frozen parity. Verification also reloads the frozen artifact and
-cross-checks all 18 controller cell summaries rather than trusting the stored parity declaration
-alone.
+inference metadata, and a parity status consistent with the declared errors. It does not require
+PPO-favorable intervals or locked artifact identities, so adverse and inconclusive research
+outputs can still be validated honestly.
+
+`assert_paired_benchmark_release_claims()` is the separate trusted release gate. It calls the
+neutral validator, then requires locked provenance, favorable interval directions, passing parity,
+and a direct reload and cross-check of all 18 controller cell summaries from the hash-pinned frozen
+artifact. `verify_paired_benchmark()` always verifies the external file hash and canonical bytes;
+supplying the frozen benchmark path activates the trusted gate. Report generation, desktop startup,
+and trusted writes always supply that path.
 
 ## Evidence provenance and fail-closed behavior
 
@@ -198,6 +216,8 @@ Additional safeguards include:
 - model files must match both an external trust anchor and their manifest;
 - evidence cell counts, controller labels, seeds, and scenario IDs are closed rather than
   inferred from arbitrary input;
+- neutral integrity validation is independent of whether an interval favors PPO;
+- the trusted release gate cannot rely only on a self-declared parity status;
 - the paired file must match SHA-256
   `2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11`; and
 - the evaluator refuses devices other than `cuda:0`, bootstrap counts other than 10,000, or a
@@ -216,18 +236,30 @@ three-hour history and hour 23 has no next-hour target, so those frames display 
 The module, runner, UI labels, and tests enforce the boundary: the projection is displayed only
 and is never passed to PPO, dispatch, reward, or the evidence generator.
 
-## Offline schematic map
+## Offline administrative map
 
-The bundled map is `src/gridguard/assets/map/khartoum-schematic.json`. It contains only display
-geometry, locality labels, directional keyboard neighbors, and schematic Nile paths. Its own
-disclaimer states that it is neither a geographic boundary map nor an electrical-network
-topology.
+The bundled geographic layer is a small, reproducible derivative of two public datasets.
+`khartoum-localities.geojson` selects the exact OCHA/HDX Sudan COD-AB v03 ADM2 P-codes
+`SD01001` through `SD01007` under `ADM1_PCODE=SD01`. It retains source English and Arabic names,
+P-codes, Polygon/MultiPolygon rings and holes, and source centers used as label anchors.
+`khartoum-nile.geojson` contains clipped Natural Earth 1:10m White Nile, Blue Nile, and Nile
+centerlines. These layers are presentation context only, results remain synthetic, and the view
+is not electrical-network topology.
 
-The loader rejects duplicate fields, non-finite coordinates, unsupported schema values,
-unknown or missing localities, invalid keyboard order, external references, scientific values,
-controller values, degenerate or self-intersecting polygons, out-of-scene points, label anchors
-outside polygons, and invalid neighbor targets. Keeping simulation data out of the map asset
-prevents presentation geometry from becoming an unreviewed scientific input.
+`tools/build_map_asset.py` verifies the upstream byte sizes and SHA-256 pins before selecting,
+normalizing, joining the recorded 258.07 m Blue Nile confluence gap, clipping rivers to the
+dissolved locality mask, and writing deterministic GeoJSON. `map-provenance.json` binds the two
+derived hashes to the source selectors and EPSG:3857 scene transform. Attribution and licensing
+are bundled in `src/gridguard/assets/map/THIRD_PARTY_DATA.md`.
+
+At startup, the standard-library loader verifies provenance before parsing either GeoJSON file.
+It rejects duplicate or unknown fields, non-finite coordinates, unsupported geometry, missing or
+duplicate source identities, incorrect P-codes, invalid keyboard order or neighbors, and geometry
+outside the closed geographic contract. One fixed formula projects WGS84 to EPSG:3857, aspect-fits
+all boundaries, holes, anchors, and rivers into the 1000 by 720 scene, and gives Qt only projected
+coordinates. No GIS library or network request is required at runtime. Keeping scenario and
+controller fields out of the assets prevents presentation geography from becoming scientific
+input.
 
 ## Desktop presentation
 
@@ -240,14 +272,16 @@ partly trusted interface.
 
 The main window is designed at 1366 x 768 and contains four pages: Overview, Live Scenario,
 Results, and Methodology. Ctrl+1 through Ctrl+4 select the pages and F11 toggles fullscreen.
-Controls expose accessible names and descriptions, accept keyboard focus, and use a visible
-gold focus outline.
+Controls expose accessible names and descriptions, accept keyboard focus, and use a visible blue
+focus outline. Dynamic run, hour, projection, and service-tier labels emit accessibility value or
+name-change notifications when their text changes.
 
-The `QGraphicsView` map supports pointer selection, hover details, arrow-key navigation through
-explicit locality neighbors, wheel or plus/minus zoom, drag-to-pan, and R or 0 to reset the
-view. Service state is never communicated by color alone: fill, texture, symbol, and text
-distinguish Off, Critical Only, and Full Service. The map retains its schematic disclaimer in
-the presentation.
+The `QGraphicsView` map supports pointer selection against real compound locality paths,
+arrow-key navigation through explicit locality neighbors, wheel or plus/minus zoom, drag-to-pan,
+and R or 0 to reset the view. A synchronized locality list provides a persistent text target for
+the same seven selections. Service state is never communicated by color alone: fill, texture,
+symbol, text, tooltips, and the list distinguish Off, Critical Only, and Full Service. The map
+retains its administrative-context, synthetic-results, and no-electrical-topology notice.
 
 The Live Scenario page accepts a shortage level and seed and starts a `QThread` worker so CUDA
 execution does not block the Qt event loop. The runner generates one `cuda:0` scenario, passes
@@ -257,18 +291,23 @@ window refuses to close until the CUDA run has completed safely.
 
 After both controllers finish, the runner packs hourly supply, 35 locality-sector demand values,
 seven next-hour locality projections, seven PPO tiers, 35 PPO served values, seven Fixed
-Rotation tiers, and 35 Fixed Rotation served values into one `[24, 127]` display tensor. This is
-the UI runner's only bulk device-to-host transfer. The resulting immutable comparison must
-contain exactly 24 frames for each named controller and identical supply, system demand,
-locality demand, and projection values at every paired hour.
+Rotation tiers, and 35 Fixed Rotation served values into one `[24, 127]` display tensor. It then
+appends five episode metrics for each controller to the same flattened transfer: served energy,
+critical-service ratio, fairness, curtailed energy, and power-balance violation rate. This is the
+UI runner's only bulk device-to-host transfer. The resulting immutable comparison must contain
+exactly 24 frames and one validated `LiveEpisodeSummary` for each named controller, with identical
+supply, system demand, locality demand, and projection values at every paired hour.
 
-A controller selector and 24-hour slider let the presenter compare tier allocations on the same
-scenario. The selected-locality panel derives actual demand MW, served MW, critical-service
-ratio, and service ratios for Hospital, Water, Bakery, Residential, and Commercial from the
-transferred simulation values. It also labels the causal next-hour demand projection as display
-only and explicitly states that the value is not PPO input or evidence. Until a valid comparison
-arrives, the page displays an honest waiting state; it never fabricates replay data. Runtime
-errors clear the frames, disable replay controls, and remain visible to the presenter.
+A table labeled **Live demonstration** presents Served energy, Critical service, Fairness,
+Curtailed energy, and Power-balance violations for PPO and Fixed Rotation from the selected
+episode. It is explicitly separate from frozen evidence. A controller selector and 24-hour slider
+let the presenter compare tier allocations on that same scenario. The selected-locality panel
+derives actual demand MW, served MW, critical-service ratio, and service ratios for Hospital,
+Water, Bakery, Residential, and Commercial from the transferred simulation values. It also labels
+the causal next-hour demand projection as display only and explicitly states that the value is not
+PPO input or evidence. Until a valid comparison arrives, the page displays an honest waiting
+state; it never fabricates replay data. Runtime errors clear the frames and aggregate table,
+disable replay controls, and remain visible to the presenter.
 
 The Results page renders only values present in the paired evidence snapshot, including paired
 intervals. It does not calculate replacement headline values. The Methodology page summarizes
@@ -282,7 +321,8 @@ the locked design and repeats the evidence limitations for presentation use.
 2. an installed package containing a `_bundled` runtime tree.
 
 The wheel configuration force-includes `data/evidence`, `data/model`, and the accepted proposal
-PDF. The map JSON is package data under `src/gridguard/assets`. The same safe resolver is used
+PDF. The map GeoJSON, provenance, attribution, and font resources are package data under
+`src/gridguard/assets`. The same safe resolver is used
 for source and installed execution, and path traversal outside the chosen root is rejected.
 
 The application is designed for an offline Windows presentation. No evidence, map geometry,
@@ -301,7 +341,7 @@ The tests are organized by the same boundaries as the implementation:
 | Evaluation and statistics tests | Exact pairing, counts, bootstrap stratification, DLPack sharing, canonical evidence, and frozen parity |
 | Provenance and source tests | Pinned manifest, source Git blobs, accepted benchmark migration, and tamper rejection |
 | Forecast tests | Causality, shape, dtype, device preservation, and invalid-input rejection |
-| Map and package tests | Geometry, keyboard metadata, display-only schema, wheel inclusion, and isolated install loading |
+| Map and package tests | Source/derived hashes, closed GeoJSON, real compound geometry, river paths, keyboard metadata, wheel inclusion, and isolated install loading |
 | Desktop UI tests | Startup-gate ordering, evidence projection, tabs, shortcuts, map interaction, and asynchronous live success/error states |
 | GPU integration tests | Real PyTorch/CuPy/CUDA preflight on the presentation laptop |
 
@@ -334,7 +374,8 @@ source-parity fixtures from treating an absent research archive as an optional e
 
 - Training code and optimizer state are not part of the clean presentation runtime.
 - The simulator is a decision-support abstraction and has no hardware control interface.
-- The map contains no network topology or real administrative boundaries.
+- The map contains real administrative boundaries and river context but no feeders, substations,
+  measured demand, service territories, or other electrical-network topology.
 - NumPy/Python is restricted to artifact parsing and deterministic row/cell/aggregate assembly
   after the single final evidence transfer; simulation, inference, metrics, and bootstrap hot
   paths remain on the GPU.

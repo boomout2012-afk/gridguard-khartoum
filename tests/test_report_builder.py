@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 
 from pypdf import PdfReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 BUILDER_PATH = REPOSITORY_ROOT / "tools" / "build_report.py"
@@ -24,6 +26,7 @@ def test_report_builder_uses_verified_evidence_and_committed_chapters() -> None:
 
     assert "verify_paired_benchmark" in source
     assert "PAIRED_BENCHMARK_SHA256" in source
+    assert '"REPORT.md"' in source
     assert '"METHODOLOGY.md"' in source
     assert '"IMPLEMENTATION.md"' in source
     assert '"RESULTS.md"' in source
@@ -47,19 +50,96 @@ def test_report_metric_formatter_is_presentation_readable() -> None:
     assert builder.format_metric(9.54281117518743, "reward") == "+9.543"
 
 
-def test_report_references_are_six_flat_plain_text_entries() -> None:
+def test_report_references_include_map_sources_as_flat_plain_text_entries() -> None:
     builder = _load_builder()
     flowables = builder.markdown_flowables(REFERENCES_PATH, builder._styles())
     reference_list = flowables[-1]
     rendered_entries = [item._flowables[0].text for item in reference_list._flowables]
 
-    assert len(rendered_entries) == 6
+    assert len(rendered_entries) == 8
     assert all("*" not in entry for entry in rendered_entries)
     assert any("<i>" in entry for entry in rendered_entries)
 
 
-def test_final_report_toc_does_not_spill_one_entry_onto_a_blank_page() -> None:
-    reader = PdfReader(REPORT_PATH)
+def test_report_builder_uses_academic_sections_and_atlas_palette() -> None:
+    builder = _load_builder()
+    source = BUILDER_PATH.read_text(encoding="utf-8")
 
-    assert len(reader.pages) == 25
-    assert "System at a glance" in (reader.pages[3].extract_text() or "")
+    assert builder.REPORT_SECTION_ORDER == (
+        "Introduction",
+        "Background",
+        "Discussion",
+        "Conclusion",
+    )
+    assert "markdown_section_flowables" in source
+    assert "markdown_section_body_flowables" in source
+    assert builder.CANVAS.hexval() == "0xf4f0e6"
+    assert builder.SURFACE.hexval() == "0xfffcf4"
+    assert builder.INK.hexval() == "0x10282e"
+    assert builder.NILE.hexval() == "0x087d8b"
+    assert builder.EVIDENCE.hexval() == "0xa66a13"
+
+
+def test_report_print_styles_are_legible_and_expose_font_fallbacks() -> None:
+    builder = _load_builder()
+    styles = builder._styles()
+
+    assert styles["body"].fontSize >= 10
+    assert styles["body"].leading >= 14
+    assert styles["small"].fontSize >= 8
+    assert builder.REPORT_FONTS.body
+    assert builder.REPORT_FONTS.display
+    assert builder.REPORT_FONTS.mono
+
+
+def test_report_registers_the_approved_bundled_true_type_fonts() -> None:
+    builder = _load_builder()
+    expected_font_names = {
+        "GridGuardSourceSerif",
+        "GridGuardSourceSerifSemibold",
+        "GridGuardAtkinson",
+        "GridGuardAtkinsonBold",
+        "GridGuardPlexMono",
+        "GridGuardPlexMonoSemibold",
+    }
+
+    assert set(builder.REPORT_FONTS) == expected_font_names
+    assert expected_font_names <= set(pdfmetrics.getRegisteredFontNames())
+    assert all(
+        isinstance(pdfmetrics.getFont(font_name), TTFont) for font_name in expected_font_names
+    )
+    font_root = REPOSITORY_ROOT / "src" / "gridguard" / "assets" / "fonts"
+    for filename in (
+        "SourceSerif4-Regular.ttf",
+        "SourceSerif4-Semibold.ttf",
+        "AtkinsonHyperlegible-Regular.ttf",
+        "AtkinsonHyperlegible-Bold.ttf",
+        "IBMPlexMono-Regular.ttf",
+        "IBMPlexMono-SemiBold.ttf",
+    ):
+        assert (font_root / filename).is_file()
+
+
+def test_final_report_contains_no_blank_interior_pages() -> None:
+    reader = PdfReader(REPORT_PATH)
+    page_text = [" ".join((page.extract_text() or "").split()) for page in reader.pages]
+
+    assert len(page_text) >= 20
+    assert all(text for text in page_text)
+    assert all(len(text.split()) >= 20 for text in page_text[1:-1])
+    assert any("System at a glance" in text for text in page_text)
+
+
+def test_final_report_uses_only_embedded_fonts() -> None:
+    reader = PdfReader(REPORT_PATH)
+    for page in reader.pages:
+        resources = page["/Resources"].get_object()
+        fonts = resources.get("/Font", {}).get_object()
+        for font_reference in fonts.values():
+            font = font_reference.get_object()
+            descriptor = font.get("/FontDescriptor")
+            assert descriptor is not None, font.get("/BaseFont")
+            embedded = descriptor.get_object()
+            assert any(
+                font_file in embedded for font_file in ("/FontFile", "/FontFile2", "/FontFile3")
+            ), font.get("/BaseFont")

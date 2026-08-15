@@ -1,8 +1,15 @@
 # GridGuard Khartoum
 
-GridGuard Khartoum is an offline desktop simulation that demonstrates PPO-assisted load-shedding decisions for seven Khartoum State localities. It compares PPO with a traditional Fixed Rotation schedule on identical synthetic shortage scenarios, with explicit protection metrics for hospitals, water services, and bakeries.
+GridGuard Khartoum is an offline desktop simulation that demonstrates PPO-assisted load-shedding
+decisions for seven Khartoum State localities. It compares PPO with a traditional Fixed Rotation
+schedule on identical synthetic shortage scenarios, with explicit protection metrics for
+hospitals, water services, and bakeries.
 
-The project implements the scope accepted in `docs/source/graduation-project-proposal.pdf`. It is a research and presentation tool, not a real-grid controller. All demand and supply values are synthetic, and the locality map is a schematic rather than an electrical or geographic boundary map.
+The project implements the scope accepted in `docs/source/graduation-project-proposal.pdf`. It is
+a research and presentation tool, not a real-grid controller. All demand and supply values are
+synthetic. The offline map uses pinned OCHA/HDX administrative boundaries with Natural Earth Nile
+context. These layers are for presentation context only; they are not electrical-network topology
+and supply no scientific input.
 
 ## Presentation requirements
 
@@ -28,12 +35,30 @@ reproduces those summaries within fixed tolerances, then regenerates the episode
 paired intervals from the audited simulator and frozen PPO checkpoint. These are synthetic
 simulation results, not measurements from Sudan's electrical grid.
 
+Evidence checking has two explicit layers. `validate_paired_benchmark_payload` performs neutral
+integrity validation of schema, pairing, arithmetic, and physical identities, so it can validate
+an adverse or inconclusive research artifact. `assert_paired_benchmark_release_claims` is the
+trusted release gate: it additionally requires locked provenance, direct parity with the frozen
+benchmark, and favorable interval directions. The desktop Results page and report always use the
+trusted path.
+
+## Offline geographic context
+
+The application bundles seven second-level Khartoum State units from OCHA's Sudan COD-AB revision
+v03 and White Nile, Blue Nile, and Nile linework from Natural Earth 1:10m rivers. Source sizes,
+SHA-256 pins, selectors, transformations, licenses, and derived hashes are recorded in
+`src/gridguard/assets/map/THIRD_PARTY_DATA.md` and `map-provenance.json`. Runtime performs no
+download and fails closed if the packaged geography drifts. The design decision and rejected
+alternatives are recorded in `docs/decisions/ADR-002-geographic-boundary-map.md`.
+
 ## Desktop presentation flow
 
 1. Select Mild, Moderate, or Severe shortage and a deterministic seed.
 2. Replay the same 24-hour scenario through PPO and Fixed Rotation.
-3. Inspect service tiers and sector outcomes on the interactive locality map.
-4. Compare the live demonstration with the separately frozen benchmark result.
+3. Inspect service tiers and sector outcomes on the interactive administrative map or synchronized
+   keyboard-accessible locality list.
+4. Compare the live demonstration's matched episode aggregates with the separately frozen
+   benchmark result; live values never replace frozen evidence.
 5. Review methodology, implementation, limitations, and evidence provenance offline.
 
 ## Development

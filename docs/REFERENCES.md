@@ -16,3 +16,10 @@
 6. Okuta, R., Unno, Y., Nishino, D., Hido, S., and Loomis, C. "CuPy: A NumPy-Compatible Library
    for NVIDIA GPU Calculations." *Proceedings of the Workshop on Machine Learning Systems at
    NIPS 2017*, 2017.
+7. United Nations Office for the Coordination of Humanitarian Affairs. *Sudan Administrative
+   Boundaries (COD-AB), revision v03*. Humanitarian Data Exchange, valid from 31 August 2020.
+   CC BY 3.0 IGO. Archived source bytes and SHA-256 pins are recorded in
+   `src/gridguard/assets/map/THIRD_PARTY_DATA.md`.
+8. Natural Earth. *1:10m Rivers and Lake Centerlines*, version 5.0.0. Public-domain geographic
+   data. The immutable source revision, selected features, transformation, and SHA-256 pin are
+   recorded in `src/gridguard/assets/map/THIRD_PARTY_DATA.md`.

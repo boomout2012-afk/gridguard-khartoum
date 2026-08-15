@@ -77,7 +77,7 @@ def test_report_references_are_cited_and_extract_without_broken_glyphs() -> None
     methodology = (REPOSITORY_ROOT / "docs" / "METHODOLOGY.md").read_text(encoding="utf-8")
     report_text = "\n".join(page.extract_text() or "" for page in PdfReader(REPORT_PATH).pages)
 
-    assert all(f"[{index}]" in methodology for index in range(1, 7))
+    assert all(f"[{index}]" in methodology for index in range(1, 9))
     assert "References" in report_text
     assert "Proximal Policy Optimization Algorithms" in report_text
     assert "\ufffd" not in report_text

@@ -7,14 +7,17 @@ import html
 import re
 from collections.abc import Sequence
 from pathlib import Path
+from typing import NamedTuple
 
 from reportlab.graphics.shapes import Drawing, Rect, String
-from reportlab.lib import colors
 from reportlab.lib.colors import HexColor
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFError, TTFont
+from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
     BaseDocTemplate,
     Flowable,
@@ -38,6 +41,8 @@ from gridguard.evaluation import PAIRED_BENCHMARK_SHA256, verify_paired_benchmar
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_ROOT / "output" / "pdf" / "gridguard-khartoum-final-report.pdf"
+REPORT_SOURCE_PATH = PROJECT_ROOT / "docs" / "REPORT.md"
+REPORT_SECTION_ORDER = ("Introduction", "Background", "Discussion", "Conclusion")
 CHAPTER_PATHS = (
     PROJECT_ROOT / "docs" / "METHODOLOGY.md",
     PROJECT_ROOT / "docs" / "IMPLEMENTATION.md",
@@ -51,14 +56,81 @@ SCREENSHOT_PATHS = (
     ("Methodology", PROJECT_ROOT / "docs" / "assets" / "screenshots" / "methodology.png"),
 )
 
-NAVY = HexColor("#071923")
-SLATE = HexColor("#102A3B")
-TEAL = HexColor("#3FC6AC")
-GOLD = HexColor("#E0B957")
-OFF_WHITE = HexColor("#F3F0E8")
-INK = HexColor("#13232E")
-MUTED = HexColor("#52636E")
-GRID = HexColor("#CFD8DC")
+CANVAS = HexColor("#F4F0E6")
+SURFACE = HexColor("#FFFCF4")
+INK = HexColor("#10282E")
+MUTED = HexColor("#4F6366")
+NAV = HexColor("#123039")
+BOUNDARY = HexColor("#70837F")
+NILE = HexColor("#087D8B")
+EVIDENCE = HexColor("#A66A13")
+
+# Compatibility aliases keep the drawing code compact while binding it to the desktop palette.
+NAVY = NAV
+SLATE = NAV
+TEAL = NILE
+GOLD = EVIDENCE
+OFF_WHITE = SURFACE
+GRID = HexColor("#D5DCD6")
+
+
+class ReportFonts(NamedTuple):
+    """ReportLab names for the bundled TrueType-outline presentation fonts."""
+
+    display: str
+    display_bold: str
+    body: str
+    body_bold: str
+    mono: str
+    mono_bold: str
+
+
+def _register_report_fonts() -> ReportFonts:
+    """Register the same bundled TrueType fonts used by the desktop interface."""
+
+    font_root = PROJECT_ROOT / "src" / "gridguard" / "assets" / "fonts"
+    candidates = {
+        "GridGuardSourceSerif": font_root / "SourceSerif4-Regular.ttf",
+        "GridGuardSourceSerifSemibold": font_root / "SourceSerif4-Semibold.ttf",
+        "GridGuardAtkinson": font_root / "AtkinsonHyperlegible-Regular.ttf",
+        "GridGuardAtkinsonBold": font_root / "AtkinsonHyperlegible-Bold.ttf",
+        "GridGuardPlexMono": font_root / "IBMPlexMono-Regular.ttf",
+        "GridGuardPlexMonoSemibold": font_root / "IBMPlexMono-SemiBold.ttf",
+    }
+    try:
+        for name, path in candidates.items():
+            if not path.is_file():
+                raise FileNotFoundError(path)
+            if name not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont(name, path))
+    except (OSError, TTFError):
+        return ReportFonts(
+            display="Times-Roman",
+            display_bold="Times-Bold",
+            body="Helvetica",
+            body_bold="Helvetica-Bold",
+            mono="Courier",
+            mono_bold="Courier-Bold",
+        )
+    return ReportFonts(
+        display="GridGuardSourceSerif",
+        display_bold="GridGuardSourceSerifSemibold",
+        body="GridGuardAtkinson",
+        body_bold="GridGuardAtkinsonBold",
+        mono="GridGuardPlexMono",
+        mono_bold="GridGuardPlexMonoSemibold",
+    )
+
+
+REPORT_FONTS = _register_report_fonts()
+
+
+def _report_canvas(filename: str | Path, **kwargs: object) -> Canvas:
+    """Start every page with the embedded body face, not a PDF base font."""
+
+    if not kwargs.get("initialFontName"):
+        kwargs["initialFontName"] = REPORT_FONTS.body
+    return Canvas(filename, **kwargs)
 
 
 def ascii_typography(value: str) -> str:
@@ -98,7 +170,11 @@ def format_metric(value: float, kind: str) -> str:
 
 def _inline_markup(value: str) -> str:
     escaped = html.escape(ascii_typography(value.strip()))
-    escaped = re.sub(r"`([^`]+)`", r'<font name="Courier">\1</font>', escaped)
+    escaped = re.sub(
+        r"`([^`]+)`",
+        rf'<font name="{REPORT_FONTS.mono}">\1</font>',
+        escaped,
+    )
     escaped = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", escaped)
     escaped = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<i>\1</i>", escaped)
     escaped = re.sub(r"\[([^]]+)]\(([^)]+)\)", r"<u>\1</u>", escaped)
@@ -111,9 +187,9 @@ def _styles() -> dict[str, ParagraphStyle]:
         "cover_title": ParagraphStyle(
             "CoverTitle",
             parent=samples["Title"],
-            fontName="Helvetica-Bold",
-            fontSize=27,
-            leading=32,
+            fontName=REPORT_FONTS.display_bold,
+            fontSize=28,
+            leading=33,
             textColor=OFF_WHITE,
             alignment=TA_LEFT,
             spaceAfter=12,
@@ -121,7 +197,7 @@ def _styles() -> dict[str, ParagraphStyle]:
         "cover_subtitle": ParagraphStyle(
             "CoverSubtitle",
             parent=samples["Normal"],
-            fontName="Helvetica",
+            fontName=REPORT_FONTS.body_bold,
             fontSize=14,
             leading=20,
             textColor=TEAL,
@@ -129,17 +205,17 @@ def _styles() -> dict[str, ParagraphStyle]:
         "cover_meta": ParagraphStyle(
             "CoverMeta",
             parent=samples["Normal"],
-            fontName="Helvetica",
-            fontSize=10.5,
+            fontName=REPORT_FONTS.body,
+            fontSize=11,
             leading=16,
             textColor=OFF_WHITE,
         ),
         "chapter": ParagraphStyle(
             "Chapter",
             parent=samples["Heading1"],
-            fontName="Helvetica-Bold",
-            fontSize=23,
-            leading=27,
+            fontName=REPORT_FONTS.display_bold,
+            fontSize=24,
+            leading=29,
             textColor=NAVY,
             spaceAfter=15,
             keepWithNext=True,
@@ -147,9 +223,9 @@ def _styles() -> dict[str, ParagraphStyle]:
         "section": ParagraphStyle(
             "Section",
             parent=samples["Heading2"],
-            fontName="Helvetica-Bold",
-            fontSize=15,
-            leading=19,
+            fontName=REPORT_FONTS.display_bold,
+            fontSize=16,
+            leading=20,
             textColor=SLATE,
             spaceBefore=13,
             spaceAfter=7,
@@ -158,9 +234,9 @@ def _styles() -> dict[str, ParagraphStyle]:
         "subsection": ParagraphStyle(
             "Subsection",
             parent=samples["Heading3"],
-            fontName="Helvetica-Bold",
-            fontSize=11.5,
-            leading=15,
+            fontName=REPORT_FONTS.body_bold,
+            fontSize=12,
+            leading=16,
             textColor=MUTED,
             spaceBefore=10,
             spaceAfter=5,
@@ -169,9 +245,9 @@ def _styles() -> dict[str, ParagraphStyle]:
         "body": ParagraphStyle(
             "Body",
             parent=samples["BodyText"],
-            fontName="Helvetica",
-            fontSize=9.2,
-            leading=13.4,
+            fontName=REPORT_FONTS.body,
+            fontSize=10,
+            leading=14.2,
             textColor=INK,
             alignment=TA_LEFT,
             spaceAfter=7,
@@ -180,9 +256,9 @@ def _styles() -> dict[str, ParagraphStyle]:
         "small": ParagraphStyle(
             "Small",
             parent=samples["BodyText"],
-            fontName="Helvetica",
-            fontSize=7.6,
-            leading=10.2,
+            fontName=REPORT_FONTS.body,
+            fontSize=8,
+            leading=10.8,
             textColor=MUTED,
             spaceAfter=4,
             splitLongWords=True,
@@ -190,9 +266,9 @@ def _styles() -> dict[str, ParagraphStyle]:
         "caption": ParagraphStyle(
             "Caption",
             parent=samples["BodyText"],
-            fontName="Helvetica-Oblique",
-            fontSize=8,
-            leading=11,
+            fontName=REPORT_FONTS.body,
+            fontSize=8.5,
+            leading=11.5,
             textColor=MUTED,
             alignment=TA_CENTER,
             spaceBefore=4,
@@ -201,24 +277,24 @@ def _styles() -> dict[str, ParagraphStyle]:
         "callout": ParagraphStyle(
             "Callout",
             parent=samples["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=REPORT_FONTS.body_bold,
             fontSize=10,
             leading=14,
             textColor=NAVY,
             borderColor=TEAL,
             borderWidth=1,
             borderPadding=9,
-            backColor=HexColor("#E8F6F2"),
+            backColor=CANVAS,
             spaceAfter=11,
         ),
         "code": ParagraphStyle(
             "Code",
             parent=samples["Code"],
-            fontName="Courier",
-            fontSize=7.2,
-            leading=9.2,
+            fontName=REPORT_FONTS.mono,
+            fontSize=8,
+            leading=10,
             textColor=INK,
-            backColor=HexColor("#EDF1F3"),
+            backColor=CANVAS,
             borderPadding=7,
             spaceAfter=8,
         ),
@@ -250,13 +326,15 @@ class ReportDocument(BaseDocTemplate):
             canvas.setFillColor(NAVY)
             canvas.rect(0, 0, A4[0], A4[1], fill=1, stroke=0)
         else:
+            canvas.setFillColor(SURFACE)
+            canvas.rect(0, 0, A4[0], A4[1], fill=1, stroke=0)
             canvas.setStrokeColor(GRID)
             canvas.setLineWidth(0.5)
             canvas.line(18 * mm, A4[1] - 14 * mm, A4[0] - 18 * mm, A4[1] - 14 * mm)
-            canvas.setFont("Helvetica-Bold", 7.5)
+            canvas.setFont(REPORT_FONTS.body_bold, 7.5)
             canvas.setFillColor(MUTED)
             canvas.drawString(18 * mm, A4[1] - 11 * mm, "GRIDGUARD KHARTOUM")
-            canvas.setFont("Helvetica", 7.5)
+            canvas.setFont(REPORT_FONTS.body, 7.5)
             canvas.drawRightString(A4[0] - 18 * mm, 11 * mm, f"Page {document.page}")
         canvas.restoreState()
 
@@ -293,10 +371,11 @@ def _table_flowable(rows: list[list[str]], styles: dict[str, ParagraphStyle]) ->
             [
                 ("BACKGROUND", (0, 0), (-1, 0), SLATE),
                 ("TEXTCOLOR", (0, 0), (-1, 0), OFF_WHITE),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 0), (-1, -1), REPORT_FONTS.body),
+                ("FONTNAME", (0, 0), (-1, 0), REPORT_FONTS.body_bold),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("GRID", (0, 0), (-1, -1), 0.35, GRID),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, HexColor("#F4F7F8")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [SURFACE, CANVAS]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
@@ -310,7 +389,52 @@ def _table_flowable(rows: list[list[str]], styles: dict[str, ParagraphStyle]) ->
 def markdown_flowables(path: Path, styles: dict[str, ParagraphStyle]) -> list[Flowable]:
     """Convert the committed documentation subset used by the report."""
 
+    return _markdown_lines_flowables(path.read_text(encoding="utf-8").splitlines(), styles)
+
+
+def markdown_section_flowables(
+    path: Path,
+    section_title: str,
+    styles: dict[str, ParagraphStyle],
+) -> list[Flowable]:
+    """Render one level-two section as a standalone report chapter."""
+
+    section_lines = [f"# {section_title}", *_markdown_section_lines(path, section_title)]
+    return _markdown_lines_flowables(section_lines, styles)
+
+
+def markdown_section_body_flowables(
+    path: Path,
+    section_title: str,
+    styles: dict[str, ParagraphStyle],
+) -> list[Flowable]:
+    """Render one level-two section body without adding a duplicate heading."""
+
+    return _markdown_lines_flowables(_markdown_section_lines(path, section_title), styles)
+
+
+def _markdown_section_lines(path: Path, section_title: str) -> list[str]:
+    """Extract one level-two section from a committed Markdown source."""
+
     lines = path.read_text(encoding="utf-8").splitlines()
+    heading = f"## {section_title}"
+    try:
+        start = lines.index(heading)
+    except ValueError as error:
+        raise ValueError(f"missing report section: {section_title}") from error
+    end = next(
+        (index for index in range(start + 1, len(lines)) if lines[index].startswith("## ")),
+        len(lines),
+    )
+    return lines[start + 1 : end]
+
+
+def _markdown_lines_flowables(
+    lines: list[str],
+    styles: dict[str, ParagraphStyle],
+) -> list[Flowable]:
+    """Convert supported Markdown lines to ReportLab flowables."""
+
     flowables: list[Flowable] = []
     index = 0
     paragraph_lines: list[str] = []
@@ -387,7 +511,7 @@ def markdown_flowables(path: Path, styles: dict[str, ParagraphStyle]) -> list[Fl
                     items,
                     bulletType="bullet",
                     start="-",
-                    bulletFontName="Helvetica",
+                    bulletFontName=REPORT_FONTS.body,
                     leftIndent=16,
                 )
             )
@@ -407,7 +531,14 @@ def markdown_flowables(path: Path, styles: dict[str, ParagraphStyle]) -> list[Fl
                     item_text += f" {lines[index].strip()}"
                     index += 1
                 items.append(ListItem(Paragraph(_inline_markup(item_text), styles["body"])))
-            flowables.append(ListFlowable(items, bulletType="1", leftIndent=18))
+            flowables.append(
+                ListFlowable(
+                    items,
+                    bulletType="1",
+                    bulletFontName=REPORT_FONTS.body,
+                    leftIndent=18,
+                )
+            )
             continue
         if stripped.startswith(">"):
             flush_paragraph()
@@ -430,36 +561,53 @@ def _results_chart(evidence: dict) -> Drawing:
         ("Jain fairness", fixed["fairness"], ppo["fairness"]),
     )
     drawing = Drawing(500, 165)
-    drawing.add(Rect(0, 0, 500, 165, fillColor=HexColor("#F4F7F8"), strokeColor=GRID))
+    object.__setattr__(drawing, "initialFontName", REPORT_FONTS.body)
+    drawing.add(Rect(0, 0, 500, 165, fillColor=CANVAS, strokeColor=GRID))
     drawing.add(
         String(
             15,
             145,
             "Locked aggregate comparison",
-            fontName="Helvetica-Bold",
+            fontName=REPORT_FONTS.body_bold,
             fontSize=11,
             fillColor=NAVY,
         )
     )
     drawing.add(Rect(330, 143, 10, 5, fillColor=MUTED, strokeColor=None))
     drawing.add(
-        String(345, 141, "Fixed Rotation", fontName="Helvetica", fontSize=7, fillColor=MUTED)
+        String(
+            345,
+            141,
+            "Fixed Rotation",
+            fontName=REPORT_FONTS.body,
+            fontSize=7,
+            fillColor=MUTED,
+        )
     )
     drawing.add(Rect(424, 143, 10, 5, fillColor=TEAL, strokeColor=None))
-    drawing.add(String(439, 141, "PPO", fontName="Helvetica", fontSize=7, fillColor=MUTED))
+    drawing.add(String(439, 141, "PPO", fontName=REPORT_FONTS.body, fontSize=7, fillColor=MUTED))
     for row, (label, fixed_value, ppo_value) in enumerate(metrics):
         y = 105 - row * 39
-        drawing.add(String(15, y + 12, label, fontName="Helvetica-Bold", fontSize=8, fillColor=INK))
-        drawing.add(Rect(128, y + 15, 315, 8, fillColor=HexColor("#DCE4E7"), strokeColor=None))
+        drawing.add(
+            String(
+                15,
+                y + 12,
+                label,
+                fontName=REPORT_FONTS.body_bold,
+                fontSize=8,
+                fillColor=INK,
+            )
+        )
+        drawing.add(Rect(128, y + 15, 315, 8, fillColor=GRID, strokeColor=None))
         drawing.add(Rect(128, y + 15, 315 * fixed_value, 8, fillColor=MUTED, strokeColor=None))
-        drawing.add(Rect(128, y, 315, 8, fillColor=HexColor("#DCE4E7"), strokeColor=None))
+        drawing.add(Rect(128, y, 315, 8, fillColor=GRID, strokeColor=None))
         drawing.add(Rect(128, y, 315 * ppo_value, 8, fillColor=TEAL, strokeColor=None))
         drawing.add(
             String(
                 452,
                 y + 15,
                 f"{fixed_value * 100:.1f}%",
-                fontName="Helvetica",
+                fontName=REPORT_FONTS.body,
                 fontSize=7,
                 fillColor=MUTED,
             )
@@ -469,7 +617,7 @@ def _results_chart(evidence: dict) -> Drawing:
                 452,
                 y,
                 f"{ppo_value * 100:.1f}%",
-                fontName="Helvetica-Bold",
+                fontName=REPORT_FONTS.body_bold,
                 fontSize=7,
                 fillColor=NAVY,
             )
@@ -486,6 +634,7 @@ def _architecture_diagram() -> Drawing:
         "Desktop replay",
     )
     drawing = Drawing(500, 92)
+    object.__setattr__(drawing, "initialFontName", REPORT_FONTS.body)
     width = 86
     gap = 15
     for index, label in enumerate(labels):
@@ -501,7 +650,7 @@ def _architecture_diagram() -> Drawing:
                         51 - line_index * 11,
                         word_line,
                         textAnchor="middle",
-                        fontName="Helvetica-Bold",
+                        fontName=REPORT_FONTS.body_bold,
                         fontSize=6.6,
                         fillColor=OFF_WHITE,
                     )
@@ -509,7 +658,14 @@ def _architecture_diagram() -> Drawing:
         if index < len(labels) - 1:
             arrow_x = x + width + 3
             drawing.add(
-                String(arrow_x, 45, "->", fontName="Helvetica-Bold", fontSize=11, fillColor=GOLD)
+                String(
+                    arrow_x,
+                    45,
+                    "->",
+                    fontName=REPORT_FONTS.body_bold,
+                    fontSize=11,
+                    fillColor=GOLD,
+                )
             )
     return drawing
 
@@ -533,7 +689,12 @@ def _cover(styles: dict[str, ParagraphStyle]) -> list[Flowable]:
             [[""]],
             colWidths=[42 * mm],
             rowHeights=[2 * mm],
-            style=TableStyle([("BACKGROUND", (0, 0), (-1, -1), GOLD)]),
+            style=TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), GOLD),
+                    ("FONTNAME", (0, 0), (-1, -1), REPORT_FONTS.body),
+                ]
+            ),
         ),
         Spacer(1, 16 * mm),
         Paragraph("Graduation Project Final Report", styles["cover_meta"]),
@@ -575,11 +736,22 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
             format_metric(inference["served_mwh"]["mean_delta"], "energy"),
         ],
     ]
-    toc = TableOfContents()
+    toc = TableOfContents(
+        tableStyle=TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 1),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+                ("FONTNAME", (0, 0), (-1, -1), REPORT_FONTS.body),
+            ]
+        )
+    )
     toc.levelStyles = [
         ParagraphStyle(
             name="TOC0",
-            fontName="Helvetica-Bold",
+            fontName=REPORT_FONTS.body_bold,
             fontSize=9,
             leading=11,
             leftIndent=0,
@@ -587,7 +759,7 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
         ),
         ParagraphStyle(
             name="TOC1",
-            fontName="Helvetica",
+            fontName=REPORT_FONTS.body,
             fontSize=7.5,
             leading=9.5,
             leftIndent=12,
@@ -595,29 +767,21 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
         ),
         ParagraphStyle(
             name="TOC2",
-            fontName="Helvetica",
+            fontName=REPORT_FONTS.body,
             fontSize=7.5,
-            leading=11,
+            leading=10,
             leftIndent=24,
             textColor=MUTED,
         ),
     ]
+    abstract_flowables = markdown_section_body_flowables(
+        REPORT_SOURCE_PATH,
+        "Abstract",
+        styles,
+    )
     return [
         Paragraph("Abstract", styles["chapter"]),
-        Paragraph(
-            _inline_markup(
-                "GridGuard Khartoum is an offline, GPU-first research simulation for "
-                "proposal-aligned load shedding across seven Khartoum State localities. It "
-                "compares a frozen PPO controller with Fixed Rotation on identical synthetic "
-                "24-hour shortage scenarios. The release preserves the accepted aggregate "
-                "comparison and regenerates auditable paired episode evidence from the frozen "
-                "PPO checkpoint and reviewed simulator. A native desktop application provides "
-                "an interactive schematic map and deterministic live replay. This is "
-                "decision-support research, not a deployed electrical-grid controller, and it "
-                "makes no field-performance claim."
-            ),
-            styles["body"],
-        ),
+        *abstract_flowables,
         Paragraph(
             "96 independent base draws x 3 shortage levels = 288 matched scenario "
             "conditions; 576 controller-scenario evaluations.",
@@ -635,7 +799,8 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
         Spacer(1, 10),
         Paragraph(
             _inline_markup(
-                "The same seeded scenario tensor is passed to both controllers. All "
+                "One severity-neutral base-draw batch is reused across all three shortage "
+                "levels, and the same resulting scenario tensor is passed to both controllers. All "
                 "performance-critical simulation, policy inference, metric, and bootstrap "
                 "operations remain on cuda:0; final display and canonical evidence payloads "
                 "cross explicitly to host memory. Startup verifies the "
@@ -692,6 +857,8 @@ def load_verified_evidence() -> dict:
 def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
     """Render the final report and return its resolved path."""
 
+    if not REPORT_SOURCE_PATH.is_file():
+        raise FileNotFoundError(f"missing report source: {REPORT_SOURCE_PATH}")
     for chapter in CHAPTER_PATHS:
         if not chapter.is_file():
             raise FileNotFoundError(f"missing report chapter: {chapter}")
@@ -703,30 +870,19 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
     story: list[Flowable] = []
     story.extend(_cover(styles))
     story.extend(_front_matter(styles, evidence))
-    story.extend(_screenshots(styles))
-    for chapter_path in CHAPTER_PATHS:
+    for section_title in REPORT_SECTION_ORDER[:2]:
+        story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, section_title, styles))
+    for chapter_path in CHAPTER_PATHS[:2]:
         story.extend(markdown_flowables(chapter_path, styles))
-    story.extend(
-        [
-            PageBreak(),
-            Paragraph("Conclusion", styles["chapter"]),
-            Paragraph(
-                _inline_markup(
-                    "Under the locked synthetic evaluation protocol, PPO is consistently "
-                    "better than Fixed Rotation on every primary outcome and all nine "
-                    "shortage-by-seed cells. The clean release makes that result reproducible, "
-                    "preserves the accepted aggregate evidence, and presents the method "
-                    "honestly through an offline GPU-first desktop application. The next "
-                    "scientific step is validation with representative operational data and "
-                    "constraints before any field-facing use."
-                ),
-                styles["body"],
-            ),
-            Paragraph(
-                f"Canonical paired evidence SHA-256: {PAIRED_BENCHMARK_SHA256}",
-                styles["small"],
-            ),
-        ]
+    story.extend(_screenshots(styles))
+    story.extend(markdown_flowables(CHAPTER_PATHS[2], styles))
+    for section_title in REPORT_SECTION_ORDER[2:]:
+        story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, section_title, styles))
+    story.append(
+        Paragraph(
+            f"Canonical paired evidence SHA-256: {PAIRED_BENCHMARK_SHA256}",
+            styles["small"],
+        )
     )
     story.extend(markdown_flowables(REFERENCE_PATH, styles))
     document = ReportDocument(
@@ -743,7 +899,7 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
         ),
         subject="PPO-assisted synthetic load-shedding research simulation",
     )
-    document.multiBuild(story)
+    document.multiBuild(story, canvasmaker=_report_canvas)
     return output_path.resolve()
 
 

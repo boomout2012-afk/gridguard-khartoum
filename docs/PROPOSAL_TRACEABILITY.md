@@ -40,6 +40,16 @@ listed source hashes equal their Git-blob hashes.
 The clean implementation uses parity tests and inference-only artifacts instead of copying the
 full research archive.
 
+### Verified display geography
+
+The presentation map is separately source-pinned and never treated as proposal evidence.
+OCHA/HDX Sudan COD-AB revision v03 supplies the exact Khartoum State ADM2 units `SD01001` through
+`SD01007`; Natural Earth 1:10m rivers version 5.0.0 supplies White Nile, Blue Nile, and Nile
+context. The upstream archive, selected member, immutable river revision, derived GeoJSON hashes,
+selectors, transformation, licenses, and attribution are recorded in
+`src/gridguard/assets/map/THIRD_PARTY_DATA.md` and `map-provenance.json`. The boundaries are
+presentation context only and not electrical-network topology.
+
 ## Frozen headline comparison
 
 The historical artifact records 32 episodes for each of nine shortage-level/seed cells. It stores
@@ -67,7 +77,7 @@ aggregate-only artifact.
 
 | Proposal requirement | Source status | Clean-repository acceptance evidence |
 |---|---|---|
-| Simplified shortage simulation | Implemented among broader experimental branches | Small proposal-equivalent simulator, parity tests, architecture documentation |
+| Simplified shortage simulation | Implemented among broader experimental branches | Small proposal-equivalent simulator, severity-neutral base-draw reuse, parity tests, architecture documentation |
 | Supply, demand, shortage levels, sectors | Implemented | Typed domain contract and deterministic Mild/Moderate/Severe scenarios |
 | AI decision-support model | Trained PPO checkpoint exists | Inference-only checkpoint, CUDA loader, policy parity tests |
 | Critical infrastructure priorities | Hospitals, water, and bakeries modeled | Per-sector map detail, critical-service invariant tests |
@@ -76,12 +86,12 @@ aggregate-only artifact.
 | Optimization method | GPU optimization reference exists | Training context is documented; the desktop uses GPU acceleration for inference and simulation |
 | Reinforcement learning | PPO policy implemented | Clean inference code and audited PPO methodology |
 | Multiple shortage scenarios | Mild, Moderate, Severe implemented | Matched deterministic CUDA replay and paired evidence across all three levels |
-| Fixed-schedule comparison | Implemented | Rebuilt 288-row paired artifact with cluster-aware intervals and Results view |
+| Fixed-schedule comparison | Implemented | Rebuilt 288-row paired artifact with cluster-aware intervals, neutral integrity validation, trusted release assertion, and Results view |
 | Critical-service downtime | Implemented in evaluation metrics | Frozen table plus per-scenario GUI detail |
 | Fairness between areas | Jain fairness and critical-outage locality-hours implemented | Frozen table, definitions, and tests |
 | Distribution efficiency | Utilization, served MWh, curtailment implemented | Frozen table, definitions, and tests |
 | Final report | Earlier research material was fragmented | Integrated report with methodology, implementation, results, limitations, and references |
-| Academic presentation | Earlier dashboard lacked the approved focused flow | Offline native desktop app, interactive map, Windows build, deck, and speaker notes |
+| Academic presentation | Earlier dashboard lacked the approved focused flow | Offline native desktop app, verified administrative map, synchronized accessible locality list, live aggregate table, Windows build, deck, and speaker notes |
 
 ## Resolved migration risks
 
@@ -94,6 +104,10 @@ aggregate-only artifact.
    and controller-evaluation counts.
 6. Every migrated source is commit-pinned and byte-hashed, and final release artifacts are bound in
    `RELEASE_MANIFEST.json`.
+7. Geographic realism is isolated from scientific inputs: the OCHA/HDX boundaries and Natural
+   Earth Nile context are verified presentation assets, not electrical-network topology.
+8. Neutral evidence integrity is testable independently of the stronger trusted release gate, so
+   validation cannot silently encode a favorable research conclusion.
 
 ## Migration rule
 

@@ -12,7 +12,7 @@ controller-scenario evaluations. For every primary outcome, the seed-stratified 
 This is a simulation result, not a claim about real utility operation. It applies to one frozen
 PPO actor, one Fixed Rotation baseline, and the stated synthetic shortage design.
 
-## Two evidence layers
+## Results provenance and two evidence layers
 
 The project retains two complementary artifacts and does not treat them as interchangeable.
 
@@ -24,6 +24,21 @@ The project retains two complementary artifacts and does not treat them as inter
 The accepted artifact was migrated without inventing episode records. The new artifact was then
 regenerated from the pinned simulator and PPO actor, retained every episode pair, and passed a
 cell-level parity comparison against the accepted summaries.
+
+Neutral integrity and public release claims are checked separately. The
+`validate_paired_benchmark_payload` path reconstructs pairing, arithmetic, physical identities,
+cell means, and aggregates without assuming which controller should win. The trusted release gate,
+`assert_paired_benchmark_release_claims`, additionally requires locked provenance, direct parity
+against the frozen artifact, and confidence intervals wholly in the declared favorable direction.
+Every number in this chapter and the desktop Results page is loaded through that trusted path.
+
+The presentation geography has independent provenance and no evidentiary role. The derived
+OCHA/HDX administrative boundaries are pinned at SHA-256
+`df1afbb337047402feb18d2dd26273c671c36761970d0c48c591c62f3ae3d496`; the derived Natural Earth
+Nile layer is pinned at
+`0486a0f7318b5d7c576c13093b27f3f7aa6410329a7c54fb66eb37d3436cdafa`. Both are presentation
+context only and not electrical-network topology. The map does not enter scenario generation,
+controller input, dispatch, metrics, or evidence.
 
 ## Accepted aggregate comparison
 
@@ -185,4 +200,5 @@ utility data.
 - Results describe one frozen PPO actor under deterministic argmax inference.
 - The reward weights and 99% critical-outage threshold are modeling choices.
 - The display-only demand projection is not part of this evidence and has no reported accuracy.
-- The offline locality map is schematic and contributes no scientific input to the evaluation.
+- The source-pinned administrative boundaries and Nile linework are presentation context only;
+  they are not electrical-network topology and contribute no scientific input to the evaluation.

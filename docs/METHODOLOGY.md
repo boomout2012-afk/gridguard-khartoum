@@ -26,6 +26,12 @@ energy totals are the sum over the one-hour steps and are therefore reported in 
 simulator uses one global supply pool. It does not model feeders, voltages, frequencies,
 transmission constraints, or power flow.
 
+The presentation locates those seven units using second-level administrative boundaries from
+OCHA/HDX Sudan COD-AB revision v03 [7], with White Nile, Blue Nile, and Nile linework from Natural
+Earth 1:10m rivers [8]. These verified layers are presentation context only. They are not
+electrical-network topology and do not enter scenario generation, controller observations,
+dispatch, reward, metrics, or evidence.
+
 ### Synthetic demand
 
 The system peak parameter is 700 MW. Locality peak shares are proportional to the locked
@@ -70,11 +76,13 @@ shortage case.
 The same seed reproduces the same batched demand and supply tensors in the pinned CUDA
 environment. The fixed evaluation seeds are 50001, 50002, and 50003.
 
-Shortage variants are intentionally coupled. For a fixed `(seed, batch_index)` pair, the
-generator reuses the same demand perturbations and supply-noise draw for Mild, Moderate, and
-Severe; only the shortage fraction and window change. The design therefore contains 96 base
-draw clusters, each observed under three shortage levels, rather than 288 independent random
-draws.
+Shortage variants are intentionally coupled. For each seed, the generator first creates one
+severity-neutral `ScenarioBaseDraws` batch containing demand-uniform and supply-uniform tensors.
+That base batch is reused unchanged for Mild, Moderate, and Severe; a pure transformation applies
+only the level's shortage fraction and additional shortage window. For a fixed
+`(seed, batch_index)` pair, demand perturbations and the supply-noise draw are therefore identical
+across all three variants. The design contains 96 base-draw clusters, each observed under three
+shortage levels, rather than 288 independent random draws.
 
 ## Controller decisions and dispatch
 
@@ -163,6 +171,27 @@ reported.
 Because every time step is one hour, power sums in the energy metrics have the numerical unit
 MWh. Critical outage locality-hours can range from 0 to 168 in one episode: 24 hours multiplied
 by seven localities.
+
+### Canonical aggregation rules
+
+Every public metric has one calculation level and one aggregation rule:
+
+- The **episode-pooled critical-service ratio** is total critical energy served divided by total
+  critical energy demanded within one 24-hour episode. Controller aggregates are arithmetic means
+  of those episode ratios; they do not pool energy across episodes.
+- The **mean hourly supply-utilization ratio** is first calculated within an episode as the mean
+  of 24 hourly `served / min(supply, demand)` values, then averaged across episodes.
+- The **mean hourly cumulative-locality Jain fairness** is first calculated within an episode as
+  the mean of 24 hourly fairness values over cumulative locality service ratios, then averaged
+  across episodes.
+- Reward is the 24-step sum per episode. Energy and locality-hour outcomes are 24-step sums per
+  episode. Switching, oversubscription, and power-balance violation rate are hourly means per
+  episode.
+
+For each controller, the published aggregate is the equally weighted arithmetic mean of the 288
+episode values. Equivalently, it is the equally weighted mean of the nine cell means because every
+cell contains 32 episodes. Paired inference uses the 288 within-scenario `PPO - Fixed Rotation`
+episode differences while clustering the three shortage variants of each base draw.
 
 ## Matched evaluation design
 
@@ -304,6 +333,16 @@ uv run gridguard-evaluate --reproduce-paired --output $reproduction
 The required output digest is
 `2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11`.
 
+Evidence verification deliberately separates scientific integrity from the public claim.
+`validate_paired_benchmark_payload` performs neutral integrity checks: closed schema, matched
+inputs, finite physical bounds, energy identities, row deltas, recomputed summaries, and a parity
+status consistent with the stored errors. It can therefore validate a well-formed adverse or
+inconclusive artifact. `assert_paired_benchmark_release_claims` is the trusted release gate. It
+adds locked provenance, a direct cross-check against the hash-pinned frozen benchmark, passing
+18-cell parity, and favorable confidence-interval directions. Trusted artifact writing, desktop
+Results loading, and report generation provide the frozen benchmark path and use this stronger
+gate.
+
 ## Limitations and threats to validity
 
 - All demand and supply traces are synthetic and are not calibrated against utility records.
@@ -317,5 +356,6 @@ The required output digest is
 - Power-balance compliance is an invariant of this simulator, not evidence of real-grid
   stability or operational safety.
 - The 99% critical-outage threshold and reward weights are explicit research assumptions.
-- The schematic map is a presentation aid, not a geographic boundary or electrical-network map.
+- The source-pinned administrative boundaries and Nile linework are presentation context only;
+  they are not electrical-network topology and do not improve the simulator's external validity.
 - The causal projection has no real-data validation and is excluded from controller claims.

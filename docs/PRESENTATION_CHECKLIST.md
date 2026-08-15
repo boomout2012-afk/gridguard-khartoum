@@ -17,8 +17,8 @@
   both `PPO` and `Fixed Rotation`, 24 frames per controller, finite values, and successful
   installation in the Live Scenario page. Its expected and rendered results-table row counts
   must both be seven.
-- The validated distribution is a one-directory package of 8,021,341,500 bytes (about
-  7.47 GiB); copy all 4,647 files rather than the executable alone.
+- Compare the distribution byte count and file count with the current `RELEASE_MANIFEST.json`;
+  copy the complete one-directory package rather than the executable alone.
 
 ## Before leaving for the presentation
 
@@ -34,7 +34,15 @@
 - Open each tab and confirm no text is clipped at the presentation resolution.
 - On Live Scenario, select a shortage level and seed, then run the GPU simulation.
 - Change controller and hour and confirm the map and locality detail update together.
+- Confirm the real OCHA/HDX locality outlines and Natural Earth White Nile, Blue Nile, and Nile
+  context are visible, then state that they are presentation context only and not
+  electrical-network topology.
+- Select localities with both the map and synchronized locality list; confirm selection, text,
+  and visible keyboard focus stay aligned.
 - Select at least two localities and check demand, served power, critical service, and sectors.
+- Read the **Live demonstration** aggregate rows for PPO and Fixed Rotation, including Served
+  energy, Critical service, Fairness, Curtailed energy, and Power-balance violations. State that
+  these values describe the selected run and do not replace frozen Results evidence.
 - Open Results and state that every delta is `PPO - Fixed Rotation`.
 - State the evaluation count precisely: 96 independent base draws, 288 matched scenario
   conditions, and 576 controller-scenario evaluations.
@@ -48,6 +56,10 @@
 - Say the results are simulator evidence for the locked protocol, not field deployment evidence.
 - Say the historical artifact stored batch summaries; paired episode rows and confidence
   intervals were regenerated from the audited simulator and frozen PPO checkpoint.
+- Say neutral integrity validation can accept a well-formed adverse result; the trusted release
+  gate separately requires locked provenance, frozen-benchmark parity, and favorable intervals.
+- Say the map uses source-pinned administrative boundaries and Nile context for presentation
+  only; never describe polygons as feeders, service territories, or measured grid data.
 
 ## If the app refuses to start
 

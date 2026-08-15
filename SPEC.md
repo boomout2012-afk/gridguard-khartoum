@@ -13,7 +13,9 @@ Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d3
    hash-pinned paired reproduction: the trained PPO policy outperforms Fixed Rotation on the
    reported synthetic proposal metrics.
 4. Legacy experiment versions are research history, not part of this clean project.
-5. The seven-locality map is an interactive schematic, not an engineering-grade geographic or electrical-network map.
+5. The seven-locality map uses source-pinned OCHA/HDX administrative boundaries with Natural
+   Earth Nile context. It is presentation context only, not electrical-network topology, and
+   cannot provide scientific inputs.
 6. The final academic package includes a native desktop application, source repository, methodology/implementation/results chapters, a final PDF report, and a slide deck.
 7. No real utility measurements are available; all demand and supply traces remain synthetic and this limitation is displayed in the application and documents.
 
@@ -47,16 +49,26 @@ Acceptance conditions:
 - Both controllers receive the identical scenario.
 - The run is deterministic for the same severity and seed.
 - The application reports demand, available supply, served energy, critical service, fairness, curtailment, and power-balance violations.
+- A table labeled **Live demonstration** shows Served energy, Critical service, Fairness,
+  Curtailed energy, and Power-balance violations for both controllers from that selected episode.
+- Live aggregates remain visually and semantically separate from frozen Results evidence.
 
 ### 2. Explore the interactive map
 
-The presenter moves an hour slider and clicks a locality on a pannable and zoomable schematic map.
+The presenter moves an hour slider and selects a locality on a pannable and zoomable offline
+administrative map or its synchronized locality list.
 
 Acceptance conditions:
 
 - Every locality is visible and selectable by mouse and keyboard.
 - Locality color and text show the active service tier without relying on color alone.
 - The detail panel reports total demand, served power, critical-service percentage, and per-sector status for the selected hour.
+- The map retains the exact ADM2 P-code and source identity for all seven OCHA/HDX units and shows
+  source-pinned Natural Earth White Nile, Blue Nile, and Nile linework.
+- The interface exposes accessible names and descriptions, a synchronized locality list, and
+  visible keyboard focus.
+- A permanent notice says that boundaries are presentation context only, results are synthetic,
+  and the view is not electrical-network topology.
 
 ### 3. Present the frozen result
 
@@ -69,6 +81,8 @@ Acceptance conditions:
   with three shortage levels: 288 matched scenario conditions and 576 controller evaluations.
 - Later experimental failures or unfinished branches cannot alter the headline claim.
 - The synthetic-data and decision-support-only limitations remain visible.
+- Neutral evidence validation is separate from the trusted release claim gate. Only the trusted
+  path can supply the Results view or academic artifacts.
 
 ### 4. Explain the methodology
 
@@ -88,7 +102,10 @@ The presenter opens a Methodology view that explains scenario generation, action
 - uv for dependency and command management
 - PyInstaller for the Windows presentation build
 
-The GUI uses `QGraphicsScene` and `QGraphicsView` for the offline interactive map. Qt's documented scene/item event model provides selection and hover behavior, while `ScrollHandDrag` and wheel scaling provide panning and zooming.
+The GUI uses `QGraphicsScene` and `QGraphicsView` for the offline interactive map. Qt's documented
+scene/item event model provides selection and hover behavior, while `ScrollHandDrag` and wheel
+scaling provide panning and zooming. Runtime projects verified WGS84 geometry to EPSG:3857 and
+aspect-fits it into a fixed scene without a GIS or network dependency.
 
 ## Commands
 
@@ -133,7 +150,7 @@ docs/
   REPORT.md                     assembled final report source
 output/presentation/            final slide deck with embedded speaker notes
 src/gridguard/
-  assets/map/                   packaged offline schematic-map data
+  assets/map/                   pinned boundaries, Nile context, provenance, and attribution
   domain.py                     shared vocabulary and typed data contracts
   scenarios.py                  synthetic demand/supply generation
   forecast.py                   separate display-only causal demand projection
@@ -172,16 +189,37 @@ Rules:
 - Never silently recompute frozen headline values in the GUI.
 - Show units in variable names or labels where ambiguity is possible (`mw`, `mwh`, `hours`, `ratio`).
 
+## Metric and evidence contracts
+
+Canonical public metrics have one definition and aggregation path:
+
+- critical service is critical energy served divided by critical energy demanded, pooled within
+  each 24-hour episode;
+- utilization is the episode mean of hourly served power divided by
+  `min(available supply, demand)`;
+- fairness is the episode mean of hourly Jain fairness calculated from cumulative locality
+  service ratios; and
+- aggregate controller results are equally weighted arithmetic means of episode metrics. The
+  nine cell means give the same aggregate because every cell contains exactly 32 episodes.
+
+`validate_paired_benchmark_payload` is a neutral integrity validator. It enforces closed schema,
+matched inputs, physical bounds, arithmetic identities, row/cell/aggregate reconstruction, and
+internally consistent parity status without assuming that PPO must win.
+`assert_paired_benchmark_release_claims` is the trusted release gate. It additionally verifies
+locked provenance, reloads the hash-pinned frozen benchmark, requires direct 18-cell parity, and
+requires every inferential interval to lie in its declared favorable direction. Trusted writes,
+the desktop Results view, and report generation must supply the frozen benchmark path.
+
 ## Testing strategy
 
 ### Unit tests
 
-- Scenario determinism and shortage coverage
+- Severity-neutral base-draw determinism, explicit reuse across shortages, and shortage coverage
 - Fixed-rotation schedule behavior
 - Service-tier dispatch and power-balance invariants
 - Critical-service, fairness, utilization, curtailment, and outage metrics
 - Policy artifact schema and CUDA inference
-- Evidence hashing and claim reconstruction
+- Neutral evidence integrity, trusted claim assertion, hashing, and claim reconstruction
 
 ### Parity tests
 
@@ -201,6 +239,9 @@ Golden cases generated from the accepted source implementation must prove that t
 - Hour and shortage controls update the map and detail panel
 - Empty, loading, and error states are legible
 - Frozen Results and Methodology views render without changing evidence
+- Live demonstration aggregates match the selected controller episode metrics
+- Dynamic state is exposed through accessible text, a synchronized locality list, and visible
+  keyboard focus at 1366 x 768
 
 ### Release checks
 
@@ -225,7 +266,8 @@ Not supported:
 - National-grid optimization
 - Universal superiority over every optimization or rule-based controller
 - Accuracy on real Sudanese utility data
-- A claim that schematic localities represent feeder topology or exact administrative boundaries
+- A claim that administrative polygons or rivers represent feeders, service territories,
+  substations, measured demand, or any other electrical-network topology
 
 ## Boundaries
 
@@ -233,6 +275,8 @@ Not supported:
 
 - Preserve the original proposal and source-artifact hashes.
 - Use matched scenarios for controller comparisons.
+- Generate one severity-neutral base-draw batch per seed and reuse it unchanged across Mild,
+  Moderate, and Severe before applying severity-specific deterministic transformations.
 - Keep synthetic-data and decision-support-only notices visible.
 - Write tests before behavioral implementation.
 - Run focused tests, lint, and evidence verification before every release commit.
@@ -242,7 +286,8 @@ Not supported:
 
 - Change the primary scientific claim or metric definitions.
 - Add real operational data or external online services.
-- Replace the schematic map with externally licensed geographic boundaries.
+- Change the pinned geographic source, selected P-codes, river features, projection, attribution,
+  or license treatment.
 - Add dependencies outside the approved stack.
 - Make the GitHub repository public.
 
@@ -271,6 +316,8 @@ Not supported:
 ## Approved delivery decisions
 
 1. Publish the final repository privately on GitHub.
-2. Use a clearly labeled, offline schematic locality map.
+2. Use a clearly labeled, offline administrative locality map derived from pinned OCHA/HDX
+   boundaries with Natural Earth Nile context. It is presentation context only and not
+   electrical-network topology.
 3. Proceed with a neutral academic report and slide design; adapt to a university template later if one is supplied.
 4. Use **PPO** as the learned-controller name everywhere in the clean project.
