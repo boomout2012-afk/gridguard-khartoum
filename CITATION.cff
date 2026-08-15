@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it using this metadata."
+title: "GridGuard Khartoum: PPO-Assisted Load Shedding and Energy Management"
+type: software
+version: 1.0.0
+date-released: 2026-08-15
+authors:
+  - family-names: Bakhit
+    given-names: Murtada Asim Ibrahim
+  - family-names: Babiker
+    given-names: Suliman Elawad Suliman
+  - family-names: Abass
+    given-names: Abdalhay Abass Mobarak
+abstract: >-
+  An offline GPU-first research simulation comparing PPO and Fixed Rotation load shedding on
+  matched synthetic shortage scenarios for seven Khartoum State localities.

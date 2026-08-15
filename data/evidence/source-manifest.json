@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "source_repository": {
+    "name": "aipower_rl research archive",
+    "revision": "fd2ba182894ad861218544cb86eb6dead4f3b72e"
+  },
+  "artifacts": [
+    {
+      "id": "accepted-proposal",
+      "kind": "scope-authority",
+      "path": "docs/source/graduation-project-proposal.pdf",
+      "sha256": "3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48"
+    },
+    {
+      "id": "frozen-proposal-benchmark",
+      "kind": "descriptive-evidence",
+      "path": "data/evidence/frozen-benchmark.json",
+      "sha256": "3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15"
+    },
+    {
+      "id": "ppo-inference-artifact",
+      "kind": "inference-model",
+      "path": "data/model/ppo-policy.npz",
+      "sha256": "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5"
+    },
+    {
+      "id": "ppo-inference-manifest",
+      "kind": "model-manifest",
+      "path": "data/model/manifest.json",
+      "sha256": "89ece396d8d5ef55d11f5f59ed946a593a37a6b4b10a08040cf80aa58ef20fe2"
+    },
+    {
+      "id": "paired-proposal-benchmark",
+      "kind": "paired-evaluation-evidence",
+      "path": "data/evidence/paired-benchmark.json",
+      "sha256": "2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11"
+    }
+  ],
+  "lineage": [
+    {
+      "id": "source-benchmark",
+      "git_blob_sha256": "37d7e51c6f723edbc2ecd02959482061d94fd1399b9db5657576ac7bd4e458ea",
+      "git_blob_size_bytes": 25553,
+      "source_path": "artifacts/benchmark.json",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 26282,
+      "sha256": "5f09625ff987440bc6e667550509cb7f1deac03a38c1b905aa284d65bf74023f"
+    },
+    {
+      "id": "source-ppo-checkpoint",
+      "git_blob_sha256": "c6e5712f966b46ba18f4c69fb457b9e69f78887c0c5c0279e5ce034f40f9c665",
+      "git_blob_size_bytes": 20192497,
+      "source_path": "artifacts/checkpoints/best.pt",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 20192497,
+      "sha256": "c6e5712f966b46ba18f4c69fb457b9e69f78887c0c5c0279e5ce034f40f9c665"
+    },
+    {
+      "id": "source-simulation-config",
+      "git_blob_sha256": "5f1f9febaaf7cdae980ed67c83948362b378cd290118f5712f47da1a09d65d04",
+      "git_blob_size_bytes": 1762,
+      "source_path": "src/aipower_rl/config.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 1762,
+      "sha256": "5f1f9febaaf7cdae980ed67c83948362b378cd290118f5712f47da1a09d65d04"
+    },
+    {
+      "id": "source-controllers",
+      "git_blob_sha256": "b75eaf60da7d3c4e5225327d05029c8b5191583c4853bb17b8bc32f228118538",
+      "git_blob_size_bytes": 4232,
+      "source_path": "src/aipower_rl/controllers.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 4232,
+      "sha256": "b75eaf60da7d3c4e5225327d05029c8b5191583c4853bb17b8bc32f228118538"
+    },
+    {
+      "id": "source-scenarios",
+      "git_blob_sha256": "689bb4319194baf2f593d98c4b3309d843167e039ed48fff20ee0a9b14aef186",
+      "git_blob_size_bytes": 3944,
+      "source_path": "src/aipower_rl/scenarios.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 3944,
+      "sha256": "689bb4319194baf2f593d98c4b3309d843167e039ed48fff20ee0a9b14aef186"
+    },
+    {
+      "id": "source-simulator",
+      "git_blob_sha256": "88df6575a6b2821cde6abcd63f2effe81596210da364bc02bd416b0981e658e6",
+      "git_blob_size_bytes": 6239,
+      "source_path": "src/aipower_rl/simulator.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 6239,
+      "sha256": "88df6575a6b2821cde6abcd63f2effe81596210da364bc02bd416b0981e658e6"
+    },
+    {
+      "id": "source-dispatch-and-reward",
+      "git_blob_sha256": "4fe504105c5f030a143f5583a788de9a4ba9c028b34d49aabc8ff9c3da64c9d8",
+      "git_blob_size_bytes": 3788,
+      "source_path": "src/aipower_rl/dynamics.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 3788,
+      "sha256": "4fe504105c5f030a143f5583a788de9a4ba9c028b34d49aabc8ff9c3da64c9d8"
+    },
+    {
+      "id": "source-policy-network",
+      "git_blob_sha256": "6fedcc55675a72aff048a3b1a9a98c86a87962427031c6a4450239fdccbbde03",
+      "git_blob_size_bytes": 4329,
+      "source_path": "src/aipower_rl/models.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 4329,
+      "sha256": "6fedcc55675a72aff048a3b1a9a98c86a87962427031c6a4450239fdccbbde03"
+    },
+    {
+      "id": "source-evaluation",
+      "git_blob_sha256": "1d0aeef17ed84c3184731cc89c3a39c7f982981183c98047c92fb9c6ffd4cf68",
+      "git_blob_size_bytes": 9735,
+      "source_path": "src/aipower_rl/evaluation.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 9735,
+      "sha256": "1d0aeef17ed84c3184731cc89c3a39c7f982981183c98047c92fb9c6ffd4cf68"
+    }
+  ]
+}

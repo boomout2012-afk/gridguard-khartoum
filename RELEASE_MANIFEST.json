@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "release_id": "gridguard-khartoum-v1.0.0",
+  "release_date": "2026-08-15",
+  "tracked_artifacts": [
+    {
+      "path": "data/evidence/paired-benchmark.json",
+      "sha256": "2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11",
+      "size_bytes": 405826
+    },
+    {
+      "path": "data/evidence/source-manifest.json",
+      "sha256": "cc06df2492512d1c4de9c73051311f3401d5ddf90eb2563f2f440e53f26194c9",
+      "size_bytes": 4964
+    },
+    {
+      "path": "data/model/manifest.json",
+      "sha256": "89ece396d8d5ef55d11f5f59ed946a593a37a6b4b10a08040cf80aa58ef20fe2",
+      "size_bytes": 1329
+    },
+    {
+      "path": "data/model/ppo-policy.npz",
+      "sha256": "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5",
+      "size_bytes": 5160058
+    },
+    {
+      "path": "docs/source/graduation-project-proposal.pdf",
+      "sha256": "3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48",
+      "size_bytes": 66494
+    },
+    {
+      "path": "output/pdf/gridguard-khartoum-final-report.pdf",
+      "sha256": "5772cd9418c3238c445e286dd09f551547b9c560bafd6e1788622daa9878e6cc",
+      "size_bytes": 543604
+    },
+    {
+      "path": "output/presentation/gridguard-khartoum-defense.pptx",
+      "sha256": "127acf8ab3ef1f845ec46c763b1de73ad59d22aa331b3be398d7e30e5bc5efcf",
+      "size_bytes": 409800
+    },
+    {
+      "path": "src/gridguard/assets/map/khartoum-schematic.json",
+      "sha256": "231c2396baea37c29c81346a360597e8a8d0a98f8612426ba6ae3c67a8672bed",
+      "size_bytes": 3231
+    }
+  ],
+  "windows_build": {
+    "build_kind": "PyInstaller one-directory",
+    "distribution_file_count": 4647,
+    "distribution_size_bytes": 8021341500,
+    "executable_path": "dist/GridGuard Khartoum/GridGuard Khartoum.exe",
+    "executable_sha256": "5f60dfdd9537df656f01c1623ec6731a0ff35b894370f7343a7469aa9583f8bf",
+    "executable_size_bytes": 34888632,
+    "frozen_smoke": "PASS",
+    "frozen_smoke_report": {
+      "path": "build/gridguard/frozen-smoke.json",
+      "sha256": "8362f022aaa215a2c5e3b9e2a0a60206472f01a9a9d852269c12c98770e12673",
+      "size_bytes": 985
+    },
+    "no_gpu_behavior": "FAIL_CLOSED",
+    "tracked": false,
+    "validated_runtime": {
+      "cupy": "14.1.1",
+      "cuda": "12.8",
+      "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "pytorch": "2.8.0+cu128"
+    }
+  },
+  "validation": {
+    "doctor": "PASS",
+    "evidence_verification": "PASS",
+    "full_test_suite": "PASS_WITH_ZERO_SKIPS",
+    "paired_reproduction": "BYTE_IDENTICAL",
+    "report_visual_review_pages": 25,
+    "ruff_check": "PASS",
+    "ruff_format_check": "PASS",
+    "slide_visual_review_count": 12
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "map_id": "khartoum-localities-v1",
+  "kind": "schematic",
+  "title": "Khartoum State Locality Schematic",
+  "disclaimer": "Schematic only; not a geographic boundary map and not an electrical-network topology.",
+  "scene_rect": {
+    "x": 0,
+    "y": 0,
+    "width": 1000,
+    "height": 720
+  },
+  "keyboard_order": [
+    "khartoum",
+    "omdurman",
+    "bahri",
+    "east_nile",
+    "jebel_awlia",
+    "karari",
+    "ombada"
+  ],
+  "localities": [
+    {
+      "id": "khartoum",
+      "name": "Khartoum",
+      "polygon": [[470, 310], [625, 305], [690, 425], [610, 535], [460, 500], [420, 390]],
+      "label_anchor": [555, 415],
+      "neighbors": {
+        "up": "bahri",
+        "right": "east_nile",
+        "down": "jebel_awlia",
+        "left": "omdurman"
+      }
+    },
+    {
+      "id": "omdurman",
+      "name": "Omdurman",
+      "polygon": [[245, 240], [430, 230], [455, 360], [400, 475], [250, 460], [190, 330]],
+      "label_anchor": [330, 350],
+      "neighbors": {
+        "up": "karari",
+        "right": "khartoum",
+        "down": "jebel_awlia",
+        "left": "ombada"
+      }
+    },
+    {
+      "id": "bahri",
+      "name": "Bahri",
+      "polygon": [[445, 90], [620, 80], [665, 210], [590, 315], [455, 280], [415, 195]],
+      "label_anchor": [540, 190],
+      "neighbors": {
+        "up": "karari",
+        "right": "east_nile",
+        "down": "khartoum",
+        "left": "omdurman"
+      }
+    },
+    {
+      "id": "east_nile",
+      "name": "East Nile",
+      "polygon": [[665, 135], [900, 155], [930, 345], [790, 420], [650, 320]],
+      "label_anchor": [800, 270],
+      "neighbors": {
+        "up": "bahri",
+        "right": null,
+        "down": "khartoum",
+        "left": "bahri"
+      }
+    },
+    {
+      "id": "jebel_awlia",
+      "name": "Jebel Awlia",
+      "polygon": [[350, 500], [590, 540], [690, 680], [310, 680]],
+      "label_anchor": [500, 610],
+      "neighbors": {
+        "up": "khartoum",
+        "right": "east_nile",
+        "down": null,
+        "left": "ombada"
+      }
+    },
+    {
+      "id": "karari",
+      "name": "Karari",
+      "polygon": [[220, 60], [420, 65], [435, 190], [340, 240], [210, 190]],
+      "label_anchor": [320, 140],
+      "neighbors": {
+        "up": null,
+        "right": "bahri",
+        "down": "omdurman",
+        "left": "ombada"
+      }
+    },
+    {
+      "id": "ombada",
+      "name": "Ombada",
+      "polygon": [[50, 245], [185, 220], [245, 300], [230, 475], [80, 505], [35, 390]],
+      "label_anchor": [135, 365],
+      "neighbors": {
+        "up": "karari",
+        "right": "omdurman",
+        "down": "jebel_awlia",
+        "left": null
+      }
+    }
+  ],
+  "river_context": {
+    "label": "Nile rivers (schematic context)",
+    "paths": [
+      {
+        "id": "white_nile",
+        "name": "White Nile",
+        "points": [[410, 720], [430, 620], [455, 520], [470, 430], [485, 350], [500, 300]]
+      },
+      {
+        "id": "blue_nile",
+        "name": "Blue Nile",
+        "points": [[970, 285], [840, 300], [720, 310], [620, 305], [540, 300], [500, 300]]
+      },
+      {
+        "id": "main_nile",
+        "name": "Nile",
+        "points": [[500, 300], [500, 220], [490, 130], [475, 20]]
+      }
+    ]
+  }
+}

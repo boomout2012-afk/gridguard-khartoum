@@ -1,0 +1,66 @@
+[project]
+name = "gridguard-khartoum"
+version = "1.0.0"
+description = "Offline PPO load-shedding decision-support simulation for Khartoum State"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "cupy-cuda12x[ctk]>=13.6,<16",
+  "numpy>=2.0,<3",
+  "PySide6-Essentials>=6.8,<7",
+  "torch==2.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pyinstaller>=6.15,<7",
+  "pytest>=8.4,<10",
+  "pytest-qt>=4.5,<5",
+  "ruff>=0.12,<1",
+]
+docs = [
+  "pdfplumber>=0.11,<1",
+  "pypdf>=6,<7",
+  "reportlab>=4.4,<5",
+]
+
+[project.scripts]
+gridguard-desktop = "gridguard.ui.app:main"
+gridguard-doctor = "gridguard.cli:doctor_main"
+gridguard-evaluate = "gridguard.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gridguard"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"data/evidence" = "gridguard/_bundled/data/evidence"
+"data/model" = "gridguard/_bundled/data/model"
+"docs/source/graduation-project-proposal.pdf" = "gridguard/_bundled/docs/source/graduation-project-proposal.pdf"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+markers = [
+  "gpu: requires the presentation NVIDIA GPU and validated CUDA stack",
+  "source_archive: requires the trusted read-only source research archive",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

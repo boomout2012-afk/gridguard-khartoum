@@ -1,0 +1,64 @@
+{
+  "architecture": {
+    "action_count": 2187,
+    "action_encoding": "little-endian-base-3",
+    "activation": "tanh",
+    "hidden_size": 512,
+    "locality_count": 7,
+    "observation_dim": 32
+  },
+  "artifact": {
+    "filename": "ppo-policy.npz",
+    "format": "numpy.npz",
+    "sha256": "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5",
+    "size_bytes": 5160058
+  },
+  "schema": "gridguard.ppo_actor",
+  "schema_version": 1,
+  "source": {
+    "checkpoint_path": "artifacts/checkpoints/best.pt",
+    "checkpoint_sha256": "c6e5712f966b46ba18f4c69fb457b9e69f78887c0c5c0279e5ce034f40f9c665",
+    "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c"
+  },
+  "tensors": {
+    "actor.bias": {
+      "dtype": "float32",
+      "shape": [
+        2187
+      ]
+    },
+    "actor.weight": {
+      "dtype": "float32",
+      "shape": [
+        2187,
+        512
+      ]
+    },
+    "actor_encoder.0.bias": {
+      "dtype": "float32",
+      "shape": [
+        512
+      ]
+    },
+    "actor_encoder.0.weight": {
+      "dtype": "float32",
+      "shape": [
+        512,
+        32
+      ]
+    },
+    "actor_encoder.2.bias": {
+      "dtype": "float32",
+      "shape": [
+        512
+      ]
+    },
+    "actor_encoder.2.weight": {
+      "dtype": "float32",
+      "shape": [
+        512,
+        512
+      ]
+    }
+  }
+}

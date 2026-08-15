@@ -1,0 +1,73 @@
+from __future__ import annotations
+
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _run(command: list[str], *, cwd: Path, environment: dict[str, str]) -> None:
+    result = subprocess.run(
+        command,
+        cwd=cwd,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, f"{result.stdout}\n{result.stderr}"
+
+
+def test_built_wheel_loads_default_map_outside_source_tree(tmp_path: Path) -> None:
+    uv = shutil.which("uv")
+    assert uv is not None, "uv is required for the wheel smoke test"
+
+    wheel_directory = tmp_path / "wheel"
+    environment = os.environ.copy()
+    environment.pop("PYTHONPATH", None)
+    _run(
+        [uv, "build", "--wheel", "--out-dir", str(wheel_directory)],
+        cwd=REPOSITORY_ROOT,
+        environment=environment,
+    )
+    wheels = tuple(wheel_directory.glob("*.whl"))
+    assert len(wheels) == 1
+
+    virtual_environment = tmp_path / "installed"
+    _run(
+        [sys.executable, "-m", "venv", str(virtual_environment)],
+        cwd=tmp_path,
+        environment=environment,
+    )
+    python = virtual_environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    _run(
+        [str(python), "-m", "pip", "install", "--no-deps", str(wheels[0])],
+        cwd=tmp_path,
+        environment=environment,
+    )
+    _run(
+        [
+            str(python),
+            "-I",
+            "-c",
+            (
+                "from gridguard.ui import load_map_asset; "
+                "from gridguard.provenance import verify_project_source_manifest; "
+                "from gridguard.resources import resource_path, runtime_root; "
+                "asset = load_map_asset(); "
+                "assert asset.map_id == 'khartoum-localities-v1'; "
+                "assert len(asset.localities) == 7; "
+                "root = runtime_root(); "
+                "manifest = resource_path('data', 'evidence', 'source-manifest.json'); "
+                "assert len(verify_project_source_manifest(manifest, repository_root=root)) == 5; "
+                "assert resource_path('data', 'model', 'ppo-policy.npz').is_file(); "
+                "assert resource_path('docs', 'source', "
+                "'graduation-project-proposal.pdf').is_file()"
+            ),
+        ],
+        cwd=tmp_path,
+        environment=environment,
+    )
