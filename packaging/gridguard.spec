@@ -8,6 +8,7 @@ from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_dynamic_libs,
     collect_submodules,
+    copy_metadata,
 )
 
 
@@ -36,6 +37,7 @@ nvidia_datas = _filter_nvidia_payload(collect_data_files("nvidia"))
 nvidia_binaries = _filter_nvidia_payload(collect_dynamic_libs("nvidia"))
 
 datas = [
+    *copy_metadata("gridguard-khartoum"),
     *cupy_datas,
     *nvidia_datas,
     (str(PROJECT_ROOT / "data" / "evidence"), "gridguard/_bundled/data/evidence"),

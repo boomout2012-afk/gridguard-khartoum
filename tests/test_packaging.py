@@ -21,6 +21,7 @@ class _StubAnalysis:
 
 def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) -> None:
     captured: dict[str, Any] = {}
+    copied_metadata: list[str] = []
 
     monkeypatch.setattr(pyinstaller_hooks, "collect_all", lambda _package: ([], [], []))
     monkeypatch.setattr(
@@ -41,6 +42,17 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
         ],
     )
     monkeypatch.setattr(pyinstaller_hooks, "collect_submodules", lambda _package: [])
+
+    def copy_metadata(distribution: str) -> list[tuple[str, str]]:
+        copied_metadata.append(distribution)
+        return [
+            (
+                "C:/metadata/gridguard_khartoum-1.0.0.dist-info/METADATA",
+                "gridguard_khartoum-1.0.0.dist-info",
+            )
+        ]
+
+    monkeypatch.setattr(pyinstaller_hooks, "copy_metadata", copy_metadata)
 
     def analysis(scripts, **kwargs):
         captured["scripts"] = scripts
@@ -64,8 +76,13 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
     assert all(
         Path(source).is_relative_to(REPOSITORY_ROOT)
         for source, _target in captured["datas"]
-        if not source.startswith("C:/cuda/")
+        if not source.startswith(("C:/cuda/", "C:/metadata/"))
     )
+    assert copied_metadata == ["gridguard-khartoum"]
+    assert (
+        "C:/metadata/gridguard_khartoum-1.0.0.dist-info/METADATA",
+        "gridguard_khartoum-1.0.0.dist-info",
+    ) in captured["datas"]
     assert "graphlib" in captured["hiddenimports"]
     bundled_cuda_sources = {
         source
