@@ -8,6 +8,7 @@
 *.toml text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+*.geojson text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 *.ps1 text eol=crlf
