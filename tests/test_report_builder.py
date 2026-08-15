@@ -92,6 +92,20 @@ def test_report_print_styles_are_legible_and_expose_font_fallbacks() -> None:
     assert builder.REPORT_FONTS.mono
 
 
+def test_markdown_table_headers_use_embedded_bold_light_text() -> None:
+    builder = _load_builder()
+    styles = builder._styles()
+
+    table = builder._table_flowable(
+        [["Outcome", "PPO"], ["Critical service", "99.72%"]],
+        styles,
+    )
+    header_cells = table._cellvalues[0]
+
+    assert all(cell.style.fontName == builder.REPORT_FONTS.body_bold for cell in header_cells)
+    assert all(cell.style.textColor == builder.OFF_WHITE for cell in header_cells)
+
+
 def test_report_registers_the_approved_bundled_true_type_fonts() -> None:
     builder = _load_builder()
     expected_font_names = {

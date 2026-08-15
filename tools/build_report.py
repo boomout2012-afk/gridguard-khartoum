@@ -263,6 +263,16 @@ def _styles() -> dict[str, ParagraphStyle]:
             spaceAfter=4,
             splitLongWords=True,
         ),
+        "table_header": ParagraphStyle(
+            "TableHeader",
+            parent=samples["BodyText"],
+            fontName=REPORT_FONTS.body_bold,
+            fontSize=8,
+            leading=10.8,
+            textColor=OFF_WHITE,
+            spaceAfter=4,
+            splitLongWords=True,
+        ),
         "caption": ParagraphStyle(
             "Caption",
             parent=samples["BodyText"],
@@ -364,7 +374,16 @@ def _table_flowable(rows: list[list[str]], styles: dict[str, ParagraphStyle]) ->
     ]
     total_weight = sum(content_lengths)
     widths = [usable_width * length / total_weight for length in content_lengths]
-    data = [[Paragraph(_inline_markup(cell), styles["small"]) for cell in row] for row in rows]
+    data = [
+        [
+            Paragraph(
+                _inline_markup(cell),
+                styles["table_header"] if row_index == 0 else styles["small"],
+            )
+            for cell in row
+        ]
+        for row_index, row in enumerate(rows)
+    ]
     table = LongTable(data, colWidths=widths, repeatRows=1, hAlign="LEFT")
     table.setStyle(
         TableStyle(
