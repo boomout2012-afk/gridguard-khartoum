@@ -21,7 +21,9 @@ def _run(command: list[str], *, cwd: Path, environment: dict[str, str]) -> None:
     assert result.returncode == 0, f"{result.stdout}\n{result.stderr}"
 
 
-def test_built_wheel_loads_default_map_outside_source_tree(tmp_path: Path) -> None:
+def test_built_wheel_loads_geographic_map_and_attribution_outside_source_tree(
+    tmp_path: Path,
+) -> None:
     uv = shutil.which("uv")
     assert uv is not None, "uv is required for the wheel smoke test"
 
@@ -54,12 +56,20 @@ def test_built_wheel_loads_default_map_outside_source_tree(tmp_path: Path) -> No
             "-I",
             "-c",
             (
+                "from importlib.resources import files; "
                 "from gridguard.ui import load_map_asset; "
                 "from gridguard.provenance import verify_project_source_manifest; "
                 "from gridguard.resources import resource_path, runtime_root; "
                 "asset = load_map_asset(); "
-                "assert asset.map_id == 'khartoum-localities-v1'; "
+                "assert asset.map_id == 'khartoum-locality-boundaries-2020'; "
+                "assert asset.schema_version == 2; "
                 "assert len(asset.localities) == 7; "
+                "assert asset.projection.crs == 'EPSG:3857'; "
+                "map_root = files('gridguard').joinpath('assets', 'map'); "
+                "assert map_root.joinpath('khartoum-localities.geojson').is_file(); "
+                "assert map_root.joinpath('khartoum-nile.geojson').is_file(); "
+                "assert map_root.joinpath('map-provenance.json').is_file(); "
+                "assert map_root.joinpath('THIRD_PARTY_DATA.md').is_file(); "
                 "root = runtime_root(); "
                 "manifest = resource_path('data', 'evidence', 'source-manifest.json'); "
                 "assert len(verify_project_source_manifest(manifest, repository_root=root)) == 5; "

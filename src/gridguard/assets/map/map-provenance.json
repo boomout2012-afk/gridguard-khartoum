@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "map_id": "khartoum-locality-boundaries-2020",
+  "sources": {
+    "boundary_archive": {
+      "source_url": "https://data.humdata.org/dataset/a66a4b6c-92de-4507-9546-aa1900474180/resource/018af991-4aa7-4043-a0d5-e429a55851fb/download/sdn_admin_boundaries.geojson.zip",
+      "sha256": "75330d4e12e53f966df0e5683e04f0919e9964952fbbf827f3729038e603c95e",
+      "bytes": 1200093
+    },
+    "boundary_member": {
+      "archive_member": "sdn_admin2.geojson",
+      "sha256": "c13cf1e8515730267d41bd560a1f1a0489552ab2900abb070a9aececacca1bb9",
+      "bytes": 1621077
+    },
+    "river_source": {
+      "source_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/b70b7b8766c3c83d5f5145cb6f1c93921d383d3f/geojson/ne_10m_rivers_lake_centerlines.geojson",
+      "revision": "b70b7b8766c3c83d5f5145cb6f1c93921d383d3f",
+      "sha256": "bb854a900ecbd3b408df46d5e16e3e0f974ba55993f9d8b5c26e855273c0905a",
+      "bytes": 7307743
+    }
+  },
+  "derived_assets": {
+    "khartoum-localities.geojson": {
+      "sha256": "df1afbb337047402feb18d2dd26273c671c36761970d0c48c591c62f3ae3d496",
+      "bytes": 124258
+    },
+    "khartoum-nile.geojson": {
+      "sha256": "0486a0f7318b5d7c576c13093b27f3f7aa6410329a7c54fb66eb37d3436cdafa",
+      "bytes": 9585
+    }
+  },
+  "transform": {
+    "adm1_pcode": "SD01",
+    "adm2_pcodes": [
+      "SD01001",
+      "SD01002",
+      "SD01003",
+      "SD01004",
+      "SD01005",
+      "SD01006",
+      "SD01007"
+    ],
+    "display_name_mapping": {
+      "Bahri": "Bahri",
+      "Jebel Awlia": "Jebel Awlia",
+      "Karrari": "Karari",
+      "Khartoum": "Khartoum",
+      "Sharg An Neel": "East Nile",
+      "Um Bada": "Ombada",
+      "Um Durman": "Omdurman"
+    },
+    "projection": "EPSG:3857",
+    "scene": {
+      "projection": "EPSG:3857",
+      "width": 1000,
+      "height": 720,
+      "padding": 36
+    },
+    "river_selectors": [
+      {
+        "id": "white_nile",
+        "feature_index": 278,
+        "component_index": 0,
+        "featurecla": "River",
+        "rivernum": 17,
+        "name_en": "White Nile"
+      },
+      {
+        "id": "blue_nile",
+        "feature_index": 1075,
+        "component_index": 0,
+        "featurecla": "River",
+        "rivernum": 73,
+        "name_en": "Blue Nile"
+      },
+      {
+        "id": "nile",
+        "feature_index": 732,
+        "component_index": 4,
+        "featurecla": "River",
+        "rivernum": 4,
+        "name_en": "Nile"
+      }
+    ],
+    "blue_nile_confluence_adjustment": {
+      "original_end": [
+        32.488862,
+        15.632595
+      ],
+      "appended_end": [
+        32.490164,
+        15.634548
+      ],
+      "distance_m": 258.07
+    },
+    "river_clip": "dissolved seven-locality mask"
+  }
+}
