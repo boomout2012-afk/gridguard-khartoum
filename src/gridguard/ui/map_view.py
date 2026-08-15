@@ -1,4 +1,4 @@
-"""Keyboard- and pointer-accessible offline schematic map view."""
+"""Keyboard- and pointer-accessible offline administrative locality map."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from collections.abc import Mapping
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QKeyEvent, QPainter, QPainterPath, QPen, QWheelEvent
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView
+from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsScene, QGraphicsView
 
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import MapAsset
@@ -14,8 +14,8 @@ from gridguard.ui.map_items import LocalityGraphicsItem
 from gridguard.ui.theme import PALETTE
 
 
-class SchematicMapView(QGraphicsView):
-    """Interactive map with selection, tooltips, panning, and bounded zoom."""
+class LocalityMapView(QGraphicsView):
+    """Interactive administrative map with selection, panning, and bounded zoom."""
 
     locality_selected = Signal(str)
 
@@ -24,6 +24,7 @@ class SchematicMapView(QGraphicsView):
         super().__init__(self._scene, parent)
         self.asset = asset
         self.locality_items: dict[str, LocalityGraphicsItem] = {}
+        self.river_items: list[QGraphicsPathItem] = []
         self._zoom_steps = 0
         self._build_scene()
 
@@ -36,12 +37,15 @@ class SchematicMapView(QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.setAccessibleName("Interactive Khartoum locality schematic")
+        self.setAccessibleName("Interactive Khartoum locality map")
         self.setAccessibleDescription(
             f"{asset.disclaimer} Select a locality with a pointer or arrow keys; "
             "use plus and minus to zoom, and R to reset the view."
         )
-        self.setToolTip("Wheel or plus/minus: zoom. Drag background: pan. R: reset.")
+        self.setToolTip(
+            f"Administrative locality boundaries ({asset.source.boundary_year}). "
+            "Wheel or plus/minus: zoom. Drag background: pan. R: reset."
+        )
         self.select_locality(asset.keyboard_order[0])
 
     @property
@@ -78,7 +82,7 @@ class SchematicMapView(QGraphicsView):
             self.locality_items[locality_id].set_service_tier(ServiceTier(tier))
 
     def reset_view(self) -> None:
-        """Fit the complete schematic within the viewport."""
+        """Fit the complete administrative map within the viewport."""
 
         self._zoom_steps = 0
         bounds = self._scene.sceneRect().adjusted(-24, -24, 24, 24)
@@ -149,21 +153,26 @@ class SchematicMapView(QGraphicsView):
             self.locality_selected.emit(selected)
 
     def _build_scene(self) -> None:
-        river_pen = QPen(QColor(PALETTE.river), 10, Qt.PenStyle.SolidLine)
+        river_pen = QPen(QColor(PALETTE.river), 5, Qt.PenStyle.SolidLine)
         river_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         river_pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        river_pen.setCosmetic(True)
         for river in self.asset.river_context.paths:
-            path = QPainterPath()
-            path.moveTo(*river.points[0])
-            for point in river.points[1:]:
-                path.lineTo(*point)
-            river_item = self._scene.addPath(path, river_pen)
-            river_item.setZValue(-2)
-            river_item.setToolTip(river.name)
+            for line in river.lines:
+                path = QPainterPath()
+                path.moveTo(*line[0])
+                for point in line[1:]:
+                    path.lineTo(*point)
+                river_item = self._scene.addPath(path, river_pen)
+                river_item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+                river_item.setZValue(2)
+                river_item.setToolTip(river.name)
+                self.river_items.append(river_item)
 
         by_id = {item.locality_id: item for item in self.asset.localities}
         for locality_id in self.asset.keyboard_order:
             item = LocalityGraphicsItem(by_id[locality_id])
+            item.setZValue(0)
             self.locality_items[locality_id] = item
             self._scene.addItem(item)
 
@@ -181,3 +190,7 @@ class SchematicMapView(QGraphicsView):
         factor = 1.16 if step > 0 else 1 / 1.16
         self.scale(factor, factor)
         self._zoom_steps = next_step
+
+
+# Compatibility for downstream imports while the product vocabulary migrates.
+SchematicMapView = LocalityMapView

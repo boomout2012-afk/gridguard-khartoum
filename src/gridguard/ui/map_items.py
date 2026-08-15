@@ -1,27 +1,26 @@
-"""Graphics items used by the interactive Khartoum schematic."""
+"""Graphics items used by the interactive Khartoum locality map."""
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import (
     QGraphicsItem,
-    QGraphicsPolygonItem,
+    QGraphicsPathItem,
     QGraphicsSimpleTextItem,
     QStyle,
 )
 
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import LocalityShape
-from gridguard.ui.theme import PALETTE, STATUS_COLORS, STATUS_TEXT
+from gridguard.ui.theme import BODY_FONT_FAMILY, PALETTE, STATUS_COLORS, STATUS_TEXT
 
 
-class LocalityGraphicsItem(QGraphicsPolygonItem):
-    """Selectable locality polygon with redundant status text and pattern."""
+class LocalityGraphicsItem(QGraphicsPathItem):
+    """Selectable Polygon/MultiPolygon locality with redundant status cues."""
 
     def __init__(self, locality: LocalityShape) -> None:
-        polygon = QPolygonF([QPointF(x, y) for x, y in locality.polygon])
-        super().__init__(polygon)
+        super().__init__(_boundary_path(locality))
         self.locality = locality
         self.status_text = "— NOT RUN"
         self._hovered = False
@@ -36,16 +35,18 @@ class LocalityGraphicsItem(QGraphicsPolygonItem):
         self._update_pen()
 
         self._name = QGraphicsSimpleTextItem(locality.name, self)
-        name_font = QFont("Segoe UI", 14, QFont.Weight.DemiBold)
+        name_font = QFont(BODY_FONT_FAMILY, 13, QFont.Weight.DemiBold)
         self._name.setFont(name_font)
         self._name.setBrush(QColor(PALETTE.text))
         self._name.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self._name.setZValue(4)
 
         self._status = QGraphicsSimpleTextItem(self.status_text, self)
-        status_font = QFont("Segoe UI", 10, QFont.Weight.Bold)
+        status_font = QFont(BODY_FONT_FAMILY, 9, QFont.Weight.Bold)
         self._status.setFont(status_font)
         self._status.setBrush(QColor(PALETTE.text_muted))
         self._status.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self._status.setZValue(4)
         self._position_labels()
 
     def set_service_tier(self, tier: ServiceTier) -> None:
@@ -101,7 +102,8 @@ class LocalityGraphicsItem(QGraphicsPolygonItem):
 
     def _tooltip(self) -> str:
         return (
-            f"{self.locality.name}\nStatus: {self.status_text}\n"
+            f"{self.locality.name} ({self.locality.adm2_pcode})\n"
+            f"Status: {self.status_text}\n"
             "Click to select; use arrow keys to move between localities."
         )
 
@@ -110,3 +112,18 @@ class LocalityGraphicsItem(QGraphicsPolygonItem):
 
         option.state &= ~QStyle.StateFlag.State_Selected
         super().paint(painter, option, widget)
+
+
+def _boundary_path(locality: LocalityShape) -> QPainterPath:
+    """Build one odd-even path so multipart features and interior holes stay exact."""
+
+    path = QPainterPath()
+    path.setFillRule(Qt.FillRule.OddEvenFill)
+    for polygon in locality.geometry.polygons:
+        for ring in (polygon.outer, *polygon.holes):
+            first, *remaining = ring
+            path.moveTo(*first)
+            for point in remaining:
+                path.lineTo(*point)
+            path.closeSubpath()
+    return path
