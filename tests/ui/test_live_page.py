@@ -12,6 +12,7 @@ from gridguard.ui.live_models import (
 )
 from gridguard.ui.live_page import LiveScenarioPage
 from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS, load_map_asset
+from gridguard.ui.theme import apply_theme
 
 
 def _frame(hour: int, tier: ServiceTier = ServiceTier.FULL_SERVICE) -> LiveScenarioFrame:
@@ -103,7 +104,7 @@ def test_page_displays_only_frames_supplied_by_simulation_integration(qtbot) -> 
 
     assert page.timeline.isEnabled()
     assert page.hour_label.text() == "Hour 07:00  ·  demand 447 MW  ·  supply 317 MW"
-    assert page.map_view.locality_items["khartoum"].status_text == "◆ CRITICAL ONLY"
+    assert page.map_view.locality_items["khartoum"].status_text == "! CRITICAL ONLY"
     assert page.locality_demand.text() == f"{(447 / 7):.1f} MW"
     assert page.locality_served.text() == f"{(317 / 7):.1f} MW"
     assert page.locality_critical.text() == "95.0%"
@@ -178,10 +179,7 @@ def test_visible_locality_list_is_bidirectionally_synchronized_with_map(qtbot) -
     assert page.map_view.selected_locality_id == "east_nile"
 
     page.map_view.select_locality("omdurman")
-    assert (
-        page.locality_list.currentItem().data(Qt.ItemDataRole.UserRole)
-        == "omdurman"
-    )
+    assert page.locality_list.currentItem().data(Qt.ItemDataRole.UserRole) == "omdurman"
 
 
 def test_dynamic_status_labels_do_not_mask_their_text_from_accessibility(qtbot) -> None:
@@ -190,24 +188,59 @@ def test_dynamic_status_labels_do_not_mask_their_text_from_accessibility(qtbot) 
 
     assert page.state_label.accessibleName() == ""
     assert page.locality_projection.accessibleName() == ""
+    assert page.state_label.property("state") == "empty"
 
     page.set_busy(True)
     assert "running both controllers" in page.state_label.text().casefold()
+    assert page.state_label.property("state") == "loading"
+
+    page.show_run_error("test integration failure")
+    assert "test integration failure" in page.state_label.text().casefold()
+    assert page.state_label.property("state") == "error"
 
 
-def test_locality_detail_rows_fit_at_presentation_height(qtbot) -> None:
+def test_locality_detail_rows_fit_at_presentation_height(qtbot, qapp) -> None:
+    apply_theme(qapp)
     page = LiveScenarioPage(load_map_asset())
     qtbot.addWidget(page)
-    page.resize(1338, 610)
+    page.setFixedSize(1190, 725)
     page.show()
-    page.set_frames([_frame(hour) for hour in range(24)])
+    page.set_frames([_frame(hour, ServiceTier.CRITICAL_ONLY) for hour in range(24)])
     page.timeline.setValue(18)
     qtbot.wait(50)
 
-    for value in page.sector_service_labels.values():
-        bottom = value.mapTo(page.locality_card, QPoint(0, value.height())).y()
-        assert value.isVisibleTo(page.locality_card)
+    detail_labels = (
+        page.locality_name,
+        page.locality_context,
+        page.locality_status,
+        page.locality_demand,
+        page.locality_served,
+        page.locality_critical,
+        page.locality_projection,
+        *page.sector_service_labels.values(),
+    )
+    for label in detail_labels:
+        bottom = label.mapTo(page.locality_card, QPoint(0, label.height())).y()
+        assert label.isVisibleTo(page.locality_card)
+        assert label.height() >= label.sizeHint().height()
         assert bottom <= page.locality_card.height()
+    viewport_height = page.locality_list.viewport().height()
+    for row in range(page.locality_list.count()):
+        item = page.locality_list.item(row)
+        item_rect = page.locality_list.visualItemRect(item)
+        assert item_rect.top() >= 0
+        assert item_rect.bottom() < viewport_height
+        # Leave enough room for the item delegate's horizontal padding and
+        # antialiasing so Qt never substitutes an ellipsis at presentation size.
+        assert page.locality_list.fontMetrics().horizontalAdvance(item.text()) <= (
+            item_rect.width() - 16
+        )
+    assert page.timeline.width() >= 180
+    assert not page.comparison_table.verticalScrollBar().isVisible()
+    comparison_viewport_height = page.comparison_table.viewport().height()
+    for row in range(page.comparison_table.rowCount()):
+        row_rect = page.comparison_table.visualItemRect(page.comparison_table.item(row, 0))
+        assert row_rect.bottom() < comparison_viewport_height
 
 
 def test_page_rejects_partial_timeline_instead_of_filling_missing_hours(qtbot) -> None:

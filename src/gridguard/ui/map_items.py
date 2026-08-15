@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QGraphicsItemGroup,
     QGraphicsLineItem,
     QGraphicsPathItem,
+    QGraphicsRectItem,
     QGraphicsSimpleTextItem,
     QStyle,
 )
@@ -19,12 +20,12 @@ from gridguard.ui.theme import BODY_FONT_FAMILY, PALETTE, STATUS_COLORS, STATUS_
 
 _LABEL_OFFSETS = {
     "khartoum": (100.0, -18.0),
-    "omdurman": (-79.0, 12.0),
+    "omdurman": (-100.0, 12.0),
     "bahri": (60.0, -20.0),
     "east_nile": (93.0, -13.0),
     "jebel_awlia": (85.0, 32.0),
-    "karari": (-12.0, -18.0),
-    "ombada": (-10.0, -40.0),
+    "karari": (-70.0, -18.0),
+    "ombada": (-10.0, -85.0),
 }
 
 
@@ -58,6 +59,14 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         self._label_group.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self._label_group.setZValue(4)
 
+        self._label_backing = QGraphicsRectItem(self._label_group)
+        self._label_backing.setBrush(QBrush(QColor(PALETTE.surface)))
+        backing_pen = QPen(QColor(PALETTE.boundary), 0.75)
+        backing_pen.setCosmetic(True)
+        self._label_backing.setPen(backing_pen)
+        self._label_backing.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self._label_backing.setZValue(-1)
+
         self._name = QGraphicsSimpleTextItem(locality.name, self._label_group)
         name_font = QFont(BODY_FONT_FAMILY)
         name_font.setPointSizeF(9.5)
@@ -87,9 +96,8 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         }[normalized]
         self.setBrush(QBrush(STATUS_COLORS[normalized.value], brush_style))
         self._status.setText(self.status_text)
-        high_contrast_text = QColor(PALETTE.surface)
-        self._name.setBrush(high_contrast_text)
-        self._status.setBrush(high_contrast_text)
+        self._name.setBrush(QColor(PALETTE.ink))
+        self._status.setBrush(STATUS_COLORS[normalized.value])
         self.setToolTip(self._tooltip())
         self._position_labels()
 
@@ -119,6 +127,10 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         self._label_group.setPos(target_x, target_y)
         self._name.setPos(-name_bounds.width() / 2, -name_bounds.height() - 1)
         self._status.setPos(-status_bounds.width() / 2, 1)
+        name_rect = self._name.mapRectToParent(name_bounds)
+        status_rect = self._status.mapRectToParent(status_bounds)
+        text_rect = name_rect.united(status_rect)
+        self._label_backing.setRect(text_rect.adjusted(-5, -3, 5, 3))
         self._label_leader.setLine(anchor_x, anchor_y, target_x, target_y)
 
     def _update_pen(self, *, selected: bool | None = None) -> None:

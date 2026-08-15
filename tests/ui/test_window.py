@@ -1,17 +1,23 @@
 from __future__ import annotations
 
 import threading
+from pathlib import Path
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QFontDatabase, QRawFont
+from PySide6.QtWidgets import QLabel
 
 from gridguard.domain import ServiceTier
+from gridguard.ui import theme
 from gridguard.ui.live_models import (
+    LiveEpisodeSummary,
     LiveScenarioComparison,
     LiveScenarioFrame,
     LocalityHourDetail,
 )
 from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS
 from gridguard.ui.presentation_model import PresentationSnapshot
+from gridguard.ui.theme import PALETTE
 from gridguard.ui.window import PresentationWindow
 
 
@@ -151,6 +157,206 @@ def test_page_shortcuts_remain_active_for_keyboard_presenters(qtbot) -> None:
     assert window.tabs.currentIndex() == 2
 
 
+def _contrast_ratio(foreground: str, background: str) -> float:
+    def luminance(color: str) -> float:
+        channels = [int(color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
+        linear = [
+            channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+            for channel in channels
+        ]
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+    lighter, darker = sorted((luminance(foreground), luminance(background)), reverse=True)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def test_atlas_palette_is_light_and_meets_wcag_aa_text_contrast() -> None:
+    assert {
+        "canvas": PALETTE.canvas,
+        "surface": PALETTE.surface,
+        "ink": PALETTE.ink,
+        "muted": PALETTE.muted,
+        "nav": PALETTE.nav,
+        "boundary": PALETTE.boundary,
+        "nile": PALETTE.nile,
+        "evidence": PALETTE.evidence,
+        "full": PALETTE.full,
+        "critical": PALETTE.critical,
+        "off": PALETTE.off,
+        "focus": PALETTE.focus,
+    } == {
+        "canvas": "#F4F0E6",
+        "surface": "#FFFCF4",
+        "ink": "#10282E",
+        "muted": "#4F6366",
+        "nav": "#123039",
+        "boundary": "#70837F",
+        "nile": "#087D8B",
+        "evidence": "#A66A13",
+        "full": "#15705C",
+        "critical": "#975F19",
+        "off": "#963A45",
+        "focus": "#005FCC",
+    }
+    assert _contrast_ratio(PALETTE.canvas, "#000000") > 10
+    assert _contrast_ratio(PALETTE.text, PALETTE.canvas) >= 4.5
+    assert _contrast_ratio(PALETTE.text_muted, PALETTE.canvas) >= 4.5
+    assert _contrast_ratio(PALETTE.rail_text, PALETTE.rail) >= 4.5
+    assert _contrast_ratio(PALETTE.surface, PALETTE.accent_dark) >= 4.5
+    assert _contrast_ratio(PALETTE.warning, PALETTE.loading_surface) >= 4.5
+
+
+def test_approved_presentation_fonts_register_from_bundled_assets(qapp) -> None:
+    font_directory = Path(theme.__file__).resolve().parents[1] / "assets" / "fonts"
+    expected_true_type_files = {
+        "SourceSerif4-Regular.ttf",
+        "SourceSerif4-Semibold.ttf",
+        "AtkinsonHyperlegible-Regular.ttf",
+        "AtkinsonHyperlegible-Bold.ttf",
+        "IBMPlexMono-Regular.ttf",
+        "IBMPlexMono-SemiBold.ttf",
+    }
+    assert expected_true_type_files <= {path.name for path in font_directory.glob("*.ttf")}
+    registered_families = theme.register_presentation_fonts()
+
+    assert registered_families == (
+        "Source Serif 4",
+        "Atkinson Hyperlegible",
+        "IBM Plex Mono",
+    )
+    available_families = set(QFontDatabase.families())
+    assert set(registered_families) <= available_families
+    theme.apply_theme(qapp)
+    assert qapp.font().family() == "Atkinson Hyperlegible"
+    body_font = QRawFont.fromFont(QFont(theme.BODY_FONT_FAMILY, 12))
+    for status in theme.STATUS_TEXT.values():
+        marker = status.split(maxsplit=1)[0]
+        assert all(body_font.supportsCharacter(ord(character)) for character in marker)
+
+
+def test_window_uses_176px_navigation_rail_and_verified_trust_strip(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+
+    assert window.navigation_rail.minimumWidth() == 176
+    assert window.navigation_rail.maximumWidth() == 176
+    assert [button.text() for button in window.navigation_buttons] == [
+        "01  Overview",
+        "02  Live Scenario",
+        "03  Results",
+        "04  Methodology",
+    ]
+    assert window.trust_strip.accessibleName() == "Verified application trust status"
+    trust_text = " ".join(
+        label.text() for label in window.trust_strip.findChildren(QLabel)
+    ).casefold()
+    assert "offline" in trust_text
+    assert "gpu verified" in trust_text
+    assert "evidence locked" in trust_text
+
+
+def test_navigation_keeps_visual_and_accessible_page_state_in_sync(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+
+    qtbot.mouseClick(window.navigation_buttons[2], Qt.MouseButton.LeftButton)
+
+    assert window.tabs.currentIndex() == 2
+    assert window.navigation_buttons[2].isChecked()
+    assert not window.navigation_buttons[0].isChecked()
+    assert window.tabs.accessibleDescription() == "Current page: Results"
+    assert window.navigation_buttons[2].accessibleName() == (
+        "Open Results page, keyboard shortcut Ctrl+3"
+    )
+
+
+def test_navigation_focus_is_blue_and_distinct_from_current_page(qtbot, qapp) -> None:
+    theme.apply_theme(qapp)
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.resize(1366, 768)
+    window.show()
+    window.tabs.setCurrentIndex(2)
+    window.navigation_buttons[0].setFocus()
+    qtbot.wait(20)
+
+    focused = window.navigation_buttons[0]
+    current = window.navigation_buttons[2]
+    focused_edge = focused.grab().toImage().pixelColor(0, focused.height() // 2).name().upper()
+    current_edge = current.grab().toImage().pixelColor(0, current.height() // 2).name().upper()
+
+    assert focused.hasFocus()
+    assert not focused.isChecked()
+    assert current.isChecked()
+    assert focused_edge == PALETTE.focus
+    assert current_edge != PALETTE.focus
+
+
+def test_results_page_displays_evidence_derived_provenance(qtbot) -> None:
+    snapshot = _snapshot()
+    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+
+    results = window.results_page
+    assert results.provenance_id.text() == snapshot.benchmark_id
+    assert results.provenance_summary.text() == snapshot.count_statement
+    assert "hash verified" in results.provenance_status.text().casefold()
+    assert snapshot.benchmark_id in results.provenance_card.accessibleDescription()
+    assert str(snapshot.matched_scenario_count) in results.provenance_card.accessibleDescription()
+    assert results.provenance_sha256.text() == snapshot.artifact_sha256
+    assert snapshot.artifact_sha256 in results.provenance_sha256.toolTip()
+    assert snapshot.artifact_sha256 in results.provenance_sha256.accessibleName()
+    assert results.provenance_sha256.textInteractionFlags() & (
+        Qt.TextInteractionFlag.TextSelectableByKeyboard
+    )
+    assert results.provenance_release.text() == snapshot.release_id
+    assert snapshot.release_id in results.provenance_release.accessibleName()
+    assert results.provenance_release.textInteractionFlags() & (
+        Qt.TextInteractionFlag.TextSelectableByKeyboard
+    )
+    assert results.provenance_id.property("mono") is True
+    assert all(
+        value_label.property("mono") is True
+        for card in results.controller_cards
+        for value_label in card.metric_value_labels.values()
+    )
+
+
+def test_overview_visibly_attributes_verified_map_sources(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+
+    attribution = window.overview_page.source_attribution
+    assert "OCHA COD-AB 2020" in attribution.text()
+    assert "Natural Earth 5.0" in attribution.text()
+    assert window.overview_page.map_view.asset.source.source_url in attribution.toolTip()
+    assert "Natural Earth 5.0" in attribution.accessibleName()
+
+
+def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None:
+    snapshot = _snapshot()
+    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+
+    page = window.methodology_page
+    page_text = " ".join(label.text() for label in page.findChildren(QLabel)).casefold()
+    assert page.scroll_area.widgetResizable()
+    for topic in (
+        "synthetic scenario generation",
+        "service tiers",
+        "critical-service priorities",
+        "fixed rotation",
+        "ppo",
+        "reward design",
+        "matched evaluation",
+        "limitations",
+        "keyboard",
+    ):
+        assert topic in page_text
+    assert str(snapshot.independent_base_draw_count) in page_text
+    assert str(snapshot.matched_scenario_count) in page_text
+
+
 def _live_comparison() -> LiveScenarioComparison:
     controllers: dict[str, tuple[LiveScenarioFrame, ...]] = {}
     for controller_name, tier in (
@@ -186,6 +392,22 @@ def _live_comparison() -> LiveScenarioComparison:
         seed=50003,
         device="cuda:0",
         frames_by_controller=controllers,
+        metrics_by_controller={
+            "PPO": LiveEpisodeSummary(
+                served_mwh=7716.0,
+                critical_service_ratio=0.95,
+                fairness=0.91,
+                curtailed_mwh=3120.0,
+                power_balance_violation_rate=0.0,
+            ),
+            "Fixed Rotation": LiveEpisodeSummary(
+                served_mwh=6500.0,
+                critical_service_ratio=0.75,
+                fairness=0.82,
+                curtailed_mwh=4336.0,
+                power_balance_violation_rate=0.0,
+            ),
+        },
     )
 
 
@@ -213,7 +435,7 @@ def test_live_run_executes_off_the_gui_thread_and_keeps_results_frozen(qtbot) ->
     assert worker_thread_ids and worker_thread_ids[0] != threading.get_ident()
     assert window.live_page.timeline.isEnabled()
     assert window.live_page.controller_combo.currentText() == "PPO"
-    assert window.live_page.map_view.locality_items["khartoum"].status_text == "● FULL"
+    assert window.live_page.map_view.locality_items["khartoum"].status_text == "• FULL"
     assert window.live_page.locality_context.text() == "PPO · Hour 00:00"
     assert window.live_page.sector_service_labels["Water"].text() == "90.0%"
     window.live_page.timeline.setValue(7)

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QPoint, QPointF, Qt
+from itertools import combinations
+
+from PySide6.QtCore import QPoint, QPointF, QRectF, Qt
 from PySide6.QtGui import QMouseEvent, QWheelEvent
 from PySide6.QtWidgets import QApplication, QGraphicsItem, QGraphicsPathItem
 
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import load_map_asset
 from gridguard.ui.map_view import LocalityMapView, SchematicMapView
-from gridguard.ui.theme import PALETTE
+from gridguard.ui.theme import PALETTE, STATUS_COLORS, apply_theme
 
 
 def test_map_exposes_all_localities_and_accessible_description(qtbot) -> None:
@@ -96,12 +98,48 @@ def test_statuses_have_symbol_and_text_redundancy(qtbot) -> None:
     )
 
     assert view.locality_items["khartoum"].status_text == "× OFF"
-    assert view.locality_items["omdurman"].status_text == "◆ CRITICAL ONLY"
-    assert view.locality_items["bahri"].status_text == "● FULL"
-    for locality_id in ("khartoum", "omdurman", "bahri"):
+    assert view.locality_items["omdurman"].status_text == "! CRITICAL ONLY"
+    assert view.locality_items["bahri"].status_text == "• FULL"
+    for locality_id, tier in (
+        ("khartoum", ServiceTier.OFF),
+        ("omdurman", ServiceTier.CRITICAL_ONLY),
+        ("bahri", ServiceTier.FULL_SERVICE),
+    ):
         item = view.locality_items[locality_id]
-        assert item._name.brush().color().name().upper() == PALETTE.surface
-        assert item._status.brush().color().name().upper() == PALETTE.surface
+        assert item._label_backing.brush().color().name().upper() == PALETTE.surface
+        assert item._label_backing.brush().isOpaque()
+        assert item._name.brush().color().name().upper() == PALETTE.ink
+        assert (
+            item._status.brush().color().name().upper() == STATUS_COLORS[tier.value].name().upper()
+        )
+        backing_rect = item._label_backing.rect()
+        assert backing_rect.contains(item._name.mapRectToParent(item._name.boundingRect()))
+        assert backing_rect.contains(item._status.mapRectToParent(item._status.boundingRect()))
+
+
+def test_status_callouts_do_not_overlap_at_live_presentation_size(qtbot, qapp) -> None:
+    apply_theme(qapp)
+    view = LocalityMapView(load_map_asset())
+    qtbot.addWidget(view)
+    view.resize(696, 285)
+    view.show()
+    view.set_service_tiers(
+        {locality_id: ServiceTier.CRITICAL_ONLY for locality_id in view.locality_items}
+    )
+    view.reset_view()
+    qtbot.wait(20)
+
+    callout_rects = {
+        locality_id: item._label_backing.deviceTransform(view.viewportTransform()).mapRect(
+            item._label_backing.rect()
+        )
+        for locality_id, item in view.locality_items.items()
+    }
+    viewport_rect = QRectF(view.viewport().rect())
+    for locality_id, callout_rect in callout_rects.items():
+        assert viewport_rect.contains(callout_rect), locality_id
+    for (first_id, first_rect), (second_id, second_rect) in combinations(callout_rects.items(), 2):
+        assert not first_rect.intersects(second_rect), (first_id, second_id)
 
 
 def test_reset_view_restores_initial_zoom(qtbot) -> None:

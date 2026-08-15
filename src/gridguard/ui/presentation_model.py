@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
 
+from gridguard import __version__
 from gridguard.evaluation import (
     PAIRED_BENCHMARK_SHA256,
     EvaluationArtifactError,
@@ -16,6 +17,7 @@ from gridguard.evaluation import (
 from gridguard.resources import runtime_root
 
 CONTROLLER_NAMES = ("PPO", "Fixed Rotation")
+RELEASE_ID = f"gridguard-khartoum-v{__version__}"
 
 _METRIC_PRESENTATION = {
     "critical_service_ratio": ("Critical service", "%", 100.0),
@@ -61,6 +63,8 @@ class PresentationSnapshot:
     """Scientific values approved for display, separated from Qt widgets."""
 
     benchmark_id: str
+    artifact_sha256: str
+    release_id: str
     controller_names: tuple[str, str]
     count_statement: str
     independent_base_draw_count: int
@@ -180,6 +184,8 @@ class PresentationSnapshot:
         )
         return cls(
             benchmark_id=benchmark_id,
+            artifact_sha256=PAIRED_BENCHMARK_SHA256,
+            release_id=RELEASE_ID,
             controller_names=CONTROLLER_NAMES,
             count_statement=display_count_statement,
             independent_base_draw_count=independent_draws,

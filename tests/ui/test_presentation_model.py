@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from gridguard import __version__
 from gridguard.evaluation import PAIRED_BENCHMARK_SHA256, EvaluationArtifactError
 from gridguard.ui.presentation_model import (
     PresentationDataError,
@@ -84,6 +85,8 @@ def test_snapshot_preserves_verified_controller_names_and_real_values() -> None:
     assert snapshot.controller_evaluation_count == 576
     assert snapshot.ppo_power_balance_violation_rate == 0.0
     assert snapshot.fixed_rotation_power_balance_violation_rate == 0.0
+    assert snapshot.artifact_sha256 == PAIRED_BENCHMARK_SHA256
+    assert snapshot.release_id == f"gridguard-khartoum-v{__version__}"
     assert snapshot.count_statement == (
         "96 independent base draws × 3 shortage levels = 288 matched scenario conditions "
         "· 576 controller evaluations"
