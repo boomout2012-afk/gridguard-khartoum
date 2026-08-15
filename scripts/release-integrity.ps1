@@ -525,6 +525,66 @@ function Assert-ReleaseManifestCore {
     return $releaseManifest
 }
 
+function Assert-ReleaseSourceSnapshot {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProjectRoot,
+        [Parameter(Mandatory = $true)]
+        [string]$ManifestPath
+    )
+
+    $releaseManifest = Get-ReleaseManifestPayload -ManifestPath $ManifestPath
+    $gitCommit = [string]$releaseManifest.source.git_commit
+    if ($gitCommit -notmatch "^[0-9a-f]{40}$") {
+        throw "Release manifest source.git_commit must be a lowercase Git commit ID."
+    }
+
+    & git -C $ProjectRoot cat-file -e "$gitCommit^{commit}"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Release source snapshot commit does not exist in this repository: $gitCommit"
+    }
+    & git -C $ProjectRoot merge-base --is-ancestor $gitCommit HEAD
+    if ($LASTEXITCODE -ne 0) {
+        throw "Release source snapshot is not an ancestor of the current HEAD: $gitCommit"
+    }
+
+    $commitRange = "$gitCommit..HEAD"
+    $committedPaths = @(& git -C $ProjectRoot diff --name-only $commitRange --)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Cannot compare the release source snapshot with the current HEAD."
+    }
+    $statusLines = @(& git -C $ProjectRoot status --porcelain --untracked-files=all)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Cannot inspect the release source worktree."
+    }
+
+    $unexpectedChanges = [System.Collections.Generic.List[string]]::new()
+    foreach ($committedPath in $committedPaths) {
+        if ($committedPath -ne "RELEASE_MANIFEST.json") {
+            $unexpectedChanges.Add([string]$committedPath)
+        }
+    }
+    foreach ($statusLine in $statusLines) {
+        $statusPath = if ($statusLine.Length -ge 4) {
+            $statusLine.Substring(3)
+        }
+        else {
+            $statusLine
+        }
+        if ($statusPath -ne "RELEASE_MANIFEST.json") {
+            $unexpectedChanges.Add([string]$statusLine)
+        }
+    }
+    if ($unexpectedChanges.Count -ne 0) {
+        throw (
+            "Release source snapshot is stale; only RELEASE_MANIFEST.json may differ: " +
+            "$($unexpectedChanges -join '; ')"
+        )
+    }
+
+    return $gitCommit
+}
+
 function Assert-ReleaseManifestBinding {
     param(
         [Parameter(Mandatory = $true)]

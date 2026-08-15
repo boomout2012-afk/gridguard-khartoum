@@ -309,6 +309,86 @@ def test_release_integrity_helper_refreshes_source_artifact_and_distribution_bin
     assert payload["windows_build"]["validated_runtime"]["gpu"] == "Test NVIDIA GPU"
 
 
+def test_release_source_snapshot_rejects_a_valid_but_stale_commit(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "config", "user.name", "GridGuard Test"],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "config", "user.email", "gridguard@example.invalid"],
+        check=True,
+    )
+    source_file = tmp_path / "app.py"
+    source_file.write_text("VERSION = 1\n", encoding="utf-8")
+    manifest = tmp_path / "RELEASE_MANIFEST.json"
+    manifest.write_text(
+        json.dumps({"schema_version": 2, "source": {"git_commit": "0" * 40}}),
+        encoding="utf-8",
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "app.py", "RELEASE_MANIFEST.json"],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-m", "source snapshot"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    source_commit = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    manifest.write_text(
+        json.dumps({"schema_version": 2, "source": {"git_commit": source_commit}}),
+        encoding="utf-8",
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "RELEASE_MANIFEST.json"],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-m", "freeze manifest"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    verify_command = (
+        f". '{RELEASE_HELPER}'; "
+        f"Assert-ReleaseSourceSnapshot -ProjectRoot '{tmp_path}' -ManifestPath '{manifest}'"
+    )
+    current = subprocess.run(
+        [_powershell(), "-NoProfile", "-Command", verify_command],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert current.returncode == 0, current.stderr
+
+    source_file.write_text("VERSION = 2\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "app.py"], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-m", "change source"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    stale = subprocess.run(
+        [_powershell(), "-NoProfile", "-Command", verify_command],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    assert stale.returncode != 0
+    assert "app.py" in (stale.stdout + stale.stderr)
+    assert "source snapshot" in (stale.stdout + stale.stderr).lower()
+
+
 def test_presentation_launcher_verifies_before_start_and_persists_diagnostics() -> None:
     run_script = (REPOSITORY_ROOT / "scripts" / "run-presentation.ps1").read_text(encoding="utf-8")
 
@@ -329,6 +409,9 @@ def test_refresh_build_runs_manifest_contract_after_writing_final_bindings() -> 
     refresh_index = build_script.index("Update-ReleaseManifestBindings")
     manifest_test_index = build_script.index("tests/test_release_manifest.py", refresh_index)
     assert refresh_index < manifest_test_index
+    source_snapshot_index = build_script.rindex("Assert-ReleaseSourceSnapshot")
+    release_binding_index = build_script.rindex("Assert-ReleaseManifestBinding")
+    assert source_snapshot_index < release_binding_index
 
     helper_script = RELEASE_HELPER.read_text(encoding="utf-8")
     assert "status --porcelain --untracked-files=all" in helper_script

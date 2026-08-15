@@ -350,6 +350,9 @@ if ($RefreshManifest) {
         -ExitCode $LASTEXITCODE
     Write-Host "Refreshed RELEASE_MANIFEST.json from the verified build outputs."
 }
+Assert-ReleaseSourceSnapshot `
+    -ProjectRoot $projectRoot `
+    -ManifestPath $releaseManifestPath
 Assert-ReleaseManifestBinding `
     -ProjectRoot $projectRoot `
     -ManifestPath $releaseManifestPath `
