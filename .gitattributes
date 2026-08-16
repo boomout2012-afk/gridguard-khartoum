@@ -3,6 +3,7 @@
 .gitattributes text eol=lf
 .gitignore text eol=lf
 .python-version text eol=lf
+uv.lock text eol=lf
 
 *.py text eol=lf
 *.toml text eol=lf

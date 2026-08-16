@@ -5,6 +5,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_release_lockfile_has_platform_independent_checkout_bytes() -> None:
+    attributes = {
+        line.strip()
+        for line in (ROOT / ".gitattributes").read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+    assert "uv.lock text eol=lf" in attributes
+    assert b"\r\n" not in (ROOT / "uv.lock").read_bytes()
+
+
 def test_quality_workflow_runs_locked_windows_checks_without_release_only_tests() -> None:
     workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
 
