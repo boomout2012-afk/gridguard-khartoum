@@ -3,7 +3,7 @@
     "release_id":  "gridguard-khartoum-v1.0.0",
     "release_date":  "2026-08-15",
     "source":  {
-                   "git_commit":  "fe84b45e1edd32c875eb064d4a734d75a5ebc3fa",
+                   "git_commit":  "8fbf5c68c763a9a253b890408fe16eba2f81e4bb",
                    "uv_lock":  {
                                    "path":  "uv.lock",
                                    "sha256":  "36a67626454266643e56306a6f2c01982e2038bbfe3b4dfa74e41d1416673282",
@@ -17,13 +17,13 @@
                           "distribution":  {
                                                "path":  "dist/GridGuard Khartoum",
                                                "file_count":  4667,
-                                               "size_bytes":  7020594182,
+                                               "size_bytes":  7020594365,
                                                "tree_hash_algorithm":  "sha256(canonical-lines-v1)",
-                                               "tree_sha256":  "c6da70bc92e1b0fadf13a49a8c1599b7d998199276879a990dfb5d943577da04",
+                                               "tree_sha256":  "81c2bef4661581cfac70b19f7c223bcfd5423991dd195a6ab7e2b0b611e868d5",
                                                "files":  [
                                                              {
                                                                  "path":  "GridGuard Khartoum.exe",
-                                                                 "sha256":  "e743d777bddbb64ebb26fa40f8c09dfe7503acd7b21ac6ce74fb024b49aa69d0",
+                                                                 "sha256":  "8f341b1c544b5e2897e19e8f7f1b1c8f8352821e03aaa9201755c17329b550d0",
                                                                  "size_bytes":  34928145
                                                              },
                                                              {
@@ -1013,7 +1013,7 @@
                                                              },
                                                              {
                                                                  "path":  "_internal/base_library.zip",
-                                                                 "sha256":  "665a1b2cc14102fc8fe49cb8c57278d4f9861be7ce87e722de5b523236ad45ec",
+                                                                 "sha256":  "5ca24e1934fc0113cc14e84fc5aa42397bca83658e367813944274aad398fbd6",
                                                                  "size_bytes":  1331373
                                                              },
                                                              {
@@ -12198,13 +12198,13 @@
                                                              },
                                                              {
                                                                  "path":  "_internal/gridguard/assets/fonts/licenses/AtkinsonHyperlegible-OFL.txt",
-                                                                 "sha256":  "f32d22b3908fcad2c86a74000614ec22e6a7f66ea7e867e616026a27aebdc143",
-                                                                 "size_bytes":  4352
+                                                                 "sha256":  "07264880ba15bd664da8c605f5baa34ecd4da4a0c0091f7d2cb23a0ebce3094b",
+                                                                 "size_bytes":  4444
                                                              },
                                                              {
                                                                  "path":  "_internal/gridguard/assets/fonts/licenses/IBMPlexMono-license.txt",
-                                                                 "sha256":  "91c25c350d3cac39da2736d74f7ba37ef648f5237a4e330a240615bc8d8c4360",
-                                                                 "size_bytes":  4360
+                                                                 "sha256":  "8b5d8294d1fde69598aa5fd72329602ce48b20ab536ff6528960fd2bc9250cad",
+                                                                 "size_bytes":  4451
                                                              },
                                                              {
                                                                  "path":  "_internal/gridguard/assets/fonts/licenses/SourceSerif4-LICENSE.md",
@@ -23359,10 +23359,10 @@
                                                          ]
                                            },
                           "distribution_file_count":  4667,
-                          "distribution_size_bytes":  7020594182,
-                          "distribution_tree_sha256":  "c6da70bc92e1b0fadf13a49a8c1599b7d998199276879a990dfb5d943577da04",
+                          "distribution_size_bytes":  7020594365,
+                          "distribution_tree_sha256":  "81c2bef4661581cfac70b19f7c223bcfd5423991dd195a6ab7e2b0b611e868d5",
                           "executable_path":  "dist/GridGuard Khartoum/GridGuard Khartoum.exe",
-                          "executable_sha256":  "e743d777bddbb64ebb26fa40f8c09dfe7503acd7b21ac6ce74fb024b49aa69d0",
+                          "executable_sha256":  "8f341b1c544b5e2897e19e8f7f1b1c8f8352821e03aaa9201755c17329b550d0",
                           "executable_size_bytes":  34928145,
                           "frozen_smoke_report":  {
                                                       "path":  "build/gridguard/frozen-smoke.json",
