@@ -23,6 +23,57 @@ DEFAULT_DEMAND_NOISE = 0.05
 DEFAULT_SUPPLY_NOISE = 0.05
 
 
+@dataclass(frozen=True, slots=True)
+class ScenarioDemandParameters:
+    """Validated demand-allocation parameters for one synthetic scenario family."""
+
+    locality_weights: tuple[float, ...]
+    sector_shares: tuple[float, ...]
+
+    def __post_init__(self) -> None:
+        locality_weights = _validate_positive_vector(
+            "locality_weights",
+            self.locality_weights,
+            expected_length=len(LOCALITIES),
+            length_label="seven",
+        )
+        sector_shares = _validate_positive_vector(
+            "sector_shares",
+            self.sector_shares,
+            expected_length=len(SECTOR_SHARES),
+            length_label="five",
+        )
+        if not math.isclose(sum(sector_shares), 1.0, rel_tol=0.0, abs_tol=1e-9):
+            raise ValueError("sector_shares must sum to 1")
+        object.__setattr__(self, "locality_weights", locality_weights)
+        object.__setattr__(self, "sector_shares", sector_shares)
+
+
+def _validate_positive_vector(
+    name: str,
+    values: tuple[float, ...],
+    *,
+    expected_length: int,
+    length_label: str,
+) -> tuple[float, ...]:
+    if not isinstance(values, tuple):
+        raise TypeError(f"{name} must be a tuple of real numbers")
+    if len(values) != expected_length:
+        raise ValueError(f"{name} must contain exactly {length_label} values")
+    if any(isinstance(value, bool) or not isinstance(value, Real) for value in values):
+        raise TypeError(f"{name} must contain only real numbers")
+    normalized = tuple(float(value) for value in values)
+    if any(not math.isfinite(value) or value <= 0.0 for value in normalized):
+        raise ValueError(f"{name} values must be finite and positive")
+    return normalized
+
+
+DEFAULT_SCENARIO_DEMAND_PARAMETERS = ScenarioDemandParameters(
+    locality_weights=LOCALITY_DEMAND_WEIGHTS,
+    sector_shares=SECTOR_SHARES,
+)
+
+
 @dataclass(frozen=True, slots=True, eq=False)
 class ScenarioBaseDraws:
     """Immutable references to one batch of severity-neutral stochastic draws."""
@@ -181,6 +232,7 @@ def scenario_from_base_draws(
     *,
     demand_noise: float = DEFAULT_DEMAND_NOISE,
     supply_noise: float = DEFAULT_SUPPLY_NOISE,
+    demand_parameters: ScenarioDemandParameters = DEFAULT_SCENARIO_DEMAND_PARAMETERS,
 ) -> Scenario:
     """Purely transform shared stochastic draws into one shortage-level scenario."""
 
@@ -192,14 +244,20 @@ def scenario_from_base_draws(
         raise ValueError("shortage_level must be mild, moderate, or severe") from error
     normalized_demand_noise = _validate_noise("demand_noise", demand_noise)
     normalized_supply_noise = _validate_noise("supply_noise", supply_noise)
+    if not isinstance(demand_parameters, ScenarioDemandParameters):
+        raise TypeError("demand_parameters must be ScenarioDemandParameters")
 
     locality_weights = torch.tensor(
-        LOCALITY_DEMAND_WEIGHTS,
+        demand_parameters.locality_weights,
         dtype=torch.float32,
         device=base_draws.device,
     )
     locality_peaks = SYSTEM_PEAK_MW * locality_weights / locality_weights.sum()
-    sector_shares = torch.tensor(SECTOR_SHARES, dtype=torch.float32, device=base_draws.device)
+    sector_shares = torch.tensor(
+        demand_parameters.sector_shares,
+        dtype=torch.float32,
+        device=base_draws.device,
+    )
     base_demand = locality_peaks[:, None] * sector_shares[None, :]
     profiles = _sector_profiles(base_draws.device)
 
@@ -230,6 +288,7 @@ def generate_scenarios(
     device: str | torch.device = DEFAULT_DEVICE,
     demand_noise: float = DEFAULT_DEMAND_NOISE,
     supply_noise: float = DEFAULT_SUPPLY_NOISE,
+    demand_parameters: ScenarioDemandParameters = DEFAULT_SCENARIO_DEMAND_PARAMETERS,
 ) -> Scenario:
     """Generate a matched batch on ``device`` without leaving the PyTorch hot path."""
 
@@ -249,6 +308,7 @@ def generate_scenarios(
         normalized_shortage,
         demand_noise=normalized_demand_noise,
         supply_noise=normalized_supply_noise,
+        demand_parameters=demand_parameters,
     )
 
 
@@ -259,6 +319,7 @@ def generate_scenario(
     device: str | torch.device = DEFAULT_DEVICE,
     demand_noise: float = DEFAULT_DEMAND_NOISE,
     supply_noise: float = DEFAULT_SUPPLY_NOISE,
+    demand_parameters: ScenarioDemandParameters = DEFAULT_SCENARIO_DEMAND_PARAMETERS,
 ) -> Scenario:
     """Generate one scenario while retaining the standard leading batch dimension."""
 
@@ -269,4 +330,5 @@ def generate_scenario(
         device=device,
         demand_noise=demand_noise,
         supply_noise=supply_noise,
+        demand_parameters=demand_parameters,
     )

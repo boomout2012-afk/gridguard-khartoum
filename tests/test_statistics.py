@@ -32,6 +32,24 @@ def test_bootstrap_rejects_cpu_input() -> None:
 
 
 @pytest.mark.gpu
+def test_bootstrap_accepts_ten_seed_strata_without_pooling_them() -> None:
+    cells = torch.arange(30, device="cuda:0", dtype=torch.float64).reshape(3, 10)
+    deltas = cells[:, :, None, None].expand(3, 10, 32, 1).clone()
+
+    result = stratified_paired_bootstrap(
+        deltas,
+        metric_names=("primary_metric",),
+        replicates=1_000,
+        seed=20260826,
+    )
+
+    expected = torch.tensor([14.5], device="cuda:0", dtype=torch.float64)
+    torch.testing.assert_close(result.mean_delta, expected, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(result.ci95_lower, expected, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(result.ci95_upper, expected, rtol=0.0, atol=0.0)
+
+
+@pytest.mark.gpu
 def test_cupy_view_shares_cuda_storage_through_dlpack() -> None:
     source = torch.arange(6, device="cuda:0", dtype=torch.float32)
 

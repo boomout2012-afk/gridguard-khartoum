@@ -12,7 +12,6 @@ DEFAULT_BOOTSTRAP_REPLICATES: Final = 10_000
 DEFAULT_BOOTSTRAP_SEED: Final = 20260815
 CI_PERCENTILES: Final = (2.5, 97.5)
 EXPECTED_SEVERITY_COUNT: Final = 3
-EXPECTED_SEED_COUNT: Final = 3
 
 
 class BootstrapError(ValueError):
@@ -124,19 +123,20 @@ def stratified_paired_bootstrap(
     ``paired_deltas`` has shape ``[severity, seed, episode, metric]`` and always
     means ``PPO - Fixed Rotation``. The three severity variants reuse each
     seed/episode base draw, so every replicate resamples episode clusters with
-    replacement within each seed and keeps their severity variants together.
+    replacement within each of one or more seed strata and keeps their severity
+    variants together.
     """
 
     if not isinstance(paired_deltas, torch.Tensor):
         raise TypeError("paired_deltas must be a torch.Tensor")
     if (
         paired_deltas.ndim != 4
-        or paired_deltas.shape[:2] != (EXPECTED_SEVERITY_COUNT, EXPECTED_SEED_COUNT)
+        or paired_deltas.shape[0] != EXPECTED_SEVERITY_COUNT
         or any(size < 1 for size in paired_deltas.shape)
     ):
         raise BootstrapError(
             "paired_deltas must have shape [severity, seed, episode, metric] "
-            "with exactly 3 severities and 3 seeds"
+            "with exactly 3 severities and at least 1 seed"
         )
     if not paired_deltas.is_floating_point():
         raise BootstrapError("paired_deltas must use a floating-point dtype")

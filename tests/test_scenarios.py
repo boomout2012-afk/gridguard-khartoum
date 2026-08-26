@@ -9,7 +9,9 @@ import torch
 
 from gridguard.domain import ShortageLevel
 from gridguard.scenarios import (
+    DEFAULT_SCENARIO_DEMAND_PARAMETERS,
     ScenarioBaseDraws,
+    ScenarioDemandParameters,
     generate_scenario,
     generate_scenario_base_draws,
     generate_scenarios,
@@ -89,6 +91,73 @@ def test_compatibility_generator_matches_explicit_base_draw_transform(
 
     assert torch.equal(explicit.demand, compatible.demand)
     assert torch.equal(explicit.supply, compatible.supply)
+
+
+def test_explicit_default_demand_parameters_are_bit_identical() -> None:
+    base_draws = generate_scenario_base_draws(3, 481, device="cpu")
+
+    implicit = scenario_from_base_draws(base_draws, ShortageLevel.MODERATE)
+    explicit = scenario_from_base_draws(
+        base_draws,
+        ShortageLevel.MODERATE,
+        demand_parameters=DEFAULT_SCENARIO_DEMAND_PARAMETERS,
+    )
+
+    assert torch.equal(implicit.demand, explicit.demand)
+    assert torch.equal(implicit.supply, explicit.supply)
+
+
+def test_demand_parameters_are_immutable_and_validate_closed_shapes() -> None:
+    parameters = ScenarioDemandParameters(
+        locality_weights=(1.0, 0.95, 0.85, 0.8, 0.7, 0.75, 0.9),
+        sector_shares=(0.08, 0.07, 0.05, 0.55, 0.25),
+    )
+
+    assert parameters == DEFAULT_SCENARIO_DEMAND_PARAMETERS
+    with pytest.raises(FrozenInstanceError):
+        parameters.locality_weights = (1.0,) * 7  # type: ignore[misc]
+
+    with pytest.raises(ValueError, match="seven"):
+        ScenarioDemandParameters((1.0,) * 6, (0.08, 0.07, 0.05, 0.55, 0.25))
+    with pytest.raises(ValueError, match="five"):
+        ScenarioDemandParameters((1.0,) * 7, (0.2,) * 4)
+    with pytest.raises(ValueError, match="positive"):
+        ScenarioDemandParameters((1.0,) * 6 + (0.0,), (0.2,) * 5)
+    with pytest.raises(ValueError, match="sum to 1"):
+        ScenarioDemandParameters((1.0,) * 7, (0.1,) * 5)
+    with pytest.raises(TypeError, match="real numbers"):
+        ScenarioDemandParameters((1.0,) * 7, (0.2, 0.2, 0.2, 0.2, True))
+
+
+def test_custom_demand_parameters_preserve_peak_and_renormalized_shares() -> None:
+    parameters = ScenarioDemandParameters(
+        locality_weights=(2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+        sector_shares=(0.1, 0.1, 0.1, 0.4, 0.3),
+    )
+    base_draws = generate_scenario_base_draws(1, 5, device="cpu")
+
+    scenario = scenario_from_base_draws(
+        base_draws,
+        ShortageLevel.MILD,
+        demand_noise=0.0,
+        supply_noise=0.0,
+        demand_parameters=parameters,
+    )
+    peak_by_sector = scenario.demand[0].sum(dim=1).amax(dim=0)
+    locality_totals = scenario.demand[0].sum(dim=(0, 2))
+
+    torch.testing.assert_close(
+        peak_by_sector,
+        torch.tensor([70.0, 70.0, 70.0, 280.0, 210.0]),
+        rtol=1e-6,
+        atol=1e-5,
+    )
+    torch.testing.assert_close(
+        locality_totals / locality_totals[1],
+        torch.tensor([2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+        rtol=1e-6,
+        atol=1e-6,
+    )
 
 
 @pytest.mark.parametrize(

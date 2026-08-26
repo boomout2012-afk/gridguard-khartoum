@@ -148,6 +148,67 @@ def test_evaluate_cli_reproduces_paired_benchmark(monkeypatch, tmp_path, capsys)
     assert captured.err == ""
 
 
+def test_evaluate_cli_reproduces_robustness_supplement(monkeypatch, tmp_path, capsys) -> None:
+    output = tmp_path / "robustness.json"
+    digest = "a" * 64
+
+    def reproduce(repository_root: Path, output_path: Path) -> str:
+        assert repository_root == ROOT
+        assert output_path == output
+        return digest
+
+    monkeypatch.setattr(cli, "_reproduce_robustness_evidence", reproduce)
+
+    exit_code = cli.main(
+        [
+            "--reproduce-robustness",
+            "--output",
+            str(output),
+            "--repository-root",
+            str(ROOT),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Robustness reproduction: PASS" in captured.out
+    assert digest in captured.out
+    assert captured.err == ""
+
+
+def test_robustness_reproduction_refuses_to_overwrite_trusted_evidence() -> None:
+    trusted = ROOT / "data" / "evidence" / "robustness-supplement.json"
+
+    with pytest.raises(cli.RobustnessArtifactError, match="refuses to overwrite"):
+        cli._reproduce_robustness_evidence(ROOT, trusted)
+
+
+def test_verify_evidence_checks_robustness_when_trust_anchor_is_finalized(
+    monkeypatch,
+    capsys,
+) -> None:
+    checked: list[Path] = []
+    monkeypatch.setattr(cli, "ROBUSTNESS_SUPPLEMENT_SHA256", "a" * 64)
+    monkeypatch.setattr(cli, "_verify_repository_sources", lambda _root: ("source",))
+    monkeypatch.setattr(
+        cli,
+        "_verify_paired_evidence",
+        lambda _root: {"protocol": {"matched_scenario_count": 288}},
+    )
+    monkeypatch.setattr(cli, "_verify_ppo_host", lambda _root: None)
+    monkeypatch.setattr(
+        cli,
+        "_verify_robustness_evidence",
+        lambda root: checked.append(root) or {"schema": {"version": 1}},
+    )
+
+    exit_code = cli.main(["--verify-evidence", "--repository-root", str(ROOT)])
+
+    assert exit_code == 0
+    assert checked == [ROOT]
+    assert "robustness supplement" in capsys.readouterr().out
+
+
 def test_reproduction_refuses_to_overwrite_trusted_evidence() -> None:
     trusted = ROOT / "data" / "evidence" / "paired-benchmark.json"
 
