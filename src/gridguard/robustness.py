@@ -37,6 +37,17 @@ ROBUSTNESS_SCHEMA_NAME: Final = "gridguard.robustness_supplement"
 ROBUSTNESS_SCHEMA_VERSION: Final = 1
 ROBUSTNESS_EVIDENCE_ROLE: Final = "untouched_confirmatory"
 ROBUSTNESS_ARTIFACT_ID: Final = "gridguard-robustness-supplement-v1"
+ROBUSTNESS_SOURCE_REVISION: Final = SOURCE_REVISION
+ROBUSTNESS_MODEL_MANIFEST_SHA256: Final = (
+    "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+)
+ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES: Final = 1_609
+ROBUSTNESS_ACTOR_SHA256: Final = "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5"
+ROBUSTNESS_ACTOR_SIZE_BYTES: Final = 5_160_058
+ROBUSTNESS_SCENARIO_GENERATOR_SHA256: Final = (
+    "e07c7ee9b41ead44991fbf20e64a7c504883175bd3a6a4b6a51ac7ef0305db84"
+)
+ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES: Final = 12_513
 # Filled after the CUDA artifact is reproduced and accepted. Callers must never
 # treat an empty value as trusted; verifier entry points always require a digest.
 ROBUSTNESS_SUPPLEMENT_SHA256: Final = ""
@@ -122,6 +133,8 @@ def _validate_binding(
     *,
     field: str,
     expected_path: str,
+    expected_sha256: str,
+    expected_size_bytes: int,
 ) -> Mapping[str, object]:
     binding = _require_mapping(value, field=field)
     _require_exact_fields(
@@ -134,7 +147,11 @@ def _validate_binding(
     digest = binding["sha256"]
     if type(digest) is not str or not _SHA256_PATTERN.fullmatch(digest):
         raise RobustnessArtifactError(f"{field}.sha256 must be a lowercase SHA-256 digest")
-    _positive_integer(binding["size_bytes"], field=f"{field}.size_bytes")
+    if digest != expected_sha256:
+        raise RobustnessArtifactError(f"{field}.sha256 does not match the pinned source bytes")
+    size_bytes = _positive_integer(binding["size_bytes"], field=f"{field}.size_bytes")
+    if size_bytes != expected_size_bytes:
+        raise RobustnessArtifactError(f"{field}.size_bytes does not match the pinned source bytes")
     return binding
 
 
@@ -962,7 +979,9 @@ def run_full_robustness_evaluation(
     maximum_power_balance = (
         torch.stack((fixed_cube[..., 3].amax(), ppo_cube[..., 3].amax())).amax().reshape(1)
     )
-    forecast_statistics = forecast_error_sufficient_statistics(torch.stack(forecast_demands))
+    forecast_demand_tensor = torch.stack(forecast_demands)
+    forecast_validation = forecast_input_validation_flags(forecast_demand_tensor)
+    forecast_statistics = forecast_error_sufficient_statistics(forecast_demand_tensor)
 
     variant_deltas: list[torch.Tensor] = []
     sensitivity_power_balance: list[torch.Tensor] = []
@@ -1028,6 +1047,7 @@ def run_full_robustness_evaluation(
             sensitivity_tensor.flatten(),
             difference_tensor.flatten(),
             forecast_statistics.flatten(),
+            forecast_validation.flatten(),
             maximum_power_balance.flatten(),
         )
     )
@@ -1046,9 +1066,14 @@ def run_full_robustness_evaluation(
     sensitivity_host = take((24, 3, 3))
     difference_host = take((24, 3, 3))
     forecast_host = take((2, len(ROBUSTNESS_SEEDS), 2, 3))
+    forecast_validation_host = take((2,))
     maximum_power_balance_host = float(take((1,))[0])
     if offset != host.size:
         raise RobustnessArtifactError("packed robustness transfer was not fully consumed")
+    if tuple(forecast_validation_host) != (1.0, 1.0):
+        raise RobustnessArtifactError(
+            "forecast demand traces must contain only finite, non-negative values"
+        )
     return build_robustness_supplement_payload(
         provenance=provenance,
         base_controller_means=base_means_host,
@@ -1105,20 +1130,30 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
     source_revision = provenance["source_revision"]
     if type(source_revision) is not str or not _GIT_SHA_PATTERN.fullmatch(source_revision):
         raise RobustnessArtifactError("provenance.source_revision must be a lowercase git SHA")
+    if source_revision != SOURCE_REVISION:
+        raise RobustnessArtifactError(
+            "provenance.source_revision does not match the pinned PPO source revision"
+        )
     _validate_binding(
         provenance["model_manifest"],
         field="provenance.model_manifest",
         expected_path="data/model/manifest.json",
+        expected_sha256=ROBUSTNESS_MODEL_MANIFEST_SHA256,
+        expected_size_bytes=ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES,
     )
     _validate_binding(
         provenance["actor"],
         field="provenance.actor",
         expected_path="data/model/ppo-policy.npz",
+        expected_sha256=ROBUSTNESS_ACTOR_SHA256,
+        expected_size_bytes=ROBUSTNESS_ACTOR_SIZE_BYTES,
     )
     _validate_binding(
         provenance["scenario_generator"],
         field="provenance.scenario_generator",
         expected_path="src/gridguard/scenarios.py",
+        expected_sha256=ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
+        expected_size_bytes=ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
     )
     _validate_protocol(document["protocol"])
     _validate_metric_definitions(document["metric_definitions"])
@@ -1271,16 +1306,7 @@ def _error_sufficient_statistics(errors: torch.Tensor) -> torch.Tensor:
     )
 
 
-@torch.inference_mode()
-def forecast_error_sufficient_statistics(demand_traces: torch.Tensor) -> torch.Tensor:
-    """Return aligned forecast count/error sums without leaving the tensor device.
-
-    Input has shape ``[seed, batch, 24, 7, 5]``. Output has shape
-    ``[method, seed, aggregation, statistic]`` where aggregation order is
-    locality-sector then system-total, and statistic order is count, absolute
-    error sum, then squared error sum.
-    """
-
+def _validate_forecast_trace_metadata(demand_traces: object) -> torch.Tensor:
     if not isinstance(demand_traces, torch.Tensor):
         raise TypeError("demand_traces must be a torch.Tensor")
     if demand_traces.ndim != 5 or demand_traces.shape[2:] != (
@@ -1293,10 +1319,33 @@ def forecast_error_sufficient_statistics(demand_traces: torch.Tensor) -> torch.T
         raise ValueError("demand_traces must have shape [seed, batch, 24, 7, 5]")
     if not demand_traces.is_floating_point():
         raise TypeError("demand_traces must use a floating-point dtype")
-    if not bool(torch.isfinite(demand_traces).all().item()):
-        raise ValueError("demand_traces must contain only finite values")
-    if bool((demand_traces < 0.0).any().item()):
-        raise ValueError("demand_traces must not contain negative values")
+    return demand_traces
+
+
+@torch.inference_mode()
+def forecast_input_validation_flags(demand_traces: torch.Tensor) -> torch.Tensor:
+    """Return finite/nonnegative flags without synchronizing the tensor device."""
+
+    demand = _validate_forecast_trace_metadata(demand_traces)
+    return torch.stack(
+        (
+            torch.isfinite(demand).all(),
+            ~(demand < 0.0).any(),
+        )
+    ).to(torch.float64)
+
+
+@torch.inference_mode()
+def forecast_error_sufficient_statistics(demand_traces: torch.Tensor) -> torch.Tensor:
+    """Return aligned forecast count/error sums without leaving the tensor device.
+
+    Input has shape ``[seed, batch, 24, 7, 5]``. Output has shape
+    ``[method, seed, aggregation, statistic]`` where aggregation order is
+    locality-sector then system-total, and statistic order is count, absolute
+    error sum, then squared error sum.
+    """
+
+    demand_traces = _validate_forecast_trace_metadata(demand_traces)
 
     targets = demand_traces[:, :, 3:HORIZON_HOURS]
     trailing_mean = demand_traces.unfold(dimension=2, size=3, step=1)[:, :, :21].mean(dim=-1)

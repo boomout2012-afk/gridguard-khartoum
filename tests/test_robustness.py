@@ -13,17 +13,27 @@ from gridguard.domain import LOCALITIES, LOCALITY_DEMAND_WEIGHTS, SECTOR_SHARES,
 from gridguard.robustness import (
     FORECAST_METHODS,
     PRIMARY_METRICS,
+    ROBUSTNESS_ACTOR_SHA256,
+    ROBUSTNESS_ACTOR_SIZE_BYTES,
     ROBUSTNESS_BATCH_SIZE,
+    ROBUSTNESS_MODEL_MANIFEST_SHA256,
+    ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES,
+    ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
+    ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
     ROBUSTNESS_SEEDS,
+    ROBUSTNESS_SOURCE_REVISION,
     RobustnessArtifactError,
     build_robustness_supplement_payload,
     build_sensitivity_variants,
     canonical_robustness_json_bytes,
     forecast_error_sufficient_statistics,
+    forecast_input_validation_flags,
     run_full_robustness_evaluation,
     validate_robustness_supplement_payload,
     verify_robustness_supplement,
 )
+
+ROOT = Path(__file__).parents[1]
 
 
 def _interval(metric: str, mean: float = 0.0) -> dict[str, object]:
@@ -104,21 +114,21 @@ def _valid_payload() -> dict[str, object]:
         "evidence_role": "untouched_confirmatory",
         "provenance": {
             "artifact_id": "gridguard-robustness-supplement-v1",
-            "source_revision": "a" * 40,
+            "source_revision": ROBUSTNESS_SOURCE_REVISION,
             "model_manifest": {
                 "path": "data/model/manifest.json",
-                "sha256": "b" * 64,
-                "size_bytes": 100,
+                "sha256": ROBUSTNESS_MODEL_MANIFEST_SHA256,
+                "size_bytes": ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES,
             },
             "actor": {
                 "path": "data/model/ppo-policy.npz",
-                "sha256": "c" * 64,
-                "size_bytes": 200,
+                "sha256": ROBUSTNESS_ACTOR_SHA256,
+                "size_bytes": ROBUSTNESS_ACTOR_SIZE_BYTES,
             },
             "scenario_generator": {
                 "path": "src/gridguard/scenarios.py",
-                "sha256": "d" * 64,
-                "size_bytes": 300,
+                "sha256": ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
+                "size_bytes": ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
             },
         },
         "protocol": {
@@ -256,6 +266,30 @@ def test_robustness_protocol_constants_lock_untouched_workload() -> None:
     assert FORECAST_METHODS == ("trailing_mean_3h", "persistence_1h")
 
 
+def test_pinned_provenance_bindings_match_current_source_bytes() -> None:
+    bindings = (
+        (
+            ROOT / "data" / "model" / "manifest.json",
+            ROBUSTNESS_MODEL_MANIFEST_SHA256,
+            ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES,
+        ),
+        (
+            ROOT / "data" / "model" / "ppo-policy.npz",
+            ROBUSTNESS_ACTOR_SHA256,
+            ROBUSTNESS_ACTOR_SIZE_BYTES,
+        ),
+        (
+            ROOT / "src" / "gridguard" / "scenarios.py",
+            ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
+            ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
+        ),
+    )
+
+    for path, expected_sha256, expected_size in bindings:
+        assert path.stat().st_size == expected_size
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == expected_sha256
+
+
 def test_forecast_statistics_align_both_methods_to_target_hours_three_through_twenty_three() -> (
     None
 ):
@@ -302,8 +336,22 @@ def test_forecast_statistics_reject_invalid_values() -> None:
     demand = torch.ones((2, 3, 24, 7, 5))
     demand[0, 0, 0, 0, 0] = math.nan
 
-    with pytest.raises(ValueError, match="finite"):
-        forecast_error_sufficient_statistics(demand)
+    flags = forecast_input_validation_flags(demand)
+    statistics = forecast_error_sufficient_statistics(demand)
+
+    torch.testing.assert_close(flags, torch.tensor([0.0, 1.0], dtype=torch.float64))
+    assert not bool(torch.isfinite(statistics).all())
+
+
+def test_forecast_validation_flags_reject_negative_values_without_scalarizing() -> None:
+    demand = torch.ones((2, 3, 24, 7, 5))
+    demand[0, 0, 0, 0, 0] = -1.0
+
+    flags = forecast_input_validation_flags(demand)
+
+    torch.testing.assert_close(flags, torch.tensor([1.0, 0.0], dtype=torch.float64))
+    assert ".item()" not in inspect.getsource(forecast_input_validation_flags)
+    assert ".item()" not in inspect.getsource(forecast_error_sufficient_statistics)
 
 
 def test_strict_validator_accepts_sign_neutral_complete_payload() -> None:
@@ -327,6 +375,24 @@ def test_strict_validator_accepts_sign_neutral_complete_payload() -> None:
         (
             lambda payload: payload["schema"].__setitem__("version", True),  # type: ignore[union-attr]
             "version",
+        ),
+        (
+            lambda payload: payload["provenance"].__setitem__(  # type: ignore[union-attr]
+                "source_revision", "b" * 40
+            ),
+            "source_revision",
+        ),
+        (
+            lambda payload: payload["provenance"]["model_manifest"].__setitem__(  # type: ignore[index]
+                "sha256", "e" * 64
+            ),
+            "model_manifest.sha256",
+        ),
+        (
+            lambda payload: payload["provenance"]["scenario_generator"].__setitem__(  # type: ignore[index]
+                "size_bytes", ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES + 1
+            ),
+            "scenario_generator.size_bytes",
         ),
         (
             lambda payload: payload["protocol"].__setitem__(  # type: ignore[union-attr]
