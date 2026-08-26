@@ -7,6 +7,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 REMEDIATION_PATH = REPOSITORY_ROOT / "docs" / "REVIEW_REMEDIATION.md"
 RELATED_WORK_PATH = REPOSITORY_ROOT / "docs" / "RELATED_WORK.md"
 REFERENCES_PATH = REPOSITORY_ROOT / "docs" / "REFERENCES.md"
+RAW_REVIEW_PATH = REPOSITORY_ROOT / "point.md"
 
 
 EXPECTED_VERDICTS = {
@@ -71,6 +72,14 @@ def test_review_ledger_preserves_scope_decisions_and_rq3_response() -> None:
     assert "global optimum" in sections["R12"]
     assert "3^N" in sections["R13"]
     assert "shortage-only" in sections["R14"]
+
+
+def test_raw_review_snapshot_is_removed_after_verified_disposition() -> None:
+    text = REMEDIATION_PATH.read_text(encoding="utf-8")
+
+    assert not RAW_REVIEW_PATH.exists()
+    assert "removed after verified closure" in text
+    assert "1624389a763f283cae828a7bf5f0922b2acb724b8b687c88f19ad9c869cb3701" in text
 
 
 def test_related_work_is_domain_grounded_and_claim_bounded() -> None:

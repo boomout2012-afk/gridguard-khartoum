@@ -1,9 +1,10 @@
 # Review Remediation Ledger
 
 This ledger gives a clean English disposition for every substantive point in the colleague review.
-The raw review snapshot is `point.md`, 29,537 bytes, with SHA-256
-`1624389a763f283cae828a7bf5f0922b2acb724b8b687c88f19ad9c869cb3701`. The snapshot is retained
-until the complete remediation is verified. Its damaged display encoding is not copied here.
+The raw review snapshot was `point.md`, 29,537 bytes, with SHA-256
+`1624389a763f283cae828a7bf5f0922b2acb724b8b687c88f19ad9c869cb3701`. It was removed after verified closure of all
+14 dispositions; this ledger retains its identity and clean-English substance without preserving
+the snapshot's damaged display encoding.
 
 The approved remediation keeps the accepted proposal boundary: PPO and Fixed Rotation remain the
 only controllers, the frozen benchmark and exported PPO actor remain immutable, and no dispatch
