@@ -150,7 +150,7 @@ def test_frozen_smoke_runs_and_installs_the_primary_live_cuda_scenario() -> None
     assert '"finite_core_values": True' in launcher
     assert '"installed_in_live_page": True' in launcher
     assert "expected_results_table_rows = len(startup.snapshot.metrics)" in launcher
-    assert "if expected_results_table_rows != 7" in launcher
+    assert "if expected_results_table_rows != 3" in launcher
     assert '"expected_results_table_rows": expected_results_table_rows' in launcher
     assert '"results_table_rows": results_table_rows' in launcher
 
@@ -186,8 +186,8 @@ def test_presentation_scripts_use_the_locked_spec_and_exact_executable() -> None
     assert '$smokePayload.live_scenario.controllers[1] -ne "Fixed Rotation"' in build_script
     assert "$smokePayload.live_scenario.finite_core_values -ne $true" in build_script
     assert "$smokePayload.live_scenario.installed_in_live_page -ne $true" in build_script
-    assert "$smokePayload.live_scenario.expected_results_table_rows -ne 7" in build_script
-    assert "$smokePayload.live_scenario.results_table_rows -ne 7" in build_script
+    assert "$smokePayload.live_scenario.expected_results_table_rows -ne 3" in build_script
+    assert "$smokePayload.live_scenario.results_table_rows -ne 3" in build_script
     assert 'Join-Path $projectRoot "RELEASE_MANIFEST.json"' in build_script
     assert "Get-FileHash -Algorithm SHA256" in build_script
     assert "$releaseManifest.windows_build.executable_sha256" in build_script

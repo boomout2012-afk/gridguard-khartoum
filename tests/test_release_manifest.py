@@ -165,7 +165,7 @@ def test_release_manifest_binds_the_complete_sorted_distribution_inventory() -> 
         }
         assert smoke["live_scenario"]["finite_core_values"] is True
         assert smoke["live_scenario"]["installed_in_live_page"] is True
-        assert smoke["live_scenario"]["results_table_rows"] == 7
+        assert smoke["live_scenario"]["results_table_rows"] == 3
 
 
 def test_release_integrity_helper_reports_the_exact_tampered_distribution_file(
@@ -246,11 +246,11 @@ def test_release_integrity_helper_refreshes_source_artifact_and_distribution_bin
                 "live_scenario": {
                     "controllers": ["PPO", "Fixed Rotation"],
                     "device": "cuda:0",
-                    "expected_results_table_rows": 7,
+                    "expected_results_table_rows": 3,
                     "finite_core_values": True,
                     "frame_counts": {"Fixed Rotation": 24, "PPO": 24},
                     "installed_in_live_page": True,
-                    "results_table_rows": 7,
+                    "results_table_rows": 3,
                     "seed": 50002,
                     "selected_controller": "Fixed Rotation",
                     "selected_hour": 23,

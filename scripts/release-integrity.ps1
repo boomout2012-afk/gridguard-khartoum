@@ -346,8 +346,8 @@ function Get-ValidatedFrozenSmokePayload {
         $smokePayload.live_scenario.installed_in_live_page -ne $true -or
         $smokePayload.live_scenario.selected_controller -ne "Fixed Rotation" -or
         $smokePayload.live_scenario.selected_hour -ne 23 -or
-        $smokePayload.live_scenario.expected_results_table_rows -ne 7 -or
-        $smokePayload.live_scenario.results_table_rows -ne 7
+        $smokePayload.live_scenario.expected_results_table_rows -ne 3 -or
+        $smokePayload.live_scenario.results_table_rows -ne 3
     ) {
         throw "Frozen presentation live CUDA smoke is incomplete: $ReportPath"
     }

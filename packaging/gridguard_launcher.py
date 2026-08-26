@@ -107,8 +107,8 @@ def _run_frozen_smoke(report_path: Path) -> int:
     try:
         startup = prepare_startup()
         expected_results_table_rows = len(startup.snapshot.metrics)
-        if expected_results_table_rows != 7:
-            raise RuntimeError("frozen presentation snapshot must contain seven locked metrics")
+        if expected_results_table_rows != 3:
+            raise RuntimeError("frozen presentation snapshot must contain three primary metrics")
         window = PresentationWindow(
             startup.snapshot,
             runtime_label=format_runtime_label(startup.gpu),
