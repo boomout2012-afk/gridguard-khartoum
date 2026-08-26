@@ -77,8 +77,8 @@ def test_release_manifest_binds_every_tracked_release_artifact() -> None:
         "windows_build",
     }
     assert payload["schema_version"] == 2
-    assert payload["release_id"] == "gridguard-khartoum-v1.0.0"
-    assert payload["release_date"] == "2026-08-15"
+    assert payload["release_id"] == "gridguard-khartoum-v1.1.0"
+    assert payload["release_date"] == "2026-08-26"
 
     source = payload["source"]
     assert set(source) == {"git_commit", "uv_lock"}
