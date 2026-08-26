@@ -4,7 +4,7 @@ import threading
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QFontDatabase, QRawFont
+from PySide6.QtGui import QFont, QFontDatabase, QFontMetrics, QRawFont
 from PySide6.QtWidgets import QLabel
 
 from gridguard.domain import ServiceTier
@@ -24,58 +24,114 @@ from gridguard.ui.window import PresentationWindow
 def _snapshot() -> PresentationSnapshot:
     return PresentationSnapshot.from_mapping(
         {
-            "schema_version": 1,
-            "benchmark_id": "proposal-ppo-vs-fixed-rotation-paired",
+            "schema": {"name": "gridguard.robustness_supplement", "version": 1},
+            "evidence_role": "untouched_confirmatory",
+            "provenance": {
+                "artifact_id": "gridguard-robustness-supplement-v1",
+                "source_revision": "a" * 40,
+                "model_manifest": {
+                    "path": "data/model/manifest.json",
+                    "sha256": "b" * 64,
+                    "size_bytes": 100,
+                },
+                "actor": {
+                    "path": "data/model/ppo-policy.npz",
+                    "sha256": "c" * 64,
+                    "size_bytes": 200,
+                },
+                "scenario_generator": {
+                    "path": "src/gridguard/scenarios.py",
+                    "sha256": "d" * 64,
+                    "size_bytes": 300,
+                },
+                "training_provenance": {
+                    "path": "data/model/training-provenance.yaml",
+                    "sha256": "e" * 64,
+                    "size_bytes": 400,
+                },
+                "implementation_sources": [],
+                "seed_separation": {"disjoint_from_all_documented_seeds": True},
+            },
             "protocol": {
+                "seeds": list(range(81001, 81011)),
+                "episodes_per_seed": 32,
                 "controllers": ["Fixed Rotation", "PPO"],
-                "count_statement": "288 matched scenarios; 576 controller evaluations.",
-                "matched_scenario_count": 288,
-                "independent_base_draw_count": 96,
-                "controller_evaluation_count": 576,
-                "horizon_hours": 24,
+                "independent_base_draw_count": 320,
                 "shortage_levels": ["mild", "moderate", "severe"],
+                "matched_scenario_count": 960,
+                "controller_evaluation_count": 1_920,
+                "delta_definition": "PPO - Fixed Rotation",
+                "bootstrap": {"replicates": 10_000, "seed": 20260826, "ci_percent": 95},
+                "sensitivity_parameterization_count": 25,
+                "sensitivity_matched_scenario_count": 24_000,
+                "sensitivity_controller_evaluation_count": 48_000,
             },
-            "aggregate": {
-                "Fixed Rotation": {
-                    "episode_reward": 13.0,
-                    "critical_service_ratio": 0.42,
-                    "power_balance_violation_rate": 0.0,
-                    "served_mwh": 4500.0,
+            "metric_definitions": {
+                "critical_outage_locality_hours": {
+                    "unit": "locality-hours",
+                    "direction": "lower_is_better",
+                    "role": "primary",
                 },
-                "PPO": {
-                    "episode_reward": 23.0,
-                    "critical_service_ratio": 0.99,
-                    "power_balance_violation_rate": 0.0,
-                    "served_mwh": 6500.0,
-                },
-            },
-            "paired_inference": {
-                "episode_reward": {
-                    "mean_delta": 10.0,
-                    "ci95_lower": 9.9,
-                    "ci95_upper": 10.1,
+                "fairness": {
+                    "unit": "ratio",
                     "direction": "higher_is_better",
                     "role": "primary",
-                    "delta_definition": "PPO - Fixed Rotation",
                 },
-                "critical_service_ratio": {
-                    "mean_delta": 0.57,
-                    "ci95_lower": 0.56,
-                    "ci95_upper": 0.58,
+                "utilization": {
+                    "unit": "ratio",
                     "direction": "higher_is_better",
                     "role": "primary",
-                    "delta_definition": "PPO - Fixed Rotation",
                 },
-                "served_mwh": {
-                    "mean_delta": 2000.0,
-                    "ci95_lower": 1980.0,
-                    "ci95_upper": 2020.0,
-                    "direction": "higher_is_better",
-                    "role": "primary",
-                    "delta_definition": "PPO - Fixed Rotation",
+                "power_balance_violation_rate": {
+                    "unit": "ratio",
+                    "direction": "lower_is_better",
+                    "role": "safety",
                 },
             },
-            "limitations": ["Synthetic simulation evidence; not real utility measurements."],
+            "forecast_metric_definitions": {},
+            "base_evaluation": {
+                "controller_means": {
+                    "Fixed Rotation": {
+                        "critical_outage_locality_hours": 102.0,
+                        "fairness": 0.88,
+                        "utilization": 0.71,
+                        "power_balance_violation_rate": 0.0,
+                    },
+                    "PPO": {
+                        "critical_outage_locality_hours": 18.7,
+                        "fairness": 0.97,
+                        "utilization": 0.98,
+                        "power_balance_violation_rate": 0.0,
+                    },
+                },
+                "paired_inference": {
+                    "critical_outage_locality_hours": {
+                        "mean_delta": -83.3,
+                        "ci95_lower": -84.4,
+                        "ci95_upper": -82.2,
+                        "result_classification": "favorable",
+                    },
+                    "fairness": {
+                        "mean_delta": 0.09,
+                        "ci95_lower": 0.08,
+                        "ci95_upper": 0.10,
+                        "result_classification": "favorable",
+                    },
+                    "utilization": {
+                        "mean_delta": 0.27,
+                        "ci95_lower": 0.26,
+                        "ci95_upper": 0.28,
+                        "result_classification": "favorable",
+                    },
+                },
+                "power_balance": {"maximum_violation_rate": 0.0},
+            },
+            "sensitivity": {},
+            "forecast_evaluation": {},
+            "limitations": [
+                "Synthetic demand traces do not establish real-world forecast accuracy.",
+                "Observed interval direction is descriptive and is not a release gate.",
+            ],
         }
     )
 
@@ -117,10 +173,56 @@ def test_results_table_displays_values_from_injected_evidence(qtbot) -> None:
 
     table = window.results_page.results_table
     assert table.rowCount() == 3
-    assert table.item(0, 0).text() == "Critical service"
-    assert table.item(0, 1).text() == "99.72%" or table.item(0, 1).text() == "99.00%"
-    assert table.item(0, 3).text() == "+57.00 pp  [56.00 pp, 58.00 pp]"
+    assert [table.item(row, 0).text() for row in range(3)] == [
+        "Critical-outage locality-hours",
+        "Jain fairness",
+        "Utilization",
+    ]
+    assert table.item(0, 1).text() == "18.7 locality-hours"
+    assert table.item(0, 2).text() == "102.0 locality-hours"
+    assert table.item(0, 3).text() == "-83.3 [-84.4, -82.2] locality-hours"
+    assert table.item(1, 1).text() == "97.00%"
+    assert table.item(1, 3).text() == "+9.00 [8.00, 10.00] pp"
     assert table.accessibleName() == "Paired controller comparison results"
+    assert all(
+        tuple(card.metric_value_labels)
+        == (
+            "critical_outage_locality_hours",
+            "fairness",
+            "utilization",
+        )
+        for card in window.results_page.controller_cards
+    )
+
+
+def test_results_controller_cards_do_not_clip_headlines_at_1366_by_768(qtbot, qapp) -> None:
+    theme.apply_theme(qapp)
+    snapshot = _snapshot()
+    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.resize(1366, 768)
+    window.show()
+    window.tabs.setCurrentIndex(2)
+    qtbot.wait(20)
+
+    for card in window.results_page.controller_cards:
+        metric_names = {
+            label.text(): label
+            for label in card.findChildren(QLabel)
+            if label.text() in {metric.label for metric in snapshot.metrics}
+        }
+        assert set(metric_names) == {metric.label for metric in snapshot.metrics}
+        for label in (*metric_names.values(), *card.metric_value_labels.values()):
+            assert label.width() >= label.sizeHint().width()
+            assert label.height() >= label.sizeHint().height()
+        assert card.height() >= card.minimumSizeHint().height()
+
+    table = window.results_page.results_table
+    for row in range(table.rowCount()):
+        for column in range(table.columnCount()):
+            item = table.item(row, column)
+            painted_width = QFontMetrics(item.font()).horizontalAdvance(item.text()) + 12
+            assert table.columnWidth(column) >= painted_width
 
 
 def test_results_page_keeps_safety_and_scope_limits_visible(qtbot) -> None:
@@ -129,11 +231,16 @@ def test_results_page_keeps_safety_and_scope_limits_visible(qtbot) -> None:
 
     safety = window.results_page.safety_note.text().casefold()
     scope = window.results_page.scope_note.text().casefold()
-    assert "0.00% power-balance violation rate" in safety
-    assert "both controllers" in safety
-    assert "synthetic simulation evidence" in scope
+    page_text = " ".join(
+        label.text() for label in window.results_page.findChildren(QLabel)
+    ).casefold()
+    assert "maximum power-balance violation rate 0.00%" in safety
+    assert "across both controllers" in safety
+    assert "synthetic demand traces" in scope
     assert "decision support only" in scope
     assert "not field or operational evidence" in scope
+    assert "untouched confirmatory evidence" in page_text
+    assert "no favorable/adverse release gate" in page_text
 
 
 def test_window_keeps_meaningful_state_before_live_integration(qtbot) -> None:
@@ -298,14 +405,15 @@ def test_results_page_displays_evidence_derived_provenance(qtbot) -> None:
     qtbot.addWidget(window)
 
     results = window.results_page
-    assert results.provenance_id.text() == snapshot.benchmark_id
+    assert results.provenance_id.text() == snapshot.artifact_id
     assert results.provenance_summary.text() == snapshot.count_statement
     assert "hash verified" in results.provenance_status.text().casefold()
-    assert snapshot.benchmark_id in results.provenance_card.accessibleDescription()
+    assert snapshot.artifact_id in results.provenance_card.accessibleDescription()
     assert str(snapshot.matched_scenario_count) in results.provenance_card.accessibleDescription()
     assert results.provenance_sha256.text() == snapshot.artifact_sha256
     assert snapshot.artifact_sha256 in results.provenance_sha256.toolTip()
     assert snapshot.artifact_sha256 in results.provenance_sha256.accessibleName()
+    assert "robustness supplement" in results.provenance_sha256.toolTip().casefold()
     assert results.provenance_sha256.textInteractionFlags() & (
         Qt.TextInteractionFlag.TextSelectableByKeyboard
     )
@@ -347,8 +455,10 @@ def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None
         "critical-service priorities",
         "fixed rotation",
         "ppo",
-        "reward design",
+        "training-objective score (diagnostic)",
         "matched evaluation",
+        "untouched confirmatory evidence",
+        "no favorable/adverse release gate",
         "limitations",
         "keyboard",
     ):
@@ -425,7 +535,7 @@ def test_live_run_executes_off_the_gui_thread_and_keeps_results_frozen(qtbot) ->
         live_runner=runner,
     )
     qtbot.addWidget(window)
-    frozen_reward = window.results_page.results_table.item(3 - 1, 1).text()
+    frozen_headline = window.results_page.results_table.item(2, 1).text()
     window.live_page.shortage_combo.setCurrentText("Severe")
     window.live_page.seed_input.setValue(50003)
 
@@ -443,7 +553,7 @@ def test_live_run_executes_off_the_gui_thread_and_keeps_results_frozen(qtbot) ->
     assert window.live_page.map_view.locality_items["khartoum"].status_text == "× OFF"
     assert window.live_page.timeline.value() == 7
     assert window.live_page.locality_context.text() == "Fixed Rotation · Hour 07:00"
-    assert window.results_page.results_table.item(3 - 1, 1).text() == frozen_reward
+    assert window.results_page.results_table.item(2, 1).text() == frozen_headline
 
 
 def test_live_worker_error_is_shown_without_fabricated_frames(qtbot) -> None:

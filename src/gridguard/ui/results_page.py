@@ -1,4 +1,4 @@
-"""Evidence-backed paired comparison page."""
+"""Evidence-backed untouched confirmatory comparison page."""
 
 from __future__ import annotations
 
@@ -21,36 +21,45 @@ from gridguard.ui.theme import MONO_FONT_FAMILY
 
 
 class ResultsPage(QWidget):
-    """Controller cards and paired confidence intervals from committed evidence."""
+    """Three primary outcomes from untouched confirmatory evidence."""
 
     def __init__(self, snapshot: PresentationSnapshot, parent=None) -> None:
         super().__init__(parent)
         self.setAccessibleName("Results page")
         self.setAccessibleDescription(
-            f"Frozen paired comparison from evidence {snapshot.benchmark_id}."
+            f"Frozen untouched confirmatory comparison from evidence {snapshot.artifact_id}."
         )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(26, 18, 26, 16)
         layout.setSpacing(9)
 
-        kicker = QLabel("RESULTS  /  FROZEN BENCHMARK")
+        kicker = QLabel("RESULTS  /  UNTOUCHED CONFIRMATORY")
         kicker.setProperty("kicker", True)
-        kicker.setAccessibleName("Results, frozen benchmark")
+        kicker.setAccessibleName("Results, untouched confirmatory evidence")
         layout.addWidget(kicker)
         title, description = page_intro(
             "PPO compared with Fixed Rotation",
-            "Aggregate values and paired 95% confidence intervals come directly from the "
-            "committed matched-scenario evidence. Live demonstrations cannot replace them.",
+            "Three proposal-aligned outcomes and paired 95% confidence intervals come directly "
+            "from committed untouched confirmatory evidence. Live demonstrations cannot replace "
+            "these frozen results.",
         )
         layout.addWidget(title)
         layout.addWidget(description)
+
+        self.evidence_role_note = QLabel(
+            "Untouched confirmatory evidence · no favorable/adverse release gate."
+        )
+        self.evidence_role_note.setProperty("badge", "locked")
+        self.evidence_role_note.setProperty("compact", True)
+        self.evidence_role_note.setAccessibleName(self.evidence_role_note.text())
+        layout.addWidget(self.evidence_role_note)
 
         self.provenance_card = CardFrame(
             accessible_name="Results evidence provenance",
             variant="accent",
         )
         self.provenance_card.setAccessibleDescription(
-            f"Hash-verified committed artifact {snapshot.benchmark_id}; "
+            f"Hash-verified committed artifact {snapshot.artifact_id}; "
             f"SHA-256 {snapshot.artifact_sha256}; release {snapshot.release_id}; "
             f"{snapshot.matched_scenario_count} matched scenario conditions and "
             f"{snapshot.controller_evaluation_count} controller evaluations."
@@ -64,18 +73,20 @@ class ResultsPage(QWidget):
         self.provenance_status.setProperty("badge", "verified")
         self.provenance_status.setProperty("compact", True)
         self.provenance_status.setAccessibleName(
-            "Evidence hash verified at startup; frozen results"
+            "Robustness evidence hash verified at startup; frozen results"
         )
+
         artifact_caption = QLabel("Artifact ID")
         artifact_caption.setProperty("muted", True)
         artifact_caption.setProperty("compact", True)
-        self.provenance_id = QLabel(snapshot.benchmark_id)
+        self.provenance_id = QLabel(snapshot.artifact_id)
         self.provenance_id.setProperty("compact", True)
         self.provenance_id.setProperty("mono", True)
         self.provenance_id.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByKeyboard)
         self.provenance_id.setAccessibleName(
-            f"Verified evidence identifier: {snapshot.benchmark_id}"
+            f"Verified evidence identifier: {snapshot.artifact_id}"
         )
+
         release_caption = QLabel("Release ID")
         release_caption.setProperty("muted", True)
         release_caption.setProperty("compact", True)
@@ -92,6 +103,7 @@ class ResultsPage(QWidget):
         self.provenance_release.setAccessibleName(
             f"Verified application release identifier: {snapshot.release_id}"
         )
+
         sha256_caption = QLabel("SHA-256")
         sha256_caption.setProperty("muted", True)
         sha256_caption.setProperty("compact", True)
@@ -103,11 +115,11 @@ class ResultsPage(QWidget):
             | Qt.TextInteractionFlag.TextSelectableByKeyboard
         )
         self.provenance_sha256.setToolTip(
-            f"Verified paired-benchmark SHA-256: {snapshot.artifact_sha256}. "
+            f"Verified robustness supplement SHA-256: {snapshot.artifact_sha256}. "
             "Select the text to copy."
         )
         self.provenance_sha256.setAccessibleName(
-            f"Verified paired-benchmark SHA-256: {snapshot.artifact_sha256}"
+            f"Verified robustness supplement SHA-256: {snapshot.artifact_sha256}"
         )
         self.provenance_summary = QLabel(snapshot.count_statement)
         self.provenance_summary.setProperty("muted", True)
@@ -115,6 +127,7 @@ class ResultsPage(QWidget):
         self.provenance_summary.setAccessibleName(
             f"Verified evidence sample: {snapshot.count_statement}"
         )
+
         provenance_grid.addWidget(provenance_heading, 0, 0, 1, 3)
         provenance_grid.addWidget(self.provenance_status, 0, 3, Qt.AlignmentFlag.AlignRight)
         provenance_grid.addWidget(artifact_caption, 1, 0)
@@ -141,15 +154,11 @@ class ResultsPage(QWidget):
             card_row.addWidget(card)
         layout.addLayout(card_row)
 
-        ppo_balance = snapshot.ppo_power_balance_violation_rate
-        fixed_balance = snapshot.fixed_rotation_power_balance_violation_rate
-        if ppo_balance == 0.0 and fixed_balance == 0.0:
-            safety_text = "Safety check: 0.00% power-balance violation rate in both controllers."
-        else:
-            safety_text = (
-                "Safety check: power-balance violation rate "
-                f"PPO {ppo_balance:.2%}; Fixed Rotation {fixed_balance:.2%}."
-            )
+        maximum_balance = snapshot.maximum_power_balance_violation_rate
+        safety_text = (
+            "Safety check: maximum power-balance violation rate "
+            f"{maximum_balance:.2%} across both controllers."
+        )
         self.safety_note = QLabel(safety_text)
         self.safety_note.setAccessibleName(f"Power-balance safety result: {safety_text}")
         self.safety_note.setProperty("badge", "verified")
@@ -159,8 +168,8 @@ class ResultsPage(QWidget):
         self.results_table = QTableWidget(len(snapshot.metrics), 4)
         self.results_table.setAccessibleName("Paired controller comparison results")
         self.results_table.setAccessibleDescription(
-            f"{len(snapshot.metrics)} rows from {snapshot.benchmark_id} compare PPO with "
-            "Fixed Rotation. Delta is PPO minus Fixed Rotation and includes a paired "
+            f"{len(snapshot.metrics)} primary-outcome rows from {snapshot.artifact_id} compare "
+            "PPO with Fixed Rotation. Delta is PPO minus Fixed Rotation and includes a paired "
             "95 percent confidence interval."
         )
         self.results_table.setHorizontalHeaderLabels(
@@ -174,22 +183,32 @@ class ResultsPage(QWidget):
         self.results_table.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.results_table.horizontalHeader().setStretchLastSection(True)
         self.results_table.horizontalHeader().setMinimumSectionSize(125)
-        self.results_table.setColumnWidth(0, 190)
-        self.results_table.setColumnWidth(1, 145)
-        self.results_table.setColumnWidth(2, 165)
-        self.results_table.setMinimumHeight(185)
+        self.results_table.setColumnWidth(0, 220)
+        self.results_table.setColumnWidth(1, 215)
+        self.results_table.setColumnWidth(2, 225)
+        self.results_table.setMinimumHeight(155)
         for row, metric in enumerate(snapshot.metrics):
             delta = format_metric_value(
                 metric,
                 metric.mean_delta,
                 signed=True,
                 as_delta=True,
+                include_unit=False,
             )
-            interval = (
-                f"{delta}  "
-                f"[{format_metric_value(metric, metric.ci95_lower, as_delta=True)}, "
-                f"{format_metric_value(metric, metric.ci95_upper, as_delta=True)}]"
+            lower = format_metric_value(
+                metric,
+                metric.ci95_lower,
+                as_delta=True,
+                include_unit=False,
             )
+            upper = format_metric_value(
+                metric,
+                metric.ci95_upper,
+                as_delta=True,
+                include_unit=False,
+            )
+            interval_unit = "pp" if metric.unit == "%" else metric.unit
+            interval = f"{delta} [{lower}, {upper}] {interval_unit}"
             values = (
                 metric.label,
                 format_metric_value(metric, metric.ppo),

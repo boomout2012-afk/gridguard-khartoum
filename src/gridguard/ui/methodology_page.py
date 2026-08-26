@@ -24,8 +24,8 @@ class MethodologyPage(QWidget):
         super().__init__(parent)
         self.setAccessibleName("Methodology page")
         self.setAccessibleDescription(
-            "Scrollable methodology covering synthetic inputs, controllers, reward, "
-            "matched evaluation, provenance, and limitations."
+            "Scrollable methodology covering synthetic inputs, controllers, the diagnostic "
+            "training objective, untouched evaluation, provenance, and limitations."
         )
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -53,7 +53,7 @@ class MethodologyPage(QWidget):
         title, description = page_intro(
             "How the comparison was produced",
             "A transparent path from synthetic shortage conditions to identical-controller "
-            "inputs, CUDA execution, paired inference, and a deliberately narrow claim.",
+            "inputs, CUDA execution, untouched paired inference, and a deliberately narrow claim.",
         )
         layout.addWidget(title)
         layout.addWidget(description)
@@ -117,34 +117,39 @@ class MethodologyPage(QWidget):
             ),
             (
                 "05",
-                "Reward design",
+                "Training-objective score (diagnostic)",
                 "The accepted hourly reward gives greatest weight to critical service, then "
                 "rewards utilization and cumulative locality fairness while penalizing tier "
-                "switching and requested-power oversubscription. Reward is a research design "
-                "choice, not an economic valuation.",
+                "switching and requested-power oversubscription. It is the PPO training-objective "
+                "score and remains diagnostic, not an independent primary outcome or economic "
+                "valuation.",
             ),
             (
                 "06",
-                "Matched evaluation",
-                f"PPO and Fixed Rotation receive the same immutable scenario in every pair. "
-                f"The {snapshot.matched_scenario_count} paired conditions are clustered into "
-                f"{snapshot.independent_base_draw_count} independent base draws across "
-                f"{snapshot.shortage_level_count} linked shortage variants.",
+                "Untouched confirmatory evidence",
+                f"Matched evaluation gives PPO and Fixed Rotation the same immutable scenario in "
+                f"every pair. The "
+                f"{snapshot.matched_scenario_count} paired conditions are clustered into "
+                f"{snapshot.independent_base_draw_count} untouched independent base draws across "
+                f"{snapshot.shortage_level_count} linked shortage variants. Results are reported "
+                "as observed; there is no favorable/adverse release gate.",
             ),
             (
                 "07",
                 "Metrics and paired analysis",
-                "Every stored difference is PPO minus Fixed Rotation. Higher is favorable for "
-                "critical service, served energy, utilization, fairness, and reward; lower is "
-                "favorable for curtailment and switching. The 95% intervals keep each base "
-                "draw's shortage variants together during clustered paired bootstrap.",
+                "The three primary outcomes are critical-outage locality-hours, Jain fairness, "
+                "and utilization. Every stored difference is PPO minus Fixed Rotation; lower is "
+                "beneficial for outage exposure and higher for fairness and utilization. The 95% "
+                "intervals keep each base draw's shortage variants together during clustered "
+                "paired bootstrap. Power balance is shown separately as a safety result.",
             ),
             (
                 "08",
                 "Evidence provenance",
-                f"The Results page reads {snapshot.benchmark_id} only after startup verifies "
-                "its committed SHA-256, schema, controller labels, counts, aggregate values, "
-                "and frozen parity. A live scenario cannot overwrite this evidence.",
+                f"The Results page reads {snapshot.artifact_id} only after startup verifies the "
+                "committed robustness supplement SHA-256, schema, controller labels, protocol "
+                "counts, aggregate values, and scientific invariants. A live scenario cannot "
+                "overwrite this frozen evidence.",
             ),
         )
         grid = QGridLayout()

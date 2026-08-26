@@ -79,14 +79,10 @@ class ControllerCard(CardFrame):
         grid.setVerticalSpacing(4)
         grid.setColumnStretch(0, 1)
         grid.setColumnStretch(1, 1)
-        grid.setColumnStretch(2, 1)
         self.metric_value_labels: dict[str, QLabel] = {}
         displayed_metric_count = 0
-        for key in ("critical_service_ratio", "served_mwh", "episode_reward"):
-            try:
-                metric = snapshot.metric(key)
-            except KeyError:
-                continue
+        for metric in snapshot.metrics:
+            key = metric.key
             value = metric.ppo if controller_name == "PPO" else metric.fixed_rotation
             formatted_value = format_metric_value(metric, value)
             value_label = QLabel(formatted_value)
@@ -97,9 +93,15 @@ class ControllerCard(CardFrame):
             name_label = QLabel(metric.label)
             name_label.setProperty("muted", True)
             name_label.setProperty("compact", True)
-            column = displayed_metric_count
-            grid.addWidget(value_label, 0, column)
-            grid.addWidget(name_label, 1, column)
+            name_label.setAccessibleName(f"{metric.label} headline metric")
+            if displayed_metric_count == 0:
+                value_row, name_row, column, column_span = 0, 1, 0, 2
+            else:
+                value_row, name_row = 2, 3
+                column = displayed_metric_count - 1
+                column_span = 1
+            grid.addWidget(value_label, value_row, column, 1, column_span)
+            grid.addWidget(name_label, name_row, column, 1, column_span)
             self.metric_value_labels[key] = value_label
             displayed_metric_count += 1
         if displayed_metric_count:
@@ -165,6 +167,7 @@ def format_metric_value(
     *,
     signed: bool = False,
     as_delta: bool = False,
+    include_unit: bool = True,
 ) -> str:
     """Format a scientific value using display metadata, never recomputation."""
 
@@ -172,8 +175,14 @@ def format_metric_value(
     sign = "+" if signed and scaled > 0 else ""
     if metric.unit == "%":
         if as_delta:
-            return f"{sign}{scaled:.2f} pp"
-        return f"{sign}{scaled:.2f}%"
+            suffix = " pp" if include_unit else ""
+            return f"{sign}{scaled:.2f}{suffix}"
+        suffix = "%" if include_unit else ""
+        return f"{sign}{scaled:.2f}{suffix}"
+    if metric.unit == "locality-hours":
+        suffix = " locality-hours" if include_unit else ""
+        return f"{sign}{scaled:.1f}{suffix}"
     if metric.unit == "MWh":
-        return f"{sign}{scaled:,.0f} MWh"
+        suffix = " MWh" if include_unit else ""
+        return f"{sign}{scaled:,.1f}{suffix}"
     return f"{sign}{scaled:.2f}"
