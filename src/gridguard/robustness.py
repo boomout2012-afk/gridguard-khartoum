@@ -22,6 +22,8 @@ from gridguard.domain import (
     LOCALITY_DEMAND_WEIGHTS,
     SECTOR_SHARES,
     SECTORS,
+    Scenario,
+    ShortageLevel,
 )
 from gridguard.evaluation import evaluate_scenario_pair
 from gridguard.metrics import EpisodeMetrics
@@ -32,6 +34,7 @@ from gridguard.robustness_provenance import (
     ROBUSTNESS_SUPPLEMENT_SHA256 as ROBUSTNESS_SUPPLEMENT_SHA256,
 )
 from gridguard.scenarios import (
+    ScenarioBaseDraws,
     ScenarioDemandParameters,
     generate_scenario_base_draws,
     scenario_from_base_draws,
@@ -1127,6 +1130,36 @@ def _build_robustness_provenance(manifest_path: Path) -> dict[str, object]:
     }
 
 
+def _scenario_for_demand_allocation_sensitivity(
+    *,
+    base_draws: ScenarioBaseDraws,
+    shortage_level: ShortageLevel | str,
+    demand_parameters: ScenarioDemandParameters,
+    reference_scenario: Scenario,
+) -> Scenario:
+    """Change allocation parameters while holding hourly demand and supply fixed."""
+
+    if not isinstance(base_draws, ScenarioBaseDraws):
+        raise TypeError("base_draws must be ScenarioBaseDraws")
+    if not isinstance(reference_scenario, Scenario):
+        raise TypeError("reference_scenario must be Scenario")
+    try:
+        normalized_shortage = ShortageLevel(shortage_level)
+    except (TypeError, ValueError) as error:
+        raise ValueError("shortage_level must be mild, moderate, or severe") from error
+    if reference_scenario.shortage_level is not normalized_shortage:
+        raise ValueError("reference_scenario must use the requested shortage level")
+    if reference_scenario.seed != base_draws.seed:
+        raise ValueError("reference_scenario must use the same base-draw seed")
+    return scenario_from_base_draws(
+        base_draws,
+        normalized_shortage,
+        demand_parameters=demand_parameters,
+        total_demand_override_mw=reference_scenario.demand.sum(dim=(-1, -2)),
+        available_supply_override_mw=reference_scenario.supply,
+    )
+
+
 def _require_cuda_zero(device: str | torch.device) -> torch.device:
     try:
         resolved = torch.device(device)
@@ -1167,12 +1200,14 @@ def run_full_robustness_evaluation(
         for seed in ROBUSTNESS_SEEDS
     }
 
+    reference_scenarios: dict[tuple[str, int], Scenario] = {}
     fixed_cells: list[torch.Tensor] = []
     ppo_cells: list[torch.Tensor] = []
     forecast_demands: list[torch.Tensor] = []
     for severity_index, shortage_level in enumerate(ROBUSTNESS_SHORTAGE_LEVELS):
         for seed in ROBUSTNESS_SEEDS:
             scenario = scenario_from_base_draws(base_draws[seed], shortage_level)
+            reference_scenarios[(shortage_level, seed)] = scenario
             if severity_index == 0:
                 forecast_demands.append(scenario.demand)
             evaluated = evaluate_scenario_pair(scenario, ppo_controller=ppo_controller)
@@ -1218,10 +1253,11 @@ def run_full_robustness_evaluation(
         cells: list[torch.Tensor] = []
         for shortage_level in ROBUSTNESS_SHORTAGE_LEVELS:
             for seed in ROBUSTNESS_SEEDS:
-                scenario = scenario_from_base_draws(
-                    base_draws[seed],
-                    shortage_level,
+                scenario = _scenario_for_demand_allocation_sensitivity(
+                    base_draws=base_draws[seed],
+                    shortage_level=shortage_level,
                     demand_parameters=variant.parameters,
+                    reference_scenario=reference_scenarios[(shortage_level, seed)],
                 )
                 evaluated = evaluate_scenario_pair(scenario, ppo_controller=ppo_controller)
                 fixed_metrics = _robustness_metric_matrix(evaluated.fixed_metrics)

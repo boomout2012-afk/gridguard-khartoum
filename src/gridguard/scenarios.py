@@ -141,6 +141,28 @@ def _validate_noise(name: str, value: float) -> float:
     return normalized
 
 
+def _validate_override_trace_mw(
+    name: str,
+    value: torch.Tensor,
+    *,
+    base_draws: ScenarioBaseDraws,
+) -> torch.Tensor:
+    if not isinstance(value, torch.Tensor):
+        raise TypeError(f"{name} must be a torch.Tensor")
+    expected_shape = (base_draws.batch_size, HORIZON_HOURS)
+    if value.shape != expected_shape:
+        raise ValueError(f"{name} must have shape {list(expected_shape)}")
+    if value.dtype != torch.float32:
+        raise TypeError(f"{name} must use torch.float32")
+    if value.device != base_draws.device:
+        raise ValueError(f"{name} must remain on {base_draws.device}")
+    if not bool(torch.isfinite(value).all().item()):
+        raise ValueError(f"{name} must contain only finite values")
+    if bool((value < 0.0).any().item()):
+        raise ValueError(f"{name} must contain only non-negative power values")
+    return value
+
+
 def _resolve_device(device: str | torch.device) -> torch.device:
     try:
         resolved = torch.device(device)
@@ -233,8 +255,10 @@ def scenario_from_base_draws(
     demand_noise: float = DEFAULT_DEMAND_NOISE,
     supply_noise: float = DEFAULT_SUPPLY_NOISE,
     demand_parameters: ScenarioDemandParameters = DEFAULT_SCENARIO_DEMAND_PARAMETERS,
+    total_demand_override_mw: torch.Tensor | None = None,
+    available_supply_override_mw: torch.Tensor | None = None,
 ) -> Scenario:
-    """Purely transform shared stochastic draws into one shortage-level scenario."""
+    """Transform shared draws, optionally holding total demand and supply fixed."""
 
     if not isinstance(base_draws, ScenarioBaseDraws):
         raise TypeError("base_draws must be ScenarioBaseDraws")
@@ -246,6 +270,10 @@ def scenario_from_base_draws(
     normalized_supply_noise = _validate_noise("supply_noise", supply_noise)
     if not isinstance(demand_parameters, ScenarioDemandParameters):
         raise TypeError("demand_parameters must be ScenarioDemandParameters")
+    if (total_demand_override_mw is None) != (available_supply_override_mw is None):
+        raise ValueError(
+            "total_demand_override_mw and available_supply_override_mw must be provided together"
+        )
 
     locality_weights = torch.tensor(
         demand_parameters.locality_weights,
@@ -265,6 +293,29 @@ def scenario_from_base_draws(
     demand = demand.expand(base_draws.batch_size, -1, len(LOCALITIES), -1).clone()
     demand_multiplier = 1.0 + normalized_demand_noise * (2.0 * base_draws.demand_uniform - 1.0)
     demand *= demand_multiplier
+
+    if total_demand_override_mw is not None and available_supply_override_mw is not None:
+        total_demand_override_mw = _validate_override_trace_mw(
+            "total_demand_override_mw",
+            total_demand_override_mw,
+            base_draws=base_draws,
+        )
+        available_supply_override_mw = _validate_override_trace_mw(
+            "available_supply_override_mw",
+            available_supply_override_mw,
+            base_draws=base_draws,
+        )
+        if bool((available_supply_override_mw > total_demand_override_mw).any().item()):
+            raise ValueError("available_supply_override_mw cannot exceed total_demand_override_mw")
+        generated_total_demand = demand.sum(dim=(-1, -2))
+        demand *= (total_demand_override_mw / generated_total_demand)[..., None, None]
+        supply = available_supply_override_mw.clone()
+        return Scenario(
+            demand=demand,
+            supply=supply,
+            shortage_level=normalized_shortage,
+            seed=base_draws.seed,
+        )
 
     fraction = _supply_fraction(base_draws.batch_size, normalized_shortage, base_draws.device)
     supply_multiplier = 1.0 + normalized_supply_noise * (2.0 * base_draws.supply_uniform - 1.0)

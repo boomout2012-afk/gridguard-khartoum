@@ -107,6 +107,102 @@ def test_explicit_default_demand_parameters_are_bit_identical() -> None:
     assert torch.equal(implicit.supply, explicit.supply)
 
 
+def test_allocation_only_overrides_hold_hourly_demand_and_supply_fixed() -> None:
+    base_draws = generate_scenario_base_draws(3, 481, device="cpu")
+    reference = scenario_from_base_draws(base_draws, ShortageLevel.MODERATE)
+    parameters = ScenarioDemandParameters(
+        locality_weights=(2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+        sector_shares=(0.1, 0.1, 0.1, 0.4, 0.3),
+    )
+
+    variant = scenario_from_base_draws(
+        base_draws,
+        ShortageLevel.MODERATE,
+        demand_parameters=parameters,
+        total_demand_override_mw=reference.demand.sum(dim=(-1, -2)),
+        available_supply_override_mw=reference.supply,
+    )
+
+    assert not torch.equal(variant.demand, reference.demand)
+    torch.testing.assert_close(
+        variant.demand.sum(dim=(-1, -2)),
+        reference.demand.sum(dim=(-1, -2)),
+        rtol=1e-6,
+        atol=1e-5,
+    )
+    assert torch.equal(variant.supply, reference.supply)
+
+
+def test_allocation_only_overrides_must_be_provided_together() -> None:
+    base_draws = generate_scenario_base_draws(1, 481, device="cpu")
+    reference = scenario_from_base_draws(base_draws, ShortageLevel.MODERATE)
+    total_demand_mw = reference.demand.sum(dim=(-1, -2))
+
+    with pytest.raises(ValueError, match="must be provided together"):
+        scenario_from_base_draws(
+            base_draws,
+            ShortageLevel.MODERATE,
+            total_demand_override_mw=total_demand_mw,
+        )
+    with pytest.raises(ValueError, match="must be provided together"):
+        scenario_from_base_draws(
+            base_draws,
+            ShortageLevel.MODERATE,
+            available_supply_override_mw=reference.supply,
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid", "message"),
+    [
+        ("total", object(), "torch.Tensor"),
+        ("total", torch.ones((1, 23)), "shape"),
+        ("total", torch.ones((1, 24), dtype=torch.float64), "torch.float32"),
+        ("total", torch.full((1, 24), float("nan")), "finite"),
+        ("total", torch.full((1, 24), -1.0), "non-negative"),
+        ("supply", torch.ones((1, 23)), "shape"),
+        ("supply", torch.ones((1, 24), dtype=torch.float64), "torch.float32"),
+        ("supply", torch.full((1, 24), float("inf")), "finite"),
+        ("supply", torch.full((1, 24), -1.0), "non-negative"),
+    ],
+)
+def test_allocation_only_overrides_validate_the_closed_tensor_contract(
+    field: str,
+    invalid: object,
+    message: str,
+) -> None:
+    base_draws = generate_scenario_base_draws(1, 481, device="cpu")
+    reference = scenario_from_base_draws(base_draws, ShortageLevel.MODERATE)
+    total_demand_mw: object = reference.demand.sum(dim=(-1, -2))
+    available_supply_mw: object = reference.supply
+    if field == "total":
+        total_demand_mw = invalid
+    else:
+        available_supply_mw = invalid
+
+    with pytest.raises((TypeError, ValueError), match=message):
+        scenario_from_base_draws(
+            base_draws,
+            ShortageLevel.MODERATE,
+            total_demand_override_mw=total_demand_mw,  # type: ignore[arg-type]
+            available_supply_override_mw=available_supply_mw,  # type: ignore[arg-type]
+        )
+
+
+def test_allocation_only_overrides_reject_supply_above_total_demand() -> None:
+    base_draws = generate_scenario_base_draws(1, 481, device="cpu")
+    reference = scenario_from_base_draws(base_draws, ShortageLevel.MODERATE)
+    total_demand_mw = reference.demand.sum(dim=(-1, -2))
+
+    with pytest.raises(ValueError, match="cannot exceed"):
+        scenario_from_base_draws(
+            base_draws,
+            ShortageLevel.MODERATE,
+            total_demand_override_mw=total_demand_mw,
+            available_supply_override_mw=total_demand_mw + 1.0,
+        )
+
+
 def test_demand_parameters_are_immutable_and_validate_closed_shapes() -> None:
     parameters = ScenarioDemandParameters(
         locality_weights=(1.0, 0.95, 0.85, 0.8, 0.7, 0.75, 0.9),

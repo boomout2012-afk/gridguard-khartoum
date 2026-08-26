@@ -27,6 +27,7 @@ from gridguard.robustness import (
     ROBUSTNESS_TRAINING_PROVENANCE_SHA256,
     ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES,
     RobustnessArtifactError,
+    _scenario_for_demand_allocation_sensitivity,
     build_robustness_supplement_payload,
     build_sensitivity_variants,
     canonical_robustness_json_bytes,
@@ -37,6 +38,7 @@ from gridguard.robustness import (
     verify_robustness_implementation_sources,
     verify_robustness_supplement,
 )
+from gridguard.scenarios import generate_scenario_base_draws, scenario_from_base_draws
 from tools.training_provenance import load_training_provenance
 
 ROOT = Path(__file__).parents[1]
@@ -322,6 +324,26 @@ def test_sensitivity_variants_change_only_one_component_before_renormalization()
             variant.factor,
             abs=1e-12,
         )
+
+
+def test_sensitivity_scenario_holds_reference_total_demand_and_supply_fixed() -> None:
+    base_draws = generate_scenario_base_draws(2, 81001, device="cpu")
+    reference = scenario_from_base_draws(base_draws, "moderate")
+    variant = _scenario_for_demand_allocation_sensitivity(
+        base_draws=base_draws,
+        shortage_level="moderate",
+        demand_parameters=build_sensitivity_variants()[0].parameters,
+        reference_scenario=reference,
+    )
+
+    assert not torch.equal(variant.demand, reference.demand)
+    torch.testing.assert_close(
+        variant.demand.sum(dim=(-1, -2)),
+        reference.demand.sum(dim=(-1, -2)),
+        rtol=1e-6,
+        atol=1e-5,
+    )
+    assert torch.equal(variant.supply, reference.supply)
 
 
 def test_robustness_protocol_constants_lock_untouched_workload() -> None:
