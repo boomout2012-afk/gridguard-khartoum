@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from pathlib import Path
+from runpy import run_path
 
 import torch
 from PyInstaller.utils.hooks import (
@@ -13,6 +14,33 @@ from PyInstaller.utils.hooks import (
 
 
 PROJECT_ROOT = Path(SPECPATH).resolve().parent
+
+
+def _bundled_provenance_sources():
+    """Bundle every raw source file required by fail-closed evidence verification."""
+
+    trust_anchor_path = PROJECT_ROOT / "src" / "gridguard" / "robustness_provenance.py"
+    trust_anchor = run_path(str(trust_anchor_path))
+    repository_paths = (
+        "src/gridguard/robustness_provenance.py",
+        *(
+            path
+            for path, _sha256, _size_bytes in trust_anchor[
+                "ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS"
+            ]
+        ),
+    )
+    entries = []
+    for repository_path in dict.fromkeys(repository_paths):
+        relative_path = Path(repository_path)
+        if relative_path.is_absolute() or ".." in relative_path.parts:
+            raise ValueError(f"invalid provenance source path: {repository_path}")
+        source_path = (PROJECT_ROOT / relative_path).resolve()
+        if not source_path.is_relative_to(PROJECT_ROOT) or not source_path.is_file():
+            raise FileNotFoundError(f"provenance source is unavailable: {repository_path}")
+        target_path = (Path("gridguard/_bundled") / relative_path.parent).as_posix()
+        entries.append((str(source_path), target_path))
+    return entries
 
 
 def _filter_nvidia_payload(entries):
@@ -46,10 +74,7 @@ datas = [
         str(PROJECT_ROOT / "docs" / "source" / "graduation-project-proposal.pdf"),
         "gridguard/_bundled/docs/source",
     ),
-    (
-        str(PROJECT_ROOT / "src" / "gridguard" / "robustness_provenance.py"),
-        "gridguard/_bundled/src/gridguard",
-    ),
+    *_bundled_provenance_sources(),
     (str(PROJECT_ROOT / "src" / "gridguard" / "assets"), "gridguard/assets"),
 ]
 

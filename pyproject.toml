@@ -41,7 +41,16 @@ packages = ["src/gridguard"]
 "data/evidence" = "gridguard/_bundled/data/evidence"
 "data/model" = "gridguard/_bundled/data/model"
 "docs/source/graduation-project-proposal.pdf" = "gridguard/_bundled/docs/source/graduation-project-proposal.pdf"
+"src/gridguard/controllers.py" = "gridguard/_bundled/src/gridguard/controllers.py"
+"src/gridguard/domain.py" = "gridguard/_bundled/src/gridguard/domain.py"
+"src/gridguard/evaluation.py" = "gridguard/_bundled/src/gridguard/evaluation.py"
+"src/gridguard/metrics.py" = "gridguard/_bundled/src/gridguard/metrics.py"
+"src/gridguard/policy.py" = "gridguard/_bundled/src/gridguard/policy.py"
+"src/gridguard/robustness.py" = "gridguard/_bundled/src/gridguard/robustness.py"
 "src/gridguard/robustness_provenance.py" = "gridguard/_bundled/src/gridguard/robustness_provenance.py"
+"src/gridguard/scenarios.py" = "gridguard/_bundled/src/gridguard/scenarios.py"
+"src/gridguard/simulation.py" = "gridguard/_bundled/src/gridguard/simulation.py"
+"src/gridguard/statistics.py" = "gridguard/_bundled/src/gridguard/statistics.py"
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }

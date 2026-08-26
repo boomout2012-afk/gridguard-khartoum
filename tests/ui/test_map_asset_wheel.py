@@ -56,6 +56,7 @@ def test_built_wheel_loads_geographic_map_and_attribution_outside_source_tree(
             "-I",
             "-c",
             (
+                "import json; "
                 "from importlib.resources import files; "
                 "from gridguard.ui import load_map_asset; "
                 "from gridguard.provenance import verify_project_source_manifest; "
@@ -74,6 +75,10 @@ def test_built_wheel_loads_geographic_map_and_attribution_outside_source_tree(
                 "manifest = resource_path('data', 'evidence', 'source-manifest.json'); "
                 "assert resource_path('src', 'gridguard', "
                 "'robustness_provenance.py').is_file(); "
+                "robustness = json.loads(resource_path('data', 'evidence', "
+                "'robustness-supplement.json').read_text(encoding='utf-8')); "
+                "assert all(resource_path(*item['path'].split('/')).is_file() "
+                "for item in robustness['provenance']['implementation_sources']); "
                 "assert len(verify_project_source_manifest(manifest, repository_root=root)) == 8; "
                 "assert resource_path('data', 'model', 'ppo-policy.npz').is_file(); "
                 "assert resource_path('docs', 'source', "

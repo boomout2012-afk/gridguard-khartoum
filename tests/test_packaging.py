@@ -8,6 +8,8 @@ from typing import Any
 
 import PyInstaller.utils.hooks as pyinstaller_hooks
 
+from gridguard.robustness_provenance import ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -94,6 +96,18 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
     assert "C:/cuda/LICENSE.txt" in bundled_cuda_sources
     assert "C:/cuda/cupy_only.dll" in bundled_cuda_sources
 
+    bundled_provenance_sources = {
+        Path(source).resolve().relative_to(REPOSITORY_ROOT).as_posix()
+        for source, target in captured["datas"]
+        if target == "gridguard/_bundled/src/gridguard"
+    }
+    expected_provenance_sources = {
+        source_path
+        for source_path, _sha256, _size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+    }
+    expected_provenance_sources.add("src/gridguard/robustness_provenance.py")
+    assert bundled_provenance_sources == expected_provenance_sources
+
 
 def test_pyinstaller_spec_is_one_directory_and_bundles_trusted_runtime_assets() -> None:
     spec = (REPOSITORY_ROOT / "packaging" / "gridguard.spec").read_text(encoding="utf-8")
@@ -105,7 +119,7 @@ def test_pyinstaller_spec_is_one_directory_and_bundles_trusted_runtime_assets() 
     assert "data/model" in spec
     assert "graduation-project-proposal.pdf" in spec
     assert "robustness_provenance.py" in spec
-    assert "gridguard/_bundled/src/gridguard" in spec
+    assert "*_bundled_provenance_sources()" in spec
     assert "gridguard/assets" in spec
     assert 'collect_all("cupy")' in spec
     assert 'collect_dynamic_libs("nvidia")' in spec
