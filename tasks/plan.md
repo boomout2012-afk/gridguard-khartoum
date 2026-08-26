@@ -402,3 +402,104 @@ Scope: Medium
 - Report and slide style: neutral academic design until a university template is supplied.
 - Map: offline schematic with an explicit non-geographic disclaimer.
 - Learned-controller label: PPO throughout the clean project.
+
+## Phase 5: Review remediation (active)
+
+### Task 5.1 - Establish the review ledger and domain literature (complete)
+
+Description: Preserve every substantive colleague-review point in clean English, record its
+verdict and closure evidence, answer the realism portion of research question 3, and position the
+project against relevant energy literature without expanding claims.
+
+Acceptance criteria:
+
+- `docs/REVIEW_REMEDIATION.md` contains R01–R14 with criticism, verdict, action, and acceptance
+  evidence and binds the raw review snapshot by SHA-256.
+- `docs/RELATED_WORK.md` distinguishes contextual literature from project evidence and states that
+  the scientific case is synthetic and not utility-calibrated.
+- `docs/REFERENCES.md` contains exactly 15 entries, including seven vetted domain sources.
+
+Verification:
+
+- `uv run pytest tests/test_review_remediation.py`
+
+Dependencies: Task 4.5
+Likely files: `docs/REVIEW_REMEDIATION.md`, `docs/RELATED_WORK.md`, `docs/REFERENCES.md`
+Scope: Small
+
+### Task 5.2 - Publish PPO training provenance (active)
+
+Description: Recover the selected PPO training record from the pinned research archive and publish
+it as a strict, hash-bound YAML artifact that documentation tooling can validate and reviewers can
+find directly.
+
+Acceptance criteria:
+
+- Architecture, initialization, PPO updates, validation, selection, seeds, hardware, and convergence
+  are explicit and tied to immutable archive hashes.
+- The model manifest, source manifest, wheel, and Windows package verify the YAML without adding a
+  runtime YAML dependency.
+
+Verification:
+
+- Focused training-provenance, model, provenance, and packaging tests.
+
+Dependencies: Task 5.1
+Scope: Medium
+
+### Task 5.3 - Reframe outcomes and accepted reproduction evidence (active)
+
+Description: Make critical-outage locality-hours, Jain fairness, and utilization the three primary
+outcomes; retain episode reward only as a training-objective diagnostic; and preserve frozen numeric
+evidence while updating semantic metadata and trust anchors.
+
+Acceptance criteria:
+
+- Metric roles agree across code, artifacts, UI, report, and deck.
+- The accepted frozen benchmark and PPO actor remain byte-identical.
+- Release verification tests integrity and arithmetic rather than requiring a favorable direction.
+
+Verification:
+
+- Focused evaluation-role, evidence, UI, document, and immutable-hash tests.
+
+Dependencies: Task 5.2
+Scope: Medium
+
+### Task 5.4 - Add untouched robustness and forecast evidence (active)
+
+Description: Evaluate seeds 81001–81010, one-factor ±25% demand-parameter sensitivity, and the
+three-hour trailing-mean forecast against one-hour persistence on matched synthetic traces.
+
+Acceptance criteria:
+
+- The supplemental artifact reports exact workload counts, deterministic intervals, sensitivity
+  classifications, forecast MAE/RMSE, and bounded synthetic-only claims.
+- Two CUDA reproductions are byte-identical and semantic verification fails closed on tampering.
+
+Verification:
+
+- Focused scenario, robustness, forecast, statistics, CLI, and evidence tests.
+
+Dependencies: Task 5.3
+Scope: Large
+
+### Task 5.5 - Rebuild and audit the reviewer-facing release (pending)
+
+Description: Apply all verified dispositions to the application and academic package, rebuild the
+report, 13-slide deck, and Windows distribution, then refresh provenance in dependency order.
+
+Acceptance criteria:
+
+- Human-facing values use the approved precision and every limitation is consistent across media.
+- Every report page and slide is rendered and inspected, the packaged application passes the CUDA
+  smoke path, and the final release tree verifies cleanly offline.
+- The raw `point.md` snapshot is removed only after R01–R14 acceptance evidence is complete.
+
+Verification:
+
+- Full pytest and Ruff checks, doctor, evidence reproduction/verification, visual inspection,
+  packaged smoke test, release-manifest verification, and clean-tree audit.
+
+Dependencies: Tasks 5.2–5.4
+Scope: Large
