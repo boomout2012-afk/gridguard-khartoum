@@ -44,11 +44,11 @@ COUNT_STATEMENT: Final = (
 )
 DELTA_DEFINITION: Final = "PPO - Fixed Rotation"
 FROZEN_BENCHMARK_SHA256: Final = "3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15"
-PAIRED_BENCHMARK_SHA256: Final = "2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11"
+PAIRED_BENCHMARK_SHA256: Final = "6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677"
 FROZEN_BENCHMARK_SIZE_BYTES: Final = 9_682
 PPO_ARTIFACT_SIZE_BYTES: Final = 5_160_058
-PPO_MANIFEST_SHA256: Final = "89ece396d8d5ef55d11f5f59ed946a593a37a6b4b10a08040cf80aa58ef20fe2"
-PPO_MANIFEST_SIZE_BYTES: Final = 1_329
+PPO_MANIFEST_SHA256: Final = "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+PPO_MANIFEST_SIZE_BYTES: Final = 1_609
 
 METRIC_ORDER: Final = (
     "episode_reward",
@@ -72,8 +72,9 @@ INFERENCE_METRICS: Final = (
     "served_mwh",
     "curtailed_mwh",
     "switching_rate",
+    "critical_outage_locality_hours",
 )
-PRIMARY_METRICS: Final = frozenset(INFERENCE_METRICS[:-1])
+PRIMARY_METRICS: Final = frozenset({"critical_outage_locality_hours", "fairness", "utilization"})
 FROZEN_METRICS: Final = METRIC_ORDER[:-1]
 
 # These limits are fixed review decisions, not adaptive thresholds. Energy totals admit two
@@ -88,40 +89,41 @@ MAX_CRITICAL_OUTAGE_LOCALITY_HOURS: Final = HORIZON_HOURS * len(LOCALITIES)
 
 METRIC_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
     "episode_reward": {
+        "label": "Training-objective score (diagnostic)",
         "definition": "Sum of the accepted 24 hourly reward values.",
         "unit": "reward units",
         "direction": "higher_is_better",
-        "role": "primary",
+        "role": "diagnostic",
     },
     "demand_mwh": {
         "definition": "Sum of simulated system demand over 24 one-hour steps.",
         "unit": "MWh",
         "direction": "input_only",
-        "role": "diagnostic",
+        "role": "input",
     },
     "available_mwh": {
         "definition": "Sum of available system supply over 24 one-hour steps.",
         "unit": "MWh",
         "direction": "input_only",
-        "role": "diagnostic",
+        "role": "input",
     },
     "served_mwh": {
         "definition": "Sum of dispatched energy over 24 one-hour steps.",
         "unit": "MWh",
         "direction": "higher_is_better",
-        "role": "primary",
+        "role": "supporting",
     },
     "curtailed_mwh": {
         "definition": "Demand minus dispatched energy over 24 one-hour steps.",
         "unit": "MWh",
         "direction": "lower_is_better",
-        "role": "primary",
+        "role": "complementary",
     },
     "critical_service_ratio": {
         "definition": "Served critical-sector energy divided by critical-sector demand.",
         "unit": "ratio",
         "direction": "higher_is_better",
-        "role": "primary",
+        "role": "supporting",
     },
     "utilization": {
         "definition": "Mean hourly served power divided by min(available supply, demand).",
@@ -159,7 +161,7 @@ METRIC_DEFINITIONS: Final[dict[str, dict[str, str]]] = {
         "definition": "Locality-hours with critical-sector service below 99 percent.",
         "unit": "locality-hours",
         "direction": "lower_is_better",
-        "role": "diagnostic",
+        "role": "primary",
     },
 }
 
@@ -170,6 +172,8 @@ _TOP_LEVEL_FIELDS = frozenset(
         "aggregate",
         "benchmark_id",
         "cells",
+        "evaluation_independence",
+        "evidence_role",
         "frozen_parity",
         "limitations",
         "metric_definitions",
@@ -216,7 +220,19 @@ _LIMITATIONS: Final = [
         "scenario design, not a field causal effect."
     ),
     "Results describe one frozen PPO actor checkpoint and deterministic inference.",
+    (
+        "Seeds 50001-50003 were disjoint from gradient updates and periodic validation, "
+        "but participated in archived promotion and model-selection gates; this artifact is "
+        "accepted reproduction evidence, not an untouched final test."
+    ),
 ]
+
+_EVALUATION_INDEPENDENCE: Final = {
+    "gradient_disjoint": True,
+    "periodic_validation_disjoint": True,
+    "untouched_final_test": False,
+    "used_in_model_selection": True,
+}
 
 
 class EvaluationArtifactError(ValueError):
@@ -372,7 +388,7 @@ def build_paired_benchmark_payload(
             "direction": METRIC_DEFINITIONS[metric]["direction"],
             "favorable_sign": _favorable_sign(metric),
             "mean_delta": float(bootstrap_values[0, index]),
-            "role": "primary" if metric in PRIMARY_METRICS else "secondary",
+            "role": METRIC_DEFINITIONS[metric]["role"],
         }
         for index, metric in enumerate(INFERENCE_METRICS)
     }
@@ -380,6 +396,8 @@ def build_paired_benchmark_payload(
         "aggregate": aggregate,
         "benchmark_id": "proposal-ppo-vs-fixed-rotation-paired",
         "cells": cells,
+        "evaluation_independence": dict(_EVALUATION_INDEPENDENCE),
+        "evidence_role": "accepted_reproduction",
         "frozen_parity": {
             "absolute_tolerances": dict(FROZEN_ABSOLUTE_TOLERANCES),
             "comparison_granularity": "18 controller batch-cell summaries",
@@ -415,7 +433,7 @@ def build_paired_benchmark_payload(
             "shortage_levels": list(SEVERITIES),
         },
         "provenance": dict(provenance),
-        "schema_version": 1,
+        "schema_version": 2,
     }
     validate_paired_benchmark_payload(payload)
     return payload
@@ -443,11 +461,11 @@ def write_paired_benchmark(
     *,
     frozen_benchmark_path: str | Path | None = None,
 ) -> str:
-    """Atomically write neutral evidence, optionally enforcing the release claim gate."""
+    """Atomically write neutral evidence, optionally enforcing trusted reproduction integrity."""
 
     validate_paired_benchmark_payload(payload)
     if frozen_benchmark_path is not None:
-        assert_paired_benchmark_release_claims(
+        assert_paired_benchmark_integrity(
             payload,
             frozen_benchmark_path=frozen_benchmark_path,
         )
@@ -469,7 +487,7 @@ def verify_paired_benchmark(
     expected_sha256: str,
     frozen_benchmark_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Verify neutral integrity, plus release claims when the frozen artifact is supplied."""
+    """Verify neutral integrity, plus trusted reproduction when frozen evidence is supplied."""
 
     if type(expected_sha256) is not str or not _SHA256_PATTERN.fullmatch(expected_sha256):
         raise EvaluationArtifactError("expected_sha256 must be a lowercase SHA-256 digest")
@@ -499,7 +517,7 @@ def verify_paired_benchmark(
         raise EvaluationArtifactError("paired benchmark bytes are not in canonical form")
     validate_paired_benchmark_payload(mapping)
     if frozen_benchmark_path is not None:
-        assert_paired_benchmark_release_claims(
+        assert_paired_benchmark_integrity(
             mapping,
             frozen_benchmark_path=frozen_benchmark_path,
         )
@@ -694,10 +712,14 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
 
     root = _require_mapping(payload, field="paired benchmark")
     _require_exact_fields(root, _TOP_LEVEL_FIELDS, "paired benchmark")
-    if root["schema_version"] != 1 or type(root["schema_version"]) is not int:
+    if root["schema_version"] != 2 or type(root["schema_version"]) is not int:
         raise EvaluationArtifactError("unsupported paired benchmark schema_version")
     if root["benchmark_id"] != "proposal-ppo-vs-fixed-rotation-paired":
         raise EvaluationArtifactError("unexpected paired benchmark identity")
+    if root["evidence_role"] != "accepted_reproduction":
+        raise EvaluationArtifactError("paired benchmark evidence_role drifted")
+    if root["evaluation_independence"] != _EVALUATION_INDEPENDENCE:
+        raise EvaluationArtifactError("paired benchmark evaluation_independence drifted")
     _validate_protocol(root["protocol"])
     _validate_provenance_schema(root["provenance"])
     if root["limitations"] != _LIMITATIONS:
@@ -800,7 +822,7 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
             "delta_definition": DELTA_DEFINITION,
             "direction": METRIC_DEFINITIONS[metric]["direction"],
             "favorable_sign": _favorable_sign(metric),
-            "role": "primary" if metric in PRIMARY_METRICS else "secondary",
+            "role": METRIC_DEFINITIONS[metric]["role"],
         }
         if any(item[name] != value for name, value in expected_metadata.items()):
             raise EvaluationArtifactError(f"paired_inference.{metric} metadata drifted")
@@ -853,29 +875,16 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
         )
 
 
-def assert_paired_benchmark_release_claims(
+def assert_paired_benchmark_integrity(
     payload: Mapping[str, object],
     *,
     frozen_benchmark_path: str | Path,
 ) -> None:
-    """Assert the locked release claims using the mandatory hashed frozen benchmark."""
+    """Assert trusted provenance and parity without requiring a favorable result sign."""
 
     validate_paired_benchmark_payload(payload)
     root = _require_mapping(payload, field="paired benchmark")
     _assert_locked_provenance(root["provenance"])
-
-    inference = _require_mapping(root["paired_inference"], field="paired_inference")
-    for metric in INFERENCE_METRICS:
-        item = _require_mapping(inference[metric], field=f"paired_inference.{metric}")
-        lower = _number(item["ci95_lower"], field=f"paired_inference.{metric}.ci95_lower")
-        upper = _number(item["ci95_upper"], field=f"paired_inference.{metric}.ci95_upper")
-        direction = METRIC_DEFINITIONS[metric]["direction"]
-        if (direction == "higher_is_better" and lower <= 0.0) or (
-            direction == "lower_is_better" and upper >= 0.0
-        ):
-            raise EvaluationArtifactError(
-                f"paired_inference.{metric} interval does not support its favorable direction"
-            )
 
     _cross_check_frozen_parity(root, Path(frozen_benchmark_path))
     parity = _require_mapping(root["frozen_parity"], field="frozen_parity")

@@ -22,7 +22,7 @@ from gridguard.evaluation import (
     SEEDS,
     SEVERITIES,
     EvaluationArtifactError,
-    assert_paired_benchmark_release_claims,
+    assert_paired_benchmark_integrity,
     build_paired_benchmark_payload,
     canonical_paired_json_bytes,
     evaluate_scenario_pair,
@@ -64,8 +64,8 @@ def _provenance() -> dict[str, object]:
         },
         "ppo_manifest": {
             "path": "data/model/manifest.json",
-            "sha256": "89ece396d8d5ef55d11f5f59ed946a593a37a6b4b10a08040cf80aa58ef20fe2",
-            "size_bytes": 1329,
+            "sha256": "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349",
+            "size_bytes": 1609,
         },
         "source_checkpoint": {
             "path": "artifacts/checkpoints/best.pt",
@@ -190,7 +190,7 @@ def test_payload_builder_requires_the_hashed_frozen_benchmark(tmp_path: Path) ->
         _valid_payload(frozen_benchmark_path=tampered_frozen)
 
 
-def test_neutral_serialization_accepts_adverse_results_but_release_gate_fails(
+def test_neutral_serialization_accepts_adverse_results_but_trusted_writer_requires_parity(
     tmp_path: Path,
 ) -> None:
     payload = _valid_payload(ppo_outperforms=False)
@@ -201,13 +201,13 @@ def test_neutral_serialization_accepts_adverse_results_but_release_gate_fails(
 
     assert payload["frozen_parity"]["status"] == "failed"
     assert verify_paired_benchmark(output, expected_sha256=digest) == payload
-    with pytest.raises(EvaluationArtifactError, match="frozen parity|favorable direction"):
-        assert_paired_benchmark_release_claims(
+    with pytest.raises(EvaluationArtifactError, match="frozen parity"):
+        assert_paired_benchmark_integrity(
             payload,
             frozen_benchmark_path=FROZEN_BENCHMARK,
         )
     trusted_output = tmp_path / "trusted-adverse-paired-benchmark.json"
-    with pytest.raises(EvaluationArtifactError, match="frozen parity|favorable direction"):
+    with pytest.raises(EvaluationArtifactError, match="frozen parity"):
         write_paired_benchmark(
             payload,
             trusted_output,
@@ -216,7 +216,7 @@ def test_neutral_serialization_accepts_adverse_results_but_release_gate_fails(
     assert not trusted_output.exists()
 
 
-def test_neutral_serialization_accepts_ambiguous_interval_but_release_gate_fails() -> None:
+def test_trusted_integrity_is_sign_neutral_for_ambiguous_interval() -> None:
     payload = json.loads(PAIRED_BENCHMARK.read_text(encoding="utf-8"))
     interval = payload["paired_inference"]["critical_service_ratio"]
     interval["ci95_lower"] = -0.01
@@ -224,14 +224,13 @@ def test_neutral_serialization_accepts_ambiguous_interval_but_release_gate_fails
     validate_paired_benchmark_payload(payload)
     canonical_paired_json_bytes(payload)
 
-    with pytest.raises(EvaluationArtifactError, match="favorable direction"):
-        assert_paired_benchmark_release_claims(
-            payload,
-            frozen_benchmark_path=FROZEN_BENCHMARK,
-        )
+    assert_paired_benchmark_integrity(
+        payload,
+        frozen_benchmark_path=FROZEN_BENCHMARK,
+    )
 
 
-def test_release_gate_recomputes_frozen_parity_instead_of_trusting_declared_errors() -> None:
+def test_integrity_check_recomputes_frozen_parity_instead_of_trusting_declared_errors() -> None:
     payload = json.loads(PAIRED_BENCHMARK.read_text(encoding="utf-8"))
     payload["frozen_parity"]["maximum_absolute_error"] = {
         metric: 0.0 for metric in FROZEN_ABSOLUTE_TOLERANCES
@@ -240,7 +239,7 @@ def test_release_gate_recomputes_frozen_parity_instead_of_trusting_declared_erro
     validate_paired_benchmark_payload(payload)
 
     with pytest.raises(EvaluationArtifactError, match="does not match verified cells"):
-        assert_paired_benchmark_release_claims(
+        assert_paired_benchmark_integrity(
             payload,
             frozen_benchmark_path=FROZEN_BENCHMARK,
         )
@@ -354,16 +353,14 @@ def test_validator_rejects_available_energy_above_demand() -> None:
         validate_paired_benchmark_payload(payload)
 
 
-def test_neutral_validator_accepts_well_formed_untrusted_provenance_but_release_gate_rejects() -> (
-    None
-):
+def test_neutral_validator_accepts_well_formed_untrusted_provenance_but_integrity_rejects() -> None:
     payload = _valid_payload()
     payload["provenance"]["ppo_actor"]["sha256"] = "f" * 64
 
     validate_paired_benchmark_payload(payload)
 
     with pytest.raises(EvaluationArtifactError, match="locked artifact"):
-        assert_paired_benchmark_release_claims(
+        assert_paired_benchmark_integrity(
             payload,
             frozen_benchmark_path=FROZEN_BENCHMARK,
         )
@@ -384,7 +381,7 @@ def test_release_verifier_cross_checks_paired_cells_against_frozen_evidence() ->
 def test_verifier_rejects_byte_tampering_before_semantic_use(tmp_path: Path) -> None:
     output = tmp_path / "paired-benchmark.json"
     digest = write_paired_benchmark(_valid_payload(), output)
-    output.write_bytes(output.read_bytes().replace(b'"schema_version":1', b'"schema_version":2'))
+    output.write_bytes(output.read_bytes().replace(b'"schema_version":2', b'"schema_version":3'))
 
     with pytest.raises(EvaluationArtifactError, match="SHA-256"):
         verify_paired_benchmark(output, expected_sha256=digest)
