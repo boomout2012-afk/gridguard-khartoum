@@ -46,6 +46,10 @@ datas = [
         str(PROJECT_ROOT / "docs" / "source" / "graduation-project-proposal.pdf"),
         "gridguard/_bundled/docs/source",
     ),
+    (
+        str(PROJECT_ROOT / "src" / "gridguard" / "robustness_provenance.py"),
+        "gridguard/_bundled/src/gridguard",
+    ),
     (str(PROJECT_ROOT / "src" / "gridguard" / "assets"), "gridguard/assets"),
 ]
 

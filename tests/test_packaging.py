@@ -104,6 +104,8 @@ def test_pyinstaller_spec_is_one_directory_and_bundles_trusted_runtime_assets() 
     assert "data/evidence" in spec
     assert "data/model" in spec
     assert "graduation-project-proposal.pdf" in spec
+    assert "robustness_provenance.py" in spec
+    assert "gridguard/_bundled/src/gridguard" in spec
     assert "gridguard/assets" in spec
     assert 'collect_all("cupy")' in spec
     assert 'collect_dynamic_libs("nvidia")' in spec
