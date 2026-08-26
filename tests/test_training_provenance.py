@@ -18,6 +18,11 @@ from tools.training_provenance import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 PROVENANCE_PATH = REPOSITORY_ROOT / "data" / "model" / "training-provenance.yaml"
 MODEL_MANIFEST_PATH = REPOSITORY_ROOT / "data" / "model" / "manifest.json"
+REVIEWER_ENTRY_POINTS = (
+    REPOSITORY_ROOT / "README.md",
+    REPOSITORY_ROOT / "SPEC.md",
+    REPOSITORY_ROOT / "docs" / "DEVILS_ADVOCATE_AUDIT.md",
+)
 SOURCE_REVISION = "52f6dd82605c993c8094448caecec86faa289c0c"
 SOURCE_HASHES = {
     "artifacts/training_manifest.json": (
@@ -93,6 +98,19 @@ def test_training_provenance_exposes_exact_selected_training_contract() -> None:
         summary["training_provenance"]["sha256"]
         == hashlib.sha256(PROVENANCE_PATH.read_bytes()).hexdigest()
     )
+
+
+def test_reviewer_entry_points_link_the_canonical_training_parameter_record() -> None:
+    for document_path in REVIEWER_ENTRY_POINTS:
+        document = document_path.read_text(encoding="utf-8")
+        assert "[data/model/training-provenance.yaml]" in document, document_path
+        assert "canonical" in document.casefold(), document_path
+        assert "strict" in document.casefold(), document_path
+
+    readme = REVIEWER_ENTRY_POINTS[0].read_text(encoding="utf-8")
+    spec = REVIEWER_ENTRY_POINTS[1].read_text(encoding="utf-8")
+    assert "## Reviewer start here" in readme
+    assert "## Reviewer start here" in spec
 
 
 @pytest.mark.parametrize(

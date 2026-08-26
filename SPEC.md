@@ -1,10 +1,25 @@
 # Specification: GridGuard Khartoum
 
-Status: Approved
+Status: Approved implementation contract; Phase 6 remediation in progress
 Date: 2026-08-15
-Revision: 2026-08-26 (release 1.1.0 review remediation)
+Revision: 2026-08-26 (target release 1.2.0 audit contract)
+Target release: 1.2.0 (unreleased)
+Released baseline: 1.1.0 (2026-08-26)
 Source proposal: `docs/source/graduation-project-proposal.pdf`
 Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48`
+
+## Reviewer start here
+
+- The A01-A24 remediation contract and live closure state are in
+  [docs/DEVILS_ADVOCATE_AUDIT.md](docs/DEVILS_ADVOCATE_AUDIT.md). An open ledger row is not release
+  evidence.
+- The canonical, strict historical training record is
+  [data/model/training-provenance.yaml](data/model/training-provenance.yaml). It exposes the actor
+  architecture, behavior-cloning initialization, PPO hyperparameters, workload, seeds,
+  validation and selection, hardware, source bindings, and convergence in one reviewer-facing
+  YAML file.
+- Release 1.2.0 remains unreleased until every ledger row is closed with current evidence and the
+  final reviewed commit is published to the approved private remote.
 
 ## Assumptions
 
@@ -235,7 +250,8 @@ replicates, 24 one-factor-at-a-time variants (25 parameterizations with the base
 three-hour-versus-persistence forecast comparison. This is sign-neutral integrity: no favorable
 result is required for writing, verification, packaging, display, or release.
 
-`data/model/training-provenance.yaml` is the canonical historical training record. Its SHA-256 is
+[data/model/training-provenance.yaml](data/model/training-provenance.yaml) is the canonical
+historical training record. Its SHA-256 is
 `2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`; the model manifest binds it.
 It records the actor architecture, behavior-cloning initialization, 600 PPO iterations, 153,600
 episodes, 3,686,400 transitions, Adam settings, validation and selection, seed roles, hardware,

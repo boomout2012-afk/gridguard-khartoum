@@ -11,6 +11,24 @@ synthetic. The offline map uses pinned OCHA/HDX administrative boundaries with N
 context. These layers are for presentation context only; they are not electrical-network topology
 and supply no scientific input.
 
+## Reviewer start here
+
+Current development target: **1.2.0 (unreleased)**. Release 1.1.0 remains the historical baseline;
+the target version and its changelog are not a claim that final validation or publication has
+already occurred.
+
+- Read the approved implementation contract in [SPEC.md](SPEC.md).
+- Track every confirmed remediation finding in the
+  [devil's-advocate audit register](docs/DEVILS_ADVOCATE_AUDIT.md).
+- Find all historical PPO training parameters in the
+  [data/model/training-provenance.yaml](data/model/training-provenance.yaml) file. It is the
+  canonical, strict, model-manifest-bound record of architecture, initialization, optimizer and
+  loss settings, workload, seeds, selection, hardware, lineage, and convergence.
+
+The training record is intentionally provenance rather than an executable bitwise-retraining
+configuration: optimizer state and raw training runs are excluded. The validated summary command
+is shown in [PPO training parameters](#ppo-training-parameters).
+
 ## Presentation requirements
 
 - Windows laptop with a compatible NVIDIA GPU
@@ -55,7 +73,7 @@ simulation results for decision-support research, not measurements from Sudan's 
 ## PPO training parameters
 
 The complete reviewer-facing historical record is
-`data/model/training-provenance.yaml` (SHA-256
+[data/model/training-provenance.yaml](data/model/training-provenance.yaml) (SHA-256
 `2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`). It records the
 32 -> 512 -> 512 -> 2,187 actor, behavior-cloning initialization, PPO optimizer and loss
 parameters, all seeds, validation and checkpoint-selection rules, hardware, source hashes, and the
