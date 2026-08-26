@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import subprocess
 import sys
 from pathlib import Path
 
@@ -117,3 +118,20 @@ def test_capture_writes_four_distinct_1366_by_768_pngs(
     assert len(digests) == 4
     assert len(rail_header_digests) == 1
     assert len(trust_strip_digests) == 1
+
+
+def test_cli_capture_paints_the_complete_navigation_header_consistently(tmp_path: Path) -> None:
+    result = subprocess.run(
+        [sys.executable, str(CAPTURE_TOOL), "--output-dir", str(tmp_path)],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    header_digests = {
+        _region_digest(QImage(str(path)), QRect(0, 0, 176, 125))
+        for path in sorted(tmp_path.glob("*.png"))
+    }
+    assert len(header_digests) == 1
