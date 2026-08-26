@@ -47,8 +47,8 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
         copied_metadata.append(distribution)
         return [
             (
-                "C:/metadata/gridguard_khartoum-1.0.0.dist-info/METADATA",
-                "gridguard_khartoum-1.0.0.dist-info",
+                "C:/metadata/gridguard_khartoum-1.1.0.dist-info/METADATA",
+                "gridguard_khartoum-1.1.0.dist-info",
             )
         ]
 
@@ -80,8 +80,8 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(monkeypatch) 
     )
     assert copied_metadata == ["gridguard-khartoum"]
     assert (
-        "C:/metadata/gridguard_khartoum-1.0.0.dist-info/METADATA",
-        "gridguard_khartoum-1.0.0.dist-info",
+        "C:/metadata/gridguard_khartoum-1.1.0.dist-info/METADATA",
+        "gridguard_khartoum-1.1.0.dist-info",
     ) in captured["datas"]
     assert "graphlib" in captured["hiddenimports"]
     bundled_cuda_sources = {
