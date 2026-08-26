@@ -56,6 +56,7 @@ def test_built_wheel_loads_geographic_map_and_attribution_outside_source_tree(
             "-I",
             "-c",
             (
+                "import hashlib; "
                 "import json; "
                 "from importlib.resources import files; "
                 "from gridguard.ui import load_map_asset; "
@@ -75,11 +76,14 @@ def test_built_wheel_loads_geographic_map_and_attribution_outside_source_tree(
                 "manifest = resource_path('data', 'evidence', 'source-manifest.json'); "
                 "assert resource_path('src', 'gridguard', "
                 "'robustness_provenance.py').is_file(); "
+                "assert len(verify_project_source_manifest(manifest, repository_root=root)) == 8; "
                 "robustness = json.loads(resource_path('data', 'evidence', "
                 "'robustness-supplement.json').read_text(encoding='utf-8')); "
-                "assert all(resource_path(*item['path'].split('/')).is_file() "
-                "for item in robustness['provenance']['implementation_sources']); "
-                "assert len(verify_project_source_manifest(manifest, repository_root=root)) == 8; "
+                "sources = robustness['provenance']['implementation_sources']; "
+                "assert all((path := resource_path(*item['path'].split('/'))).is_file() "
+                "and path.stat().st_size == item['size_bytes'] "
+                "and hashlib.sha256(path.read_bytes()).hexdigest() == item['sha256'] "
+                "for item in sources); "
                 "assert resource_path('data', 'model', 'ppo-policy.npz').is_file(); "
                 "assert resource_path('docs', 'source', "
                 "'graduation-project-proposal.pdf').is_file()"
