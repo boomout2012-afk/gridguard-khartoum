@@ -64,6 +64,7 @@ def _powershell() -> str:
     pytest.skip("PowerShell is required for release-integrity script tests")
 
 
+@pytest.mark.release_artifact
 def test_release_manifest_binds_every_tracked_release_artifact() -> None:
     payload = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 
@@ -101,6 +102,7 @@ def test_release_manifest_binds_every_tracked_release_artifact() -> None:
         assert _sha256(artifact_path) == entry["sha256"]
 
 
+@pytest.mark.release_artifact
 def test_release_manifest_binds_the_complete_sorted_distribution_inventory() -> None:
     payload = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     windows_build = payload["windows_build"]
@@ -138,37 +140,37 @@ def test_release_manifest_binds_the_complete_sorted_distribution_inventory() -> 
     assert not Path(smoke_binding["path"]).is_absolute()
 
     distribution_path = REPOSITORY_ROOT / distribution["path"]
-    if distribution_path.is_dir():
-        actual_paths = {
-            path.relative_to(distribution_path).as_posix()
-            for path in distribution_path.rglob("*")
-            if path.is_file()
-        }
-        assert actual_paths == {entry["path"] for entry in files}
-        actual_size_bytes = sum(
-            path.stat().st_size for path in distribution_path.rglob("*") if path.is_file()
-        )
-        assert actual_size_bytes == distribution["size_bytes"]
+    assert distribution_path.is_dir()
+    actual_paths = {
+        path.relative_to(distribution_path).as_posix()
+        for path in distribution_path.rglob("*")
+        if path.is_file()
+    }
+    assert actual_paths == {entry["path"] for entry in files}
+    actual_size_bytes = sum(
+        path.stat().st_size for path in distribution_path.rglob("*") if path.is_file()
+    )
+    assert actual_size_bytes == distribution["size_bytes"]
 
     executable = REPOSITORY_ROOT / windows_build["executable_path"]
-    if executable.is_file():
-        assert executable.stat().st_size == windows_build["executable_size_bytes"]
-        assert _sha256(executable) == windows_build["executable_sha256"]
+    assert executable.is_file()
+    assert executable.stat().st_size == windows_build["executable_size_bytes"]
+    assert _sha256(executable) == windows_build["executable_sha256"]
 
     smoke_report_path = REPOSITORY_ROOT / smoke_binding["path"]
-    if smoke_report_path.is_file():
-        assert smoke_report_path.stat().st_size == smoke_binding["size_bytes"]
-        assert _sha256(smoke_report_path) == smoke_binding["sha256"]
-        smoke = json.loads(smoke_report_path.read_text(encoding="utf-8"))
-        assert smoke["status"] == "PASS"
-        assert smoke["live_scenario"]["device"] == "cuda:0"
-        assert smoke["live_scenario"]["frame_counts"] == {
-            "Fixed Rotation": 24,
-            "PPO": 24,
-        }
-        assert smoke["live_scenario"]["finite_core_values"] is True
-        assert smoke["live_scenario"]["installed_in_live_page"] is True
-        assert smoke["live_scenario"]["results_table_rows"] == 3
+    assert smoke_report_path.is_file()
+    assert smoke_report_path.stat().st_size == smoke_binding["size_bytes"]
+    assert _sha256(smoke_report_path) == smoke_binding["sha256"]
+    smoke = json.loads(smoke_report_path.read_text(encoding="utf-8"))
+    assert smoke["status"] == "PASS"
+    assert smoke["live_scenario"]["device"] == "cuda:0"
+    assert smoke["live_scenario"]["frame_counts"] == {
+        "Fixed Rotation": 24,
+        "PPO": 24,
+    }
+    assert smoke["live_scenario"]["finite_core_values"] is True
+    assert smoke["live_scenario"]["installed_in_live_page"] is True
+    assert smoke["live_scenario"]["results_table_rows"] == 3
 
 
 def test_release_integrity_helper_reports_the_exact_tampered_distribution_file(

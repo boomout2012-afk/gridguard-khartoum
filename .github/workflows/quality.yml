@@ -36,13 +36,15 @@ jobs:
         run: uv sync --locked --extra dev --extra docs
 
       - name: Lint
-        run: uv run ruff check .
+        run: uv run --no-sync ruff check .
 
       - name: Check formatting
-        run: uv run ruff format --check .
+        run: uv run --no-sync ruff format --check .
 
       - name: Run portable tests
-        run: uv run pytest -m "not gpu and not source_archive"
+        run: uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
 
       - name: Build wheel and source archive
-        run: uv build
+        env:
+          PIP_NO_INDEX: "1"
+        run: uv run --no-sync --offline -- uv build --offline --no-index --no-build-isolation

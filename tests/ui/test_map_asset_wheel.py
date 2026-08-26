@@ -30,8 +30,24 @@ def test_built_wheel_loads_geographic_map_and_attribution_outside_source_tree(
     wheel_directory = tmp_path / "wheel"
     environment = os.environ.copy()
     environment.pop("PYTHONPATH", None)
+    environment["PIP_NO_INDEX"] = "1"
+    environment["UV_CACHE_DIR"] = str(tmp_path / "empty-uv-cache")
     _run(
-        [uv, "build", "--wheel", "--out-dir", str(wheel_directory)],
+        [
+            uv,
+            "run",
+            "--no-sync",
+            "--offline",
+            "--",
+            uv,
+            "build",
+            "--wheel",
+            "--offline",
+            "--no-index",
+            "--no-build-isolation",
+            "--out-dir",
+            str(wheel_directory),
+        ],
         cwd=REPOSITORY_ROOT,
         environment=environment,
     )
