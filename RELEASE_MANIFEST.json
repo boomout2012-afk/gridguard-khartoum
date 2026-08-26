@@ -3,7 +3,7 @@
     "release_id":  "gridguard-khartoum-v1.1.0",
     "release_date":  "2026-08-26",
     "source":  {
-                   "git_commit":  "b7364cebcee3a42ff0802e1f0b9f93f9df36f3a0",
+                   "git_commit":  "7bbcd8da2185480f87b336bd7db21f6f150f930a",
                    "uv_lock":  {
                                    "path":  "uv.lock",
                                    "sha256":  "23931b21575245d18db2d153e6132f95ecc02be7bd9b37371fdea505237bae60",
@@ -19,11 +19,11 @@
                                                "file_count":  4680,
                                                "size_bytes":  7021231590,
                                                "tree_hash_algorithm":  "sha256(canonical-lines-v1)",
-                                               "tree_sha256":  "22f232766903756c511f640891d1a735b29aec25a95c40d62d25af775c3c0708",
+                                               "tree_sha256":  "6a0c761b3c00fc67864e0dbf6ffaa6af4f2add1545efb116d148b1b1e792fe58",
                                                "files":  [
                                                              {
                                                                  "path":  "GridGuard Khartoum.exe",
-                                                                 "sha256":  "fc2a497b86ffe6cbcf6766433d2bb9b31dfd95d5e1eeec59a99d2958e97d7ae8",
+                                                                 "sha256":  "044545f62160efe3d2f6c0974aa3213d7df107d0d4a629dce7cc67c281231b24",
                                                                  "size_bytes":  35054429
                                                              },
                                                              {
@@ -1013,7 +1013,7 @@
                                                              },
                                                              {
                                                                  "path":  "_internal/base_library.zip",
-                                                                 "sha256":  "f3e2f95f8a2b6a947934c8d795d9410227d28594c817523a64eedf9b5c8123b7",
+                                                                 "sha256":  "76a6449f1be4bd988dab94ce9292ccc87a31926da0e1371dbbe808e25b6ecf9b",
                                                                  "size_bytes":  1331373
                                                              },
                                                              {
@@ -23425,9 +23425,9 @@
                                            },
                           "distribution_file_count":  4680,
                           "distribution_size_bytes":  7021231590,
-                          "distribution_tree_sha256":  "22f232766903756c511f640891d1a735b29aec25a95c40d62d25af775c3c0708",
+                          "distribution_tree_sha256":  "6a0c761b3c00fc67864e0dbf6ffaa6af4f2add1545efb116d148b1b1e792fe58",
                           "executable_path":  "dist/GridGuard Khartoum/GridGuard Khartoum.exe",
-                          "executable_sha256":  "fc2a497b86ffe6cbcf6766433d2bb9b31dfd95d5e1eeec59a99d2958e97d7ae8",
+                          "executable_sha256":  "044545f62160efe3d2f6c0974aa3213d7df107d0d4a629dce7cc67c281231b24",
                           "executable_size_bytes":  35054429,
                           "frozen_smoke_report":  {
                                                       "path":  "build/gridguard/frozen-smoke.json",
