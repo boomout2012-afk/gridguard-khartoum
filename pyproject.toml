@@ -41,6 +41,7 @@ packages = ["src/gridguard"]
 "data/evidence" = "gridguard/_bundled/data/evidence"
 "data/model" = "gridguard/_bundled/data/model"
 "docs/source/graduation-project-proposal.pdf" = "gridguard/_bundled/docs/source/graduation-project-proposal.pdf"
+"src/gridguard/robustness_provenance.py" = "gridguard/_bundled/src/gridguard/robustness_provenance.py"
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
