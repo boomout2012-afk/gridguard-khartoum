@@ -2,6 +2,7 @@
 
 Status: Approved
 Date: 2026-08-15
+Revision: 2026-08-26 (release 1.1.0 review remediation)
 Source proposal: `docs/source/graduation-project-proposal.pdf`
 Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48`
 
@@ -9,9 +10,10 @@ Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d3
 
 1. The presentation target is a Windows laptop.
 2. The primary application and benchmark run on the presentation laptop's NVIDIA GPU and require a successful CUDA preflight; internet access is never required.
-3. The public scientific claim is limited to the accepted frozen summaries and the clean,
-   hash-pinned paired reproduction: the trained PPO policy outperforms Fixed Rotation on the
-   reported synthetic proposal metrics.
+3. The public scientific claim is limited to the hash-pinned evidence roles: the accepted
+   reproduction preserves historical parity, while the untouched confirmatory supplement reports
+   the reviewer-facing comparison of PPO and Fixed Rotation on three primary outcomes inside the
+   stated synthetic shortage protocol.
 4. Legacy experiment versions are research history, not part of this clean project.
 5. The seven-locality map uses source-pinned OCHA/HDX administrative boundaries with Natural
    Earth Nile context. It is presentation context only, not electrical-network topology, and
@@ -76,17 +78,24 @@ The presenter opens a Results view containing the proposal-level comparison and 
 
 Acceptance conditions:
 
-- Headline values are loaded from a committed, hash-verified evidence artifact.
-- The primary table compares PPO with Fixed Rotation across 96 independent base draws crossed
-  with three shortage levels: 288 matched scenario conditions and 576 controller evaluations.
-- Later experimental failures or unfinished branches cannot alter the headline claim.
+- Headline values are loaded from the committed, hash-verified untouched confirmatory supplement.
+- The primary table contains exactly critical-outage locality-hours, Jain fairness, and
+  utilization for PPO and Fixed Rotation across seeds 81001-81010: 320 independent base draws,
+  960 matched scenario conditions, and 1,920 controller-scenario evaluations.
+- Training-objective score is diagnostic, while power-balance violation rate is shown separately
+  as a safety invariant.
+- The accepted reproduction remains available for historical parity but is visibly labeled as
+  not an untouched final test because its three seeds participated in model selection.
 - The synthetic-data and decision-support-only limitations remain visible.
-- Neutral evidence validation is separate from the trusted release claim gate. Only the trusted
-  path can supply the Results view or academic artifacts.
+- All evidence verification is sign-neutral. Result direction is descriptive and never a release
+  gate.
 
 ### 4. Explain the methodology
 
-The presenter opens a Methodology view that explains scenario generation, action tiers, critical-service priorities, the fixed baseline, PPO, reward design, matched evaluation, and limitations in plain academic language.
+The presenter opens a Methodology view that explains scenario generation, action tiers,
+proportional dispatch, the supply-blind Fixed Rotation baseline, PPO, reward design, historical
+training parameters, both evidence roles, sensitivity and forecast evaluation, and limitations in
+plain academic language.
 
 ## Tech stack
 
@@ -94,8 +103,9 @@ The presenter opens a Methodology view that explains scenario generation, action
 - PySide6 / Qt 6 for the native desktop interface
 - PyTorch 2.8 with CUDA 12.8 for batched simulation and PPO inference
 - CuPy for GPU-native numerical/statistical work and zero-copy DLPack interchange
-- NumPy after the single final evidence transfer for canonical artifact assembly and small
-  host-side validation
+- NumPy after the single final full numeric evidence-array transfer for canonical artifact
+  assembly and small host-side validation; scalar invariant checks may synchronize CUDA, but no
+  simulation, inference, metric, forecast, or bootstrap array computation moves to CPU
 - Standard-library JSON and hashing for evidence provenance
 - pytest and pytest-qt for unit, integration, and GUI interaction tests
 - Ruff for linting and formatting checks
@@ -119,11 +129,17 @@ uv run gridguard-desktop
 # Verify the required NVIDIA GPU, CUDA, PyTorch, CuPy, model, and evidence
 uv run gridguard-doctor
 
-# Reproduce and verify the frozen benchmark
+# Verify the source-bound accepted and untouched evidence artifacts
 uv run gridguard-evaluate --verify-evidence
 
 # Reproduce the paired benchmark without overwriting the trusted artifact
 uv run gridguard-evaluate --reproduce-paired --output .\paired-benchmark-reproduced.json
+
+# Reproduce the untouched robustness supplement without overwriting the trusted artifact
+uv run gridguard-evaluate --reproduce-robustness --output .\robustness-supplement-reproduced.json
+
+# Print the validated PPO training summary
+uv run --extra docs python tools/training_provenance.py --path data/model/training-provenance.yaml --model-manifest data/model/manifest.json --summary-json
 
 # Portable unit gate, then mandatory presentation-laptop release gate
 uv run pytest -m "not gpu and not source_archive"
@@ -140,8 +156,8 @@ uv run pyinstaller --noconfirm packaging/gridguard.spec
 
 ```text
 data/
-  evidence/                     frozen benchmark and provenance manifest
-  model/                        inference-only trained policy checkpoint
+  evidence/                     accepted reproduction, untouched robustness, and provenance
+  model/                        PPO actor, manifest, and training-provenance.yaml
 docs/
   source/                       accepted proposal PDF
   METHODOLOGY.md                academic methodology chapter
@@ -159,6 +175,7 @@ src/gridguard/
   policy.py                     inference-only PPO network and loader
   metrics.py                    proposal-aligned outcome calculations
   evaluation.py                 matched evaluation and evidence verification
+  robustness.py                 untouched evaluation, sensitivity, and forecast evidence
   cli.py                        reproducibility command
   ui/                           native desktop views and presentation state
 tasks/                          reviewed plan and completion checklist
@@ -193,22 +210,36 @@ Rules:
 
 Canonical public metrics have one definition and aggregation path:
 
-- critical service is critical energy served divided by critical energy demanded, pooled within
-  each 24-hour episode;
+- critical-outage locality-hours, Jain fairness, and utilization are the three primary outcomes;
+- critical service is a supporting ratio: critical energy served divided by critical energy
+  demanded, pooled within each 24-hour episode;
 - utilization is the episode mean of hourly served power divided by
   `min(available supply, demand)`;
 - fairness is the episode mean of hourly Jain fairness calculated from cumulative locality
-  service ratios; and
-- aggregate controller results are equally weighted arithmetic means of episode metrics. The
-  nine cell means give the same aggregate because every cell contains exactly 32 episodes.
+  service ratios;
+- the accepted episode reward is exposed only as **Training-objective score (diagnostic)**;
+- power-balance violation rate is a separate safety invariant; and
+- aggregate controller results are equally weighted arithmetic means of episode metrics. In the
+  accepted reproduction, nine shortage-by-seed cell means give the same aggregate because every
+  cell contains 32 episodes; the untouched supplement applies the same rule across 30 equal-size
+  shortage-by-seed cells per controller.
 
 `validate_paired_benchmark_payload` is a neutral integrity validator. It enforces closed schema,
 matched inputs, physical bounds, arithmetic identities, row/cell/aggregate reconstruction, and
 internally consistent parity status without assuming that PPO must win.
-`assert_paired_benchmark_release_claims` is the trusted release gate. It additionally verifies
-locked provenance, reloads the hash-pinned frozen benchmark, requires direct 18-cell parity, and
-requires every inferential interval to lie in its declared favorable direction. Trusted writes,
-the desktop Results view, and report generation must supply the frozen benchmark path.
+`assert_paired_benchmark_integrity` additionally verifies locked provenance, reloads the
+hash-pinned frozen benchmark, and requires direct 18-cell parity. The accepted reproduction is
+explicitly model-selection-involved. The separate robustness verifier locks seeds 81001-81010,
+320 independent base draws, 960 matched scenarios, 1,920 controller evaluations, 10,000 bootstrap
+replicates, 24 one-factor-at-a-time variants (25 parameterizations with the base), and the aligned
+three-hour-versus-persistence forecast comparison. This is sign-neutral integrity: no favorable
+result is required for writing, verification, packaging, display, or release.
+
+`data/model/training-provenance.yaml` is the canonical historical training record. Its SHA-256 is
+`2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`; the model manifest binds it.
+It records the actor architecture, behavior-cloning initialization, 600 PPO iterations, 153,600
+episodes, 3,686,400 transitions, Adam settings, validation and selection, seed roles, hardware,
+source lineage, and convergence. It is not an executable bitwise-retraining configuration.
 
 ## Testing strategy
 
@@ -219,7 +250,8 @@ the desktop Results view, and report generation must supply the frozen benchmark
 - Service-tier dispatch and power-balance invariants
 - Critical-service, fairness, utilization, curtailment, and outage metrics
 - Policy artifact schema and CUDA inference
-- Neutral evidence integrity, trusted claim assertion, hashing, and claim reconstruction
+- Sign-neutral evidence integrity, frozen-parity assertion, robustness arithmetic, hashing, and
+  claim reconstruction
 
 ### Parity tests
 
@@ -229,7 +261,8 @@ Golden cases generated from the accepted source implementation must prove that t
 
 - Same scenario is passed to both controllers
 - All three shortage levels run end to end
-- Frozen benchmark reconstruction matches committed headline values
+- Accepted-reproduction reconstruction matches the frozen benchmark's 18 committed cell summaries
+- Untouched reviewer-facing headline values verify independently from the robustness supplement
 - Desktop presentation model loads offline after the CUDA/PyTorch/CuPy preflight
 
 ### GUI tests
@@ -254,10 +287,13 @@ Golden cases generated from the accepted source implementation must prove that t
 
 Supported:
 
-- Across 96 independent synthetic base draws crossed with three shortage levels (288 matched
-  scenario conditions and 576 controller evaluations), PPO materially outperformed Fixed Rotation
-  on reward, critical-service ratio, supply utilization, fairness, served energy, and curtailment
-  while recording zero power-balance violations.
+- The accepted reproduction preserves 96 independent base draws, 288 matched scenario conditions,
+  and 576 controller-scenario evaluations, but its seeds were involved in model selection.
+- The untouched confirmatory evaluation covers seeds 81001-81010, 320 independent base draws, 960
+  matched scenario conditions, and 1,920 controller-scenario evaluations under Mild, Moderate,
+  and Severe shortage-only operation.
+- Descriptive comparison of critical-outage locality-hours, fairness, utilization, and the
+  separate zero-tolerance power-balance safety invariant under the locked synthetic protocol.
 - The software demonstrates how AI can support load-shedding decisions under simplified shortage scenarios.
 
 Not supported:
@@ -265,7 +301,9 @@ Not supported:
 - Real-grid operational readiness
 - National-grid optimization
 - Universal superiority over every optimization or rule-based controller
+- Performance relative to a global optimum or a stronger supply-aware rule
 - Accuracy on real Sudanese utility data
+- Behavior during surplus, recovery, normal operation, or restoration transients
 - A claim that administrative polygons or rivers represent feeders, service territories,
   substations, measured demand, or any other electrical-network topology
 
@@ -305,8 +343,10 @@ Not supported:
 - Every proposal objective and expected deliverable has an explicit implementation or document reference in `docs/PROPOSAL_TRACEABILITY.md`.
 - The repository contains only proposal-relevant product code, tests, frozen evidence, final documents, and presentation assets.
 - PPO versus Fixed Rotation can be reproduced on CUDA across Mild, Moderate, and Severe matched scenarios.
-- The 96-base-draw / 288-condition / 576-controller-evaluation result and all displayed deltas are
-  verified from committed artifacts.
+- Both the accepted 96-base-draw / 288-condition / 576-evaluation reproduction and the untouched
+  320-base-draw / 960-condition / 1,920-evaluation supplement are verified from committed artifacts.
+- Reviewers can find every historical training parameter in the strict, hash-bound
+  `data/model/training-provenance.yaml` record.
 - The desktop GUI provides a keyboard-accessible interactive seven-locality map and a complete offline presentation flow.
 - Methodology, Implementation, and Results chapters agree with code, metrics, labels, and claim boundaries.
 - The final report PDF and slide deck pass visual review.

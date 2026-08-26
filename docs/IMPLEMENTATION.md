@@ -42,7 +42,7 @@ recalculating the headline claim.
 | `src/gridguard/ui/map_asset.py` | Provenance verification, closed GeoJSON validation, WGS84 projection, and locality keyboard graph |
 | `src/gridguard/ui/app.py` | Desktop entry point and fail-closed startup sequence |
 | `src/gridguard/ui/window.py` | 1366 x 768 shell, page navigation, and presentation shortcuts |
-| `src/gridguard/ui/presentation_model.py` | Strict projection of paired evidence into presentation data |
+| `src/gridguard/ui/presentation_model.py` | Strict projection of the untouched robustness supplement into presentation data |
 | `src/gridguard/ui/map_view.py` and `src/gridguard/ui/map_items.py` | Interactive `QGraphicsView` map and redundant service-state rendering |
 | `src/gridguard/ui/live_models.py` | Immutable, validated host-side contracts for two 24-hour controller timelines |
 | `src/gridguard/ui/live_runner.py` | Shared-scenario CUDA execution and one explicit display transfer |
@@ -112,11 +112,18 @@ and shapes.
 | Joint-action output weight | `[2187, 512]` |
 | Joint-action output bias | `[2187]` |
 
-`data/model/manifest.json` binds the artifact to the accepted source checkpoint and source
-revision. Before loading CUDA parameters, the verifier checks the externally pinned SHA-256,
-file size, schema, architecture metadata, tensor set, dtype, shape, and finiteness. The loaded
-actor is moved to `cuda:0`, frozen, placed in evaluation mode, and restricted to deterministic
-argmax actions.
+`data/model/manifest.json` binds the artifact to the accepted source checkpoint, source revision,
+and `data/model/training-provenance.yaml`. Before loading CUDA parameters, the verifier checks the
+externally pinned SHA-256, file size, schema, architecture metadata, tensor set, dtype, shape,
+finiteness, and exact training-record hash. The loaded actor is moved to `cuda:0`, frozen, placed
+in evaluation mode, and restricted to deterministic argmax actions.
+
+The strict YAML record exposes the complete historical configuration reviewers asked for: the
+32 -> 512 -> 512 -> 2,187 network; behavior-cloning initialization; 600 PPO iterations, 153,600
+episodes, and 3,686,400 transitions; Adam/AdamW settings; validation and selection seeds; selected
+iteration 510; hardware; full convergence series; and six source bindings. It intentionally omits
+optimizer state and raw runs and makes no bitwise-retraining claim. Adam was the historical
+parameter optimizer; CUDA is the computation platform, not an online dispatch optimizer.
 
 ## Scenario, dispatch, and metrics pipeline
 
@@ -135,7 +142,9 @@ At each hour:
 2. Ask the selected controller for seven integer tiers.
 3. Reject malformed controller output before dispatch.
 4. Convert tiers to requested sector loads.
-5. Scale all requested loads proportionally if requests exceed available supply.
+5. Scale all requested loads proportionally if requests exceed available supply. This preserves
+   power balance but scales critical and non-critical sectors together; it is not a second
+   critical-first dispatch stage.
 6. Update cumulative state and calculate the accepted reward.
 7. Append immutable tensor traces for final metric calculation and presentation replay.
 
@@ -147,10 +156,11 @@ tolerance.
 The canonical aliases on `EpisodeMetrics` make aggregation semantics reviewable in code:
 `episode_pooled_critical_service_ratio`, `mean_hourly_supply_utilization_ratio`, and
 `mean_hourly_cumulative_locality_jain_fairness`. Controller aggregates are equally weighted
-arithmetic means of the 288 episode metrics. Cell means are an equivalent route only because all
-nine cells contain 32 episodes.
+arithmetic means of episode metrics. The accepted reproduction has 288 episodes and nine cells;
+the untouched robustness supplement has 960 episodes and 30 shortage-by-seed cells. Every cell
+contains 32 episodes.
 
-## Paired evaluation and statistics
+## Accepted reproduction evaluation and statistics
 
 `evaluate_scenario_pair()` executes Fixed Rotation and PPO on the exact same `Scenario` object.
 The full evaluator first creates one batch of 32 base draws for each of three seeds, then reuses
@@ -161,20 +171,23 @@ clusters. Crossing those draws with three shortage levels produces 288 matched s
 conditions, 288 paired rows, and 576 controller-scenario evaluations.
 
 Episode metrics are stacked into `[3 shortage levels, 3 seeds, 32 episodes, 12 metrics]` cubes.
-On CUDA, the evaluator calculates `PPO - Fixed Rotation` in float64, selects the seven inferential
-metrics, and retains the `[3, 3, 32, 7]` dependence structure. For each of 10,000 deterministic
+On CUDA, the evaluator calculates `PPO - Fixed Rotation` in float64, selects eight inferential
+metrics, and retains the `[3, 3, 32, 8]` dependence structure. For each of 10,000 deterministic
 replicates, CuPy samples 32 cluster indices with replacement inside each seed and reuses those
 indices across all three shortage variants. The statistic then gives equal weight to shortage
 levels, seeds, and sampled clusters. Endpoint calculation uses an explicit CUDA sort and linear
 interpolation, `a + (b - a) * weight`. This fixes the operation order and avoids reliance on the
 library percentile helper while preserving the defined linear percentile. Mean, lower, and
-upper values return to PyTorch in one stacked DLPack transfer. Only one packed numeric transfer
+upper values return to PyTorch in one stacked DLPack transfer. Only one packed full evidence-array
+transfer
 returns the two metric cubes and bootstrap output to host memory. The canonical builder then
 materializes the 288 small row mappings and computes their cell/aggregate summaries in
 NumPy/Python for deterministic JSON serialization and validation; no controller, simulator,
 metric, or bootstrap computation falls back to CPU.
 
-The resulting `data/evidence/paired-benchmark.json` contains:
+The resulting `data/evidence/paired-benchmark.json` is explicitly labeled accepted reproduction
+because seeds `50001-50003` participated in the archived promotion/model-selection process. It
+contains:
 
 - all 288 controller-paired episode rows;
 - nine cell summaries;
@@ -195,19 +208,45 @@ inference metadata, and a parity status consistent with the declared errors. It 
 PPO-favorable intervals or locked artifact identities, so adverse and inconclusive research
 outputs can still be validated honestly.
 
-`assert_paired_benchmark_release_claims()` is the separate trusted release gate. It calls the
-neutral validator, then requires locked provenance, favorable interval directions, passing parity,
-and a direct reload and cross-check of all 18 controller cell summaries from the hash-pinned frozen
-artifact. `verify_paired_benchmark()` always verifies the external file hash and canonical bytes;
-supplying the frozen benchmark path activates the trusted gate. Report generation, desktop startup,
-and trusted writes always supply that path.
+`assert_paired_benchmark_integrity()` calls the neutral validator, then requires locked provenance,
+passing parity, and a direct reload and cross-check of all 18 controller cell summaries from the
+hash-pinned frozen artifact. It does not inspect interval direction. `verify_paired_benchmark()`
+always verifies the external file hash and canonical bytes; supplying the frozen benchmark path
+activates this stronger sign-neutral integrity check.
+
+## Untouched robustness pipeline
+
+`run_full_robustness_evaluation()` evaluates seeds 81001-81010, 32 base draws per seed, and all
+three shortage levels. That is 320 independent base draws, 960 matched scenario conditions, and
+1,920 controller-scenario evaluations. The same generic bootstrap preserves the `[3, 10, 32, 3]`
+primary-outcome structure and uses 10,000 replicates with seed `20260826`.
+
+`ScenarioDemandParameters` provides a validated, immutable perturbation seam while preserving the
+default generator byte-for-byte. The robustness evaluator changes each of seven locality weights
+and five sector shares separately by -25% and +25%, renormalizes the affected vector, and replays
+the same base draws. The 24 one-factor-at-a-time variants plus the base give 25 parameterizations,
+24,000 matched sensitivity scenarios, and 48,000 controller-scenario evaluations. The artifact
+stores paired effects and difference-in-differences for critical-outage locality-hours, fairness,
+and utilization.
+
+Forecast statistics compare the three-hour trailing mean with one-hour persistence on identical
+targets 3-23. Counts, absolute-error sums, squared-error sums, pooled MAE/RMSE, and cross-aggregation
+identities are recomputed by the strict verifier. Simulation, inference, bootstrap, sensitivity,
+and forecast statistics remain on `cuda:0`; validity flags and all numeric evidence are packed into
+one final full-array `.cpu().numpy()` transfer. Existing boundary validators may synchronize scalar
+invariant flags, but no scientific array computation moves to CPU. Canonical host assembly then writes
+`data/evidence/robustness-supplement.json`. Verification requires exact provenance bindings,
+protocol counts, controller-minus-baseline means, difference-in-differences arithmetic, forecast
+identities, result classifications, canonical bytes, and the external SHA-256. It never requires
+a favorable sign.
 
 ## Evidence provenance and fail-closed behavior
 
 `data/evidence/source-manifest.json` is itself pinned in code. It contains exact IDs and hashes
-for the accepted proposal, frozen benchmark, PPO artifact, PPO manifest, paired benchmark, and
-nine source-lineage files. Verification rejects a rewritten manifest even if its internal
-entries are self-consistent.
+for eight local artifacts (proposal, frozen benchmark, PPO actor, PPO manifest, training YAML,
+accepted reproduction, robustness supplement, and the robustness trust-anchor source module) and
+15 source-lineage files. Verification rejects a rewritten manifest even if its internal entries
+are self-consistent.
 
 Additional safeguards include:
 
@@ -216,12 +255,13 @@ Additional safeguards include:
 - model files must match both an external trust anchor and their manifest;
 - evidence cell counts, controller labels, seeds, and scenario IDs are closed rather than
   inferred from arbitrary input;
-- neutral integrity validation is independent of whether an interval favors PPO;
-- the trusted release gate cannot rely only on a self-declared parity status;
+- sign-neutral integrity validation is independent of whether an interval favors PPO;
+- frozen parity cannot rely only on a self-declared status;
 - the paired file must match SHA-256
-  `2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11`; and
+  `6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677`;
+- the robustness supplement must match SHA-256 `c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b`; and
 - the evaluator refuses devices other than `cuda:0`, bootstrap counts other than 10,000, or a
-  bootstrap seed other than 20260815.
+  protocol-specific bootstrap seed.
 
 ## Display-only forecast
 
@@ -233,8 +273,10 @@ and uses `torch.inference_mode()`.
 The live CUDA runner sums the sector projections into one value per locality and aligns them so
 current hours 2 through 22 display forecasts for hours 3 through 23. The first two hours lack a
 three-hour history and hour 23 has no next-hour target, so those frames display no projection.
-The module, runner, UI labels, and tests enforce the boundary: the projection is displayed only
-and is never passed to PPO, dispatch, reward, or the evidence generator.
+The robustness evaluator additionally compares this trailing mean with one-hour persistence over
+common synthetic targets 3-23 and stores recomputable locality-sector and system-total MAE/RMSE.
+The module, runner, UI labels, and tests enforce the boundary: the projection is displayed only,
+is not controller input, and has no real-data accuracy claim.
 
 ## Offline administrative map
 
@@ -264,11 +306,12 @@ input.
 ## Desktop presentation
 
 `gridguard-desktop` starts the PySide6 application through `ui/app.py`. Before it creates the
-main window, startup runs the complete project preflight: GPU and DLPack checks, pinned source
-manifest, paired-evidence semantics and frozen parity, PPO artifact verification, and a golden
-CUDA inference action. It then loads the same pinned paired-evidence snapshot and bundled map.
-A GPU, evidence, model, resource, or map failure blocks the presentation instead of opening a
-partly trusted interface.
+main window, startup runs the complete project preflight: GPU and DLPack checks, the pinned source
+manifest, accepted paired-evidence semantics and frozen parity, untouched robustness semantics and
+implementation-source bindings, PPO artifact verification, and a golden CUDA inference action. It
+then loads the pinned robustness supplement for the Results view and the bundled map. A GPU,
+evidence, model, resource, or map failure blocks the presentation instead of opening a partly
+trusted interface.
 
 The main window is designed at 1366 x 768 and contains four pages: Overview, Live Scenario,
 Results, and Methodology. Ctrl+1 through Ctrl+4 select the pages and F11 toggles fullscreen.
@@ -309,9 +352,11 @@ PPO input or evidence. Until a valid comparison arrives, the page displays an ho
 state; it never fabricates replay data. Runtime errors clear the frames and aggregate table,
 disable replay controls, and remain visible to the presenter.
 
-The Results page renders only values present in the paired evidence snapshot, including paired
-intervals. It does not calculate replacement headline values. The Methodology page summarizes
-the locked design and repeats the evidence limitations for presentation use.
+The Results page renders only the three primary values and paired intervals present in the
+untouched robustness supplement. It shows power balance separately as safety and does not
+calculate replacement headline values. The Methodology page summarizes the accepted reproduction,
+untouched confirmation, historical training record, locked design, and evidence limitations for
+presentation use.
 
 ## Runtime resources and packaging
 
@@ -338,9 +383,10 @@ The tests are organized by the same boundaries as the implementation:
 | Controller and simulation tests | Fixed schedule, action validation, dispatch, reward, and golden traces |
 | Metric tests | Energy identities, proposal definitions, sign conventions, and finite device-resident outputs |
 | Policy tests | Safe artifact parsing, actor architecture, source parity, decoding, and real CUDA inference |
-| Evaluation and statistics tests | Exact pairing, counts, bootstrap stratification, DLPack sharing, canonical evidence, and frozen parity |
-| Provenance and source tests | Pinned manifest, source Git blobs, accepted benchmark migration, and tamper rejection |
-| Forecast tests | Causality, shape, dtype, device preservation, and invalid-input rejection |
+| Evaluation and statistics tests | Exact pairing, evidence roles, counts, bootstrap stratification, DLPack sharing, canonical evidence, and frozen parity |
+| Robustness tests | Untouched seeds, 24 sensitivities, difference-in-differences, forecast arithmetic, one transfer, and sign neutrality |
+| Provenance and source tests | Pinned manifest, training YAML, source Git blobs, accepted benchmark migration, and tamper rejection |
+| Forecast tests | Causality, common-target alignment, persistence comparison, shape, dtype, device preservation, and invalid-input rejection |
 | Map and package tests | Source/derived hashes, closed GeoJSON, real compound geometry, river paths, keyboard metadata, wheel inclusion, and isolated install loading |
 | Desktop UI tests | Startup-gate ordering, evidence projection, tabs, shortcuts, map interaction, and asynchronous live success/error states |
 | GPU integration tests | Real PyTorch/CuPy/CUDA preflight on the presentation laptop |
@@ -372,12 +418,18 @@ source-parity fixtures from treating an absent research archive as an optional e
 
 ## Deliberate implementation limits
 
-- Training code and optimizer state are not part of the clean presentation runtime.
+- Training code, optimizer state, and raw training runs are not part of the clean presentation
+  runtime; the strict YAML is a historical provenance record, not a retraining bundle.
 - The simulator is a decision-support abstraction and has no hardware control interface.
 - The map contains real administrative boundaries and river context but no feeders, substations,
   measured demand, service territories, or other electrical-network topology.
 - NumPy/Python is restricted to artifact parsing and deterministic row/cell/aggregate assembly
-  after the single final evidence transfer; simulation, inference, metrics, and bootstrap hot
-  paths remain on the GPU.
-- The result claim is fixed to the two named controllers, three shortage levels, three seeds,
-  and one frozen PPO actor.
+  after the single final full numeric evidence-array transfer; simulation, inference, metrics,
+  forecast, and bootstrap hot paths remain on the GPU. Scalar boundary checks may synchronize
+  invariant flags.
+- Fixed Rotation is supply-blind and limited to Off/Full Service; the comparison does not cover a
+  stronger supply-aware heuristic or establish PPO's distance from the global optimum.
+- The result claim is fixed to the two named controllers, three shortage-only levels, and one
+  frozen PPO actor. Surplus, recovery, normal operation, and restoration transients are excluded.
+- The `3^N` joint-action output has 2,187 logits at seven localities and is not presented as a
+  scalable architecture for a national grid.

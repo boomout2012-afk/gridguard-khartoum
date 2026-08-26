@@ -16,7 +16,7 @@
 - Confirm the smoke report records the deterministic `moderate` / `50002` live CUDA scenario,
   both `PPO` and `Fixed Rotation`, 24 frames per controller, finite values, and successful
   installation in the Live Scenario page. Its expected and rendered results-table row counts
-  must both be seven.
+  must both be three.
 - Compare the distribution byte count and file count with the current `RELEASE_MANIFEST.json`;
   copy the complete one-directory package rather than the executable alone.
 
@@ -26,6 +26,8 @@
 - Keep the full `dist/GridGuard Khartoum` directory together; the executable is not standalone.
 - Copy the complete distribution directory to a second offline drive as a backup.
 - Keep the final report PDF and slide deck beside the distribution directory.
+- Keep `data/model/training-provenance.yaml` available for reviewer questions; its SHA-256 is
+  `2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`.
 - Connect power and disable battery-saving mode before opening GridGuard.
 - Run `scripts/run-presentation.ps1` once and confirm the startup trust gate passes.
 
@@ -44,9 +46,15 @@
   energy, Critical service, Fairness, Curtailed energy, and Power-balance violations. State that
   these values describe the selected run and do not replace frozen Results evidence.
 - Open Results and state that every delta is `PPO - Fixed Rotation`.
-- State the evaluation count precisely: 96 independent base draws, 288 matched scenario
-  conditions, and 576 controller-scenario evaluations.
-- State that the demand projection is display-only and is not PPO input or evidence.
+- State both evidence roles precisely. Accepted reproduction: 96 independent base draws, 288
+  matched scenario conditions, and 576 controller-scenario evaluations; its seeds participated in
+  model selection. Untouched confirmatory: seeds 81001-81010, 320 independent base draws, 960
+  matched scenario conditions, and 1,920 controller-scenario evaluations.
+- State that the three primary outcomes are critical-outage locality-hours, fairness, and
+  utilization; power-balance violation is separate safety, and the training-objective score is
+  diagnostic.
+- State that the demand projection is display-only and is not PPO input. Its synthetic MAE/RMSE
+  comparison uses one-hour persistence on the same target hours.
 
 ## Scientific wording to preserve
 
@@ -56,8 +64,16 @@
 - Say the results are simulator evidence for the locked protocol, not field deployment evidence.
 - Say the historical artifact stored batch summaries; paired episode rows and confidence
   intervals were regenerated from the audited simulator and frozen PPO checkpoint.
-- Say neutral integrity validation can accept a well-formed adverse result; the trusted release
-  gate separately requires locked provenance, frozen-benchmark parity, and favorable intervals.
+- Say sign-neutral integrity validation can accept a well-formed adverse result; no favorable
+  interval is required for verification, display, packaging, or release.
+- Say Fixed Rotation is a transparent but supply-blind Off/Full-only baseline; do not generalize
+  the comparison to every rule-based controller.
+- Say Adam optimized PPO parameters historically, while CUDA accelerates computation; no online
+  mathematical dispatch optimizer is implemented.
+- Say the `3^7 = 2,187` joint-action head has `3^N` scaling, performance relative to the global
+  optimum is unknown, and the evaluated domain is shortage-only.
+- If asked for training settings, open `data/model/training-provenance.yaml`: behavior-cloning
+  initialization followed by 600 PPO iterations, 153,600 episodes, and 3,686,400 transitions.
 - Say the map uses source-pinned administrative boundaries and Nile context for presentation
   only; never describe polygons as feeders, service territories, or measured grid data.
 

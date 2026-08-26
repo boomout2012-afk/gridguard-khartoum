@@ -5,9 +5,13 @@ from __future__ import annotations
 import argparse
 import html
 import re
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import NamedTuple
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.lib.colors import HexColor
@@ -38,11 +42,20 @@ from reportlab.platypus import (
 from reportlab.platypus.tableofcontents import TableOfContents
 
 from gridguard.evaluation import PAIRED_BENCHMARK_SHA256, verify_paired_benchmark
+from gridguard.robustness import ROBUSTNESS_SUPPLEMENT_SHA256, verify_robustness_supplement
+from tools.training_provenance import build_training_summary, load_training_provenance
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_ROOT / "output" / "pdf" / "gridguard-khartoum-final-report.pdf"
 REPORT_SOURCE_PATH = PROJECT_ROOT / "docs" / "REPORT.md"
-REPORT_SECTION_ORDER = ("Introduction", "Background", "Discussion", "Conclusion")
+REPORT_SECTION_ORDER = (
+    "Introduction",
+    "Related Work",
+    "Background",
+    "Discussion",
+    "Conclusion",
+)
+RELATED_WORK_PATH = PROJECT_ROOT / "docs" / "RELATED_WORK.md"
 CHAPTER_PATHS = (
     PROJECT_ROOT / "docs" / "METHODOLOGY.md",
     PROJECT_ROOT / "docs" / "IMPLEMENTATION.md",
@@ -161,8 +174,12 @@ def format_metric(value: float, kind: str) -> str:
 
     if kind == "ratio":
         return f"{value * 100:.2f}%"
+    if kind == "percentage_points":
+        return f"{value * 100:+.2f} pp"
     if kind == "energy":
         return f"{value:,.1f} MWh"
+    if kind == "outage":
+        return f"{value:,.1f} locality-hours"
     if kind == "reward":
         return f"{value:+.3f}"
     raise ValueError(f"unsupported metric kind: {kind}")
@@ -370,7 +387,7 @@ def _table_flowable(rows: list[list[str]], styles: dict[str, ParagraphStyle]) ->
     column_count = len(rows[0])
     usable_width = A4[0] - 36 * mm
     content_lengths = [
-        min(32, max(8, max(len(row[index]) for row in rows))) for index in range(column_count)
+        min(32, max(12, max(len(row[index]) for row in rows))) for index in range(column_count)
     ]
     total_weight = sum(content_lengths)
     widths = [usable_width * length / total_weight for length in content_lengths]
@@ -572,12 +589,30 @@ def _markdown_lines_flowables(
 
 
 def _results_chart(evidence: dict) -> Drawing:
-    fixed = evidence["aggregate"]["Fixed Rotation"]
-    ppo = evidence["aggregate"]["PPO"]
+    fixed = evidence["controller_means"]["Fixed Rotation"]
+    ppo = evidence["controller_means"]["PPO"]
     metrics = (
-        ("Critical service", fixed["critical_service_ratio"], ppo["critical_service_ratio"]),
-        ("Utilization", fixed["utilization"], ppo["utilization"]),
-        ("Jain fairness", fixed["fairness"], ppo["fairness"]),
+        (
+            "Critical outage",
+            fixed["critical_outage_locality_hours"] / 168.0,
+            ppo["critical_outage_locality_hours"] / 168.0,
+            f"{fixed['critical_outage_locality_hours']:.1f} locality-hours",
+            f"{ppo['critical_outage_locality_hours']:.1f} locality-hours",
+        ),
+        (
+            "Utilization",
+            fixed["utilization"],
+            ppo["utilization"],
+            f"{fixed['utilization'] * 100:.1f}%",
+            f"{ppo['utilization'] * 100:.1f}%",
+        ),
+        (
+            "Jain fairness",
+            fixed["fairness"],
+            ppo["fairness"],
+            f"{fixed['fairness'] * 100:.1f}%",
+            f"{ppo['fairness'] * 100:.1f}%",
+        ),
     )
     drawing = Drawing(500, 165)
     object.__setattr__(drawing, "initialFontName", REPORT_FONTS.body)
@@ -586,7 +621,7 @@ def _results_chart(evidence: dict) -> Drawing:
         String(
             15,
             145,
-            "Locked aggregate comparison",
+            "Untouched confirmatory comparison",
             fontName=REPORT_FONTS.body_bold,
             fontSize=11,
             fillColor=NAVY,
@@ -605,7 +640,7 @@ def _results_chart(evidence: dict) -> Drawing:
     )
     drawing.add(Rect(424, 143, 10, 5, fillColor=TEAL, strokeColor=None))
     drawing.add(String(439, 141, "PPO", fontName=REPORT_FONTS.body, fontSize=7, fillColor=MUTED))
-    for row, (label, fixed_value, ppo_value) in enumerate(metrics):
+    for row, (label, fixed_value, ppo_value, fixed_text, ppo_text) in enumerate(metrics):
         y = 105 - row * 39
         drawing.add(
             String(
@@ -617,15 +652,16 @@ def _results_chart(evidence: dict) -> Drawing:
                 fillColor=INK,
             )
         )
-        drawing.add(Rect(128, y + 15, 315, 8, fillColor=GRID, strokeColor=None))
-        drawing.add(Rect(128, y + 15, 315 * fixed_value, 8, fillColor=MUTED, strokeColor=None))
-        drawing.add(Rect(128, y, 315, 8, fillColor=GRID, strokeColor=None))
-        drawing.add(Rect(128, y, 315 * ppo_value, 8, fillColor=TEAL, strokeColor=None))
+        drawing.add(Rect(128, y + 15, 270, 8, fillColor=GRID, strokeColor=None))
+        drawing.add(Rect(128, y + 15, 270 * fixed_value, 8, fillColor=MUTED, strokeColor=None))
+        drawing.add(Rect(128, y, 270, 8, fillColor=GRID, strokeColor=None))
+        drawing.add(Rect(128, y, 270 * ppo_value, 8, fillColor=TEAL, strokeColor=None))
         drawing.add(
             String(
-                452,
+                490,
                 y + 15,
-                f"{fixed_value * 100:.1f}%",
+                fixed_text,
+                textAnchor="end",
                 fontName=REPORT_FONTS.body,
                 fontSize=7,
                 fillColor=MUTED,
@@ -633,9 +669,10 @@ def _results_chart(evidence: dict) -> Drawing:
         )
         drawing.add(
             String(
-                452,
+                490,
                 y,
-                f"{ppo_value * 100:.1f}%",
+                ppo_text,
+                textAnchor="end",
                 fontName=REPORT_FONTS.body_bold,
                 fontSize=7,
                 fillColor=NAVY,
@@ -731,28 +768,29 @@ def _cover(styles: dict[str, ParagraphStyle]) -> list[Flowable]:
 
 
 def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flowable]:
-    fixed = evidence["aggregate"]["Fixed Rotation"]
-    ppo = evidence["aggregate"]["PPO"]
-    inference = evidence["paired_inference"]
+    robustness = evidence["robustness"]["base_evaluation"]
+    fixed = robustness["controller_means"]["Fixed Rotation"]
+    ppo = robustness["controller_means"]["PPO"]
+    inference = robustness["paired_inference"]
     summary_data = [
         ["Outcome", "Fixed Rotation", "PPO", "Paired change"],
         [
-            "Critical service",
-            format_metric(fixed["critical_service_ratio"], "ratio"),
-            format_metric(ppo["critical_service_ratio"], "ratio"),
-            format_metric(inference["critical_service_ratio"]["mean_delta"], "ratio"),
+            "Critical outage",
+            format_metric(fixed["critical_outage_locality_hours"], "outage"),
+            format_metric(ppo["critical_outage_locality_hours"], "outage"),
+            format_metric(inference["critical_outage_locality_hours"]["mean_delta"], "outage"),
+        ],
+        [
+            "Jain fairness",
+            format_metric(fixed["fairness"], "ratio"),
+            format_metric(ppo["fairness"], "ratio"),
+            format_metric(inference["fairness"]["mean_delta"], "percentage_points"),
         ],
         [
             "Utilization",
             format_metric(fixed["utilization"], "ratio"),
             format_metric(ppo["utilization"], "ratio"),
-            format_metric(inference["utilization"]["mean_delta"], "ratio"),
-        ],
-        [
-            "Served energy",
-            format_metric(fixed["served_mwh"], "energy"),
-            format_metric(ppo["served_mwh"], "energy"),
-            format_metric(inference["served_mwh"]["mean_delta"], "energy"),
+            format_metric(inference["utilization"]["mean_delta"], "percentage_points"),
         ],
     ]
     toc = TableOfContents(
@@ -802,11 +840,11 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
         Paragraph("Abstract", styles["chapter"]),
         *abstract_flowables,
         Paragraph(
-            "96 independent base draws x 3 shortage levels = 288 matched scenario "
-            "conditions; 576 controller-scenario evaluations.",
+            "Untouched confirmatory evidence: 320 independent base draws x 3 shortage levels = "
+            "960 matched scenario conditions; 1,920 controller-scenario evaluations.",
             styles["callout"],
         ),
-        _results_chart(evidence),
+        _results_chart(robustness),
         Spacer(1, 6),
         _table_flowable(summary_data, styles),
         PageBreak(),
@@ -864,13 +902,29 @@ def _screenshots(styles: dict[str, ParagraphStyle]) -> list[Flowable]:
 
 
 def load_verified_evidence() -> dict:
-    """Load the canonical result only through the public semantic verifier."""
+    """Load both evidence roles and training lineage through strict public verifiers."""
 
-    return verify_paired_benchmark(
+    accepted = verify_paired_benchmark(
         PROJECT_ROOT / "data" / "evidence" / "paired-benchmark.json",
         expected_sha256=PAIRED_BENCHMARK_SHA256,
         frozen_benchmark_path=PROJECT_ROOT / "data" / "evidence" / "frozen-benchmark.json",
     )
+    robustness = verify_robustness_supplement(
+        PROJECT_ROOT / "data" / "evidence" / "robustness-supplement.json",
+        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
+    )
+    training = load_training_provenance(
+        PROJECT_ROOT / "data" / "model" / "training-provenance.yaml",
+        model_manifest_path=PROJECT_ROOT / "data" / "model" / "manifest.json",
+    )
+    return {
+        "accepted": accepted,
+        "robustness": robustness,
+        "training": build_training_summary(
+            training,
+            provenance_path="data/model/training-provenance.yaml",
+        ),
+    }
 
 
 def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
@@ -878,6 +932,8 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
 
     if not REPORT_SOURCE_PATH.is_file():
         raise FileNotFoundError(f"missing report source: {REPORT_SOURCE_PATH}")
+    if not RELATED_WORK_PATH.is_file():
+        raise FileNotFoundError(f"missing related work chapter: {RELATED_WORK_PATH}")
     for chapter in CHAPTER_PATHS:
         if not chapter.is_file():
             raise FileNotFoundError(f"missing report chapter: {chapter}")
@@ -889,17 +945,21 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
     story: list[Flowable] = []
     story.extend(_cover(styles))
     story.extend(_front_matter(styles, evidence))
-    for section_title in REPORT_SECTION_ORDER[:2]:
-        story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, section_title, styles))
+    story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, "Introduction", styles))
+    story.extend(markdown_flowables(RELATED_WORK_PATH, styles))
+    story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, "Background", styles))
     for chapter_path in CHAPTER_PATHS[:2]:
         story.extend(markdown_flowables(chapter_path, styles))
     story.extend(_screenshots(styles))
     story.extend(markdown_flowables(CHAPTER_PATHS[2], styles))
-    for section_title in REPORT_SECTION_ORDER[2:]:
+    for section_title in REPORT_SECTION_ORDER[3:]:
         story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, section_title, styles))
     story.append(
         Paragraph(
-            f"Canonical paired evidence SHA-256: {PAIRED_BENCHMARK_SHA256}",
+            "Accepted reproduction SHA-256: "
+            f"{PAIRED_BENCHMARK_SHA256}<br/>Untouched robustness SHA-256: "
+            f"{ROBUSTNESS_SUPPLEMENT_SHA256}<br/>Training record: "
+            "data/model/training-provenance.yaml",
             styles["small"],
         )
     )

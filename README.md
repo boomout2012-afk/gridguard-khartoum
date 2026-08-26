@@ -24,23 +24,53 @@ The GPU runtime rationale and trade-offs are recorded in `docs/decisions/ADR-001
 
 ## Verified evidence
 
-The committed paired benchmark contains 96 independent synthetic base draws crossed with Mild,
-Moderate, and Severe shortages: 288 matched scenario conditions and 576 controller evaluations.
-PPO and Fixed Rotation always receive the same scenario tensors. Uncertainty intervals use 10,000
-deterministic seed-stratified paired cluster bootstrap replicates, keeping the three severity
-variants of each base draw together.
+The evidence package has two deliberately different roles. The accepted reproduction at
+`data/evidence/paired-benchmark.json` (SHA-256
+`6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677`) preserves the historical
+comparison: 96 independent synthetic base draws crossed with Mild, Moderate, and Severe shortages,
+giving 288 matched scenario conditions and 576 controller-scenario evaluations. Seeds
+`50001-50003` were gradient-disjoint, but the archived promotion process reused them during model
+selection. This layer is therefore accepted reproduction evidence, not an untouched final test.
 
-The accepted historical benchmark stored only 18 batch-cell summaries. The clean project
-reproduces those summaries within fixed tolerances, then regenerates the episode-level rows and
-paired intervals from the audited simulator and frozen PPO checkpoint. These are synthetic
-simulation results, not measurements from Sudan's electrical grid.
+The untouched confirmatory supplement at `data/evidence/robustness-supplement.json` (SHA-256
+`c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b`) uses seeds 81001-81010: 320 independent base draws, 960 matched scenario
+conditions, and 1,920 controller-scenario evaluations. It also evaluates 24 one-factor-at-a-time
+locality-weight and sector-share perturbations, for 25 parameterizations including the base, and
+compares the display-only three-hour trailing-mean forecast with one-hour persistence on common
+target hours. PPO and Fixed Rotation always receive identical scenario tensors within a pair.
 
-Evidence checking has two explicit layers. `validate_paired_benchmark_payload` performs neutral
-integrity validation of schema, pairing, arithmetic, and physical identities, so it can validate
-an adverse or inconclusive research artifact. `assert_paired_benchmark_release_claims` is the
-trusted release gate: it additionally requires locked provenance, direct parity with the frozen
-benchmark, and favorable interval directions. The desktop Results page and report always use the
-trusted path.
+The public primary outcomes are critical-outage locality-hours, Jain fairness, and utilization.
+Power-balance violation rate is a separate safety invariant. The episode reward is labeled
+**Training-objective score (diagnostic)** because it contains several reported outcomes and is not
+independent confirmation. Full-precision values remain in canonical JSON; human-facing views use
+one decimal place for MWh/locality-hours, two decimals for percentages, and three decimals for the
+diagnostic score.
+
+`validate_paired_benchmark_payload` checks closed schema, pairing, arithmetic, and physical
+identities. `assert_paired_benchmark_integrity` adds locked provenance and direct parity with the
+frozen aggregate artifact. Both are sign-neutral integrity checks: adverse or inconclusive
+evidence remains valid evidence, and no favorable-result release gate exists. These are synthetic
+simulation results for decision-support research, not measurements from Sudan's electrical grid.
+
+## PPO training parameters
+
+The complete reviewer-facing historical record is
+`data/model/training-provenance.yaml` (SHA-256
+`2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`). It records the
+32 -> 512 -> 512 -> 2,187 actor, behavior-cloning initialization, PPO optimizer and loss
+parameters, all seeds, validation and checkpoint-selection rules, hardware, source hashes, and the
+full convergence series. Historical PPO training ran for 600 iterations, 153,600 episodes, and
+3,686,400 transitions; the selected seed-43 checkpoint is iteration 510 after 6,120 optimizer
+updates. Adam optimized network parameters during training. CUDA accelerates training, inference,
+simulation, and statistics; it is not a mathematical dispatch optimizer, and the shipped desktop
+performs no online optimization.
+
+The YAML is a strict provenance record, not a bitwise-retraining promise: optimizer state and raw
+training runs are intentionally excluded. Print a validated machine-readable summary with:
+
+```powershell
+uv run --extra docs python .\tools\training_provenance.py --path .\data\model\training-provenance.yaml --model-manifest .\data\model\manifest.json --summary-json
+```
 
 ## Offline geographic context
 
@@ -57,8 +87,8 @@ alternatives are recorded in `docs/decisions/ADR-002-geographic-boundary-map.md`
 2. Replay the same 24-hour scenario through PPO and Fixed Rotation.
 3. Inspect service tiers and sector outcomes on the interactive administrative map or synchronized
    keyboard-accessible locality list.
-4. Compare the live demonstration's matched episode aggregates with the separately frozen
-   benchmark result; live values never replace frozen evidence.
+4. Compare the live demonstration's matched episode aggregates with the separately verified
+   untouched robustness supplement; live values never replace reviewer-facing frozen evidence.
 5. Review methodology, implementation, limitations, and evidence provenance offline.
 
 ## Development
@@ -89,6 +119,12 @@ To reproduce the paired artifact without overwriting the trusted copy:
 
 ```powershell
 uv run gridguard-evaluate --reproduce-paired --output .\paired-benchmark-reproduced.json
+```
+
+To reproduce the untouched robustness artifact without overwriting the trusted copy:
+
+```powershell
+uv run gridguard-evaluate --reproduce-robustness --output .\robustness-supplement-reproduced.json
 ```
 
 The implementation plan and completion evidence are tracked in `tasks/plan.md` and `tasks/todo.md`.

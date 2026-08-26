@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0 - 2026-08-26
+
+- Reframed the historical paired benchmark as accepted reproduction evidence after verifying that
+  its seeds participated in model selection; numerical results and the frozen benchmark remain
+  unchanged.
+- Made critical-outage locality-hours, Jain fairness, and utilization the three primary outcomes;
+  relabeled reward as Training-objective score (diagnostic) and kept power balance as safety.
+- Added a strict, model-manifest-bound `data/model/training-provenance.yaml` record containing the
+  network, behavior-cloning initialization, PPO hyperparameters, workload, seeds, selection,
+  hardware, convergence, and source hashes.
+- Added untouched confirmatory evidence over ten new seeds, 24 one-factor-at-a-time sensitivity
+  variants, and a causal trailing-mean forecast comparison against persistence.
+- Added domain Related Work, a criticism disposition ledger, explicit baseline/dispatch/scaling/
+  optimum/shortage limitations, and reviewer-facing training/evidence summaries.
+
 ## 1.0.0 - 2026-08-15
 
 - Rebuilt the accepted graduation-project scope in a clean, consistently named repository.

@@ -5,7 +5,7 @@ protection, reinforcement learning, and short-horizon demand forecasting. These 
 substantially richer physical and institutional models than the present application. This review
 therefore positions the project as a bounded, offline decision-support prototype and identifies the
 evidence that would be required to move beyond its Khartoum-inspired synthetic case. It does not
-treat geographic labels or a schematic map as validation of an electrical model.
+treat geographic labels or an administrative map as validation of an electrical model.
 
 ## Sudan energy-access context
 
@@ -107,7 +107,8 @@ statistical and operational baselines.
 
 GridGuard integrates established ideas into an offline Windows demonstration: a deterministic
 synthetic scenario generator, Fixed Rotation and PPO controllers, matched evaluation, explicit
-fairness and critical-service measures, hash-verified evidence, and a schematic locality display.
+fairness and critical-service measures, hash-verified evidence, and an administrative locality
+display.
 The project does not make a claim of algorithmic novelty, grid deployment, or utility calibration.
 Its contribution is a traceable academic implementation that makes assumptions and evidence
 boundaries inspectable.

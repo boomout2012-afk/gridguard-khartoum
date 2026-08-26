@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
+import sys
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -26,11 +28,28 @@ def test_report_builder_uses_verified_evidence_and_committed_chapters() -> None:
 
     assert "verify_paired_benchmark" in source
     assert "PAIRED_BENCHMARK_SHA256" in source
+    assert "verify_robustness_supplement" in source
+    assert "ROBUSTNESS_SUPPLEMENT_SHA256" in source
+    assert "load_training_provenance" in source
     assert '"REPORT.md"' in source
+    assert '"RELATED_WORK.md"' in source
     assert '"METHODOLOGY.md"' in source
     assert '"IMPLEMENTATION.md"' in source
     assert '"RESULTS.md"' in source
     assert '"REFERENCES.md"' in source
+
+
+def test_report_builder_direct_entrypoint_is_importable() -> None:
+    result = subprocess.run(
+        [sys.executable, str(BUILDER_PATH), "--help"],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Build the final, evidence-bound" in result.stdout
 
 
 def test_report_typography_normalizes_unicode_dashes_to_ascii() -> None:
@@ -46,8 +65,35 @@ def test_report_metric_formatter_is_presentation_readable() -> None:
     builder = _load_builder()
 
     assert builder.format_metric(0.997163764304585, "ratio") == "99.72%"
+    assert builder.format_metric(0.09149730224, "percentage_points") == "+9.15 pp"
     assert builder.format_metric(2008.4976586235891, "energy") == "2,008.5 MWh"
+    assert builder.format_metric(12.345, "outage") == "12.3 locality-hours"
     assert builder.format_metric(9.54281117518743, "reward") == "+9.543"
+
+
+def test_results_chart_uses_the_canonical_outage_unit() -> None:
+    builder = _load_builder()
+    chart = builder._results_chart(
+        {
+            "controller_means": {
+                "Fixed Rotation": {
+                    "critical_outage_locality_hours": 102.1,
+                    "fairness": 0.8776,
+                    "utilization": 0.7121,
+                },
+                "PPO": {
+                    "critical_outage_locality_hours": 20.2,
+                    "fairness": 0.9691,
+                    "utilization": 0.9761,
+                },
+            }
+        }
+    )
+    labels = [shape.text for shape in chart.contents if hasattr(shape, "text")]
+
+    assert "102.1 locality-hours" in labels
+    assert "20.2 locality-hours" in labels
+    assert not any(label.endswith(" h") for label in labels)
 
 
 def test_report_references_include_map_sources_as_flat_plain_text_entries() -> None:
@@ -56,7 +102,7 @@ def test_report_references_include_map_sources_as_flat_plain_text_entries() -> N
     reference_list = flowables[-1]
     rendered_entries = [item._flowables[0].text for item in reference_list._flowables]
 
-    assert len(rendered_entries) == 8
+    assert len(rendered_entries) == 15
     assert all("*" not in entry for entry in rendered_entries)
     assert any("<i>" in entry for entry in rendered_entries)
 
@@ -67,6 +113,7 @@ def test_report_builder_uses_academic_sections_and_atlas_palette() -> None:
 
     assert builder.REPORT_SECTION_ORDER == (
         "Introduction",
+        "Related Work",
         "Background",
         "Discussion",
         "Conclusion",
@@ -106,6 +153,35 @@ def test_markdown_table_headers_use_embedded_bold_light_text() -> None:
     assert all(cell.style.textColor == builder.OFF_WHITE for cell in header_cells)
 
 
+def test_wide_tables_keep_short_result_columns_readable() -> None:
+    builder = _load_builder()
+    styles = builder._styles()
+
+    table = builder._table_flowable(
+        [
+            [
+                "Primary outcome",
+                "Fixed Rotation",
+                "PPO",
+                "Mean paired difference",
+                "Deterministic 95% interval",
+                "Direction",
+            ],
+            [
+                "Critical-outage locality-hours",
+                "102.1",
+                "20.2",
+                "-81.9",
+                "[-82.5, -81.2]",
+                "Favorable",
+            ],
+        ],
+        styles,
+    )
+
+    assert table._argW[-1] > 17.9 * builder.mm
+
+
 def test_report_registers_the_approved_bundled_true_type_fonts() -> None:
     builder = _load_builder()
     expected_font_names = {
@@ -142,6 +218,28 @@ def test_final_report_contains_no_blank_interior_pages() -> None:
     assert all(text for text in page_text)
     assert all(len(text.split()) >= 20 for text in page_text[1:-1])
     assert any("System at a glance" in text for text in page_text)
+
+
+def test_final_report_exposes_review_remediation_and_untouched_evidence() -> None:
+    report_text = " ".join(
+        " ".join((page.extract_text() or "").split()) for page in PdfReader(REPORT_PATH).pages
+    )
+
+    for phrase in (
+        "training-provenance.yaml",
+        "Training-objective score (diagnostic)",
+        "critical-outage locality-hours",
+        "320 independent base draws",
+        "960 matched scenario conditions",
+        "1,920 controller evaluations",
+        "25 parameterizations",
+        "one-hour persistence",
+        "accepted reproduction evidence",
+        "supply-blind",
+        "global optimum is unknown",
+        "shortage-only",
+    ):
+        assert phrase.casefold() in report_text.casefold()
 
 
 def test_final_report_uses_only_embedded_fonts() -> None:
