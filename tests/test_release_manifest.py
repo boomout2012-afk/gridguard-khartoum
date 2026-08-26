@@ -14,9 +14,12 @@ MANIFEST_PATH = REPOSITORY_ROOT / "RELEASE_MANIFEST.json"
 RELEASE_HELPER = REPOSITORY_ROOT / "scripts" / "release-integrity.ps1"
 EXPECTED_TRACKED_PATHS = {
     "data/evidence/paired-benchmark.json",
+    "data/evidence/robustness-supplement.json",
     "data/evidence/source-manifest.json",
     "data/model/manifest.json",
     "data/model/ppo-policy.npz",
+    "data/model/training-provenance.yaml",
+    "docs/REVIEW_REMEDIATION.md",
     "docs/decisions/ADR-002-geographic-boundary-map.md",
     "docs/source/graduation-project-proposal.pdf",
     "output/pdf/gridguard-khartoum-final-report.pdf",
