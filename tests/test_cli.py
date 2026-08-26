@@ -41,7 +41,7 @@ def test_doctor_main_reports_gpu_and_evidence(
     assert "NVIDIA Test GPU" in captured.out
     assert "PyTorch 2.8.0+cu128 / CUDA 12.8" in captured.out
     assert "CuPy 14.1.1" in captured.out
-    assert "5 source artifacts verified" in captured.out
+    assert "8 source artifacts verified" in captured.out
     assert "Paired benchmark semantics verified" in captured.out
     assert "PPO artifact and CUDA inference verified" in captured.out
     assert captured.err == ""
@@ -101,7 +101,7 @@ def test_evaluate_cli_verifies_frozen_source_evidence(capsys) -> None:
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "5 source artifacts" in captured.out
+    assert "8 source artifacts" in captured.out
     assert "288 matched scenario conditions" in captured.out
     assert "PPO artifact verified" in captured.out
     assert captured.err == ""
