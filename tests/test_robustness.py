@@ -16,12 +16,16 @@ from gridguard.robustness import (
     ROBUSTNESS_ACTOR_SHA256,
     ROBUSTNESS_ACTOR_SIZE_BYTES,
     ROBUSTNESS_BATCH_SIZE,
+    ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS,
     ROBUSTNESS_MODEL_MANIFEST_SHA256,
     ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES,
     ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
     ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
     ROBUSTNESS_SEEDS,
     ROBUSTNESS_SOURCE_REVISION,
+    ROBUSTNESS_SUPPLEMENT_SHA256,
+    ROBUSTNESS_TRAINING_PROVENANCE_SHA256,
+    ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES,
     RobustnessArtifactError,
     build_robustness_supplement_payload,
     build_sensitivity_variants,
@@ -30,8 +34,10 @@ from gridguard.robustness import (
     forecast_input_validation_flags,
     run_full_robustness_evaluation,
     validate_robustness_supplement_payload,
+    verify_robustness_implementation_sources,
     verify_robustness_supplement,
 )
+from tools.training_provenance import load_training_provenance
 
 ROOT = Path(__file__).parents[1]
 
@@ -130,6 +136,42 @@ def _valid_payload() -> dict[str, object]:
                 "sha256": ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
                 "size_bytes": ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
             },
+            "training_provenance": {
+                "path": "data/model/training-provenance.yaml",
+                "sha256": ROBUSTNESS_TRAINING_PROVENANCE_SHA256,
+                "size_bytes": ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES,
+            },
+            "implementation_sources": [
+                {"path": path, "sha256": sha256, "size_bytes": size_bytes}
+                for path, sha256, size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+            ],
+            "seed_separation": {
+                "claim_scope": (
+                    "Untouched means disjoint from every training, validation, and "
+                    "model-selection seed documented in data/model/training-provenance.yaml; "
+                    "it does not claim knowledge of undocumented external activity."
+                ),
+                "robustness_seeds": list(ROBUSTNESS_SEEDS),
+                "documented_seed_sets": {
+                    "behavior_cloning_teacher_episode_seed_range": {
+                        "start": 42,
+                        "end_inclusive": 54,
+                    },
+                    "behavior_cloning_exploration_prng_seeds": [10_042, 10_043, 10_044],
+                    "behavior_cloning_shuffle_prng_seeds": [42, 43, 44],
+                    "candidate_training_seeds": [42, 43, 44],
+                    "ppo_rollout_episode_seed_range": {
+                        "formula": "candidate_training_seed + 1000 + iteration",
+                        "iteration_start": 1,
+                        "iteration_end_inclusive": 600,
+                        "start": 1_043,
+                        "end_inclusive": 1_644,
+                    },
+                    "periodic_validation_seeds": [70_000, 70_001, 70_002],
+                    "accepted_evaluation_promotion_seeds": [50_001, 50_002, 50_003],
+                },
+                "disjoint_from_all_documented_seeds": True,
+            },
         },
         "protocol": {
             "seeds": list(ROBUSTNESS_SEEDS),
@@ -161,6 +203,33 @@ def _valid_payload() -> dict[str, object]:
                 "unit": "ratio",
                 "direction": "lower_is_better",
                 "role": "safety",
+            },
+        },
+        "forecast_metric_definitions": {
+            "target": {"quantity": "demand", "unit": "MW"},
+            "residual": {"formula": "prediction_mw - target_mw", "unit": "MW"},
+            "error_sums": {
+                "sae": {"formula": "sum(abs(residual_mw))", "unit": "MW"},
+                "sse": {"formula": "sum(residual_mw^2)", "unit": "MW^2"},
+            },
+            "pooled_metrics": {
+                "mae": {"formula": "SAE / count", "unit": "MW"},
+                "rmse": {"formula": "sqrt(SSE / count)", "unit": "MW"},
+            },
+            "aggregation": {
+                "locality_sector": {
+                    "pooling": (
+                        "episode x target_hour x 7 localities x 5 sectors over absolute "
+                        "cell residuals and squared cell residuals"
+                    )
+                },
+                "system_total": {
+                    "residual": (
+                        "sum the 35 signed locality-sector residuals before absolute value "
+                        "or squaring"
+                    ),
+                    "pooling": "episode x target_hour after system aggregation",
+                },
             },
         },
         "base_evaluation": {
@@ -283,11 +352,113 @@ def test_pinned_provenance_bindings_match_current_source_bytes() -> None:
             ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
             ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
         ),
+        (
+            ROOT / "data" / "model" / "training-provenance.yaml",
+            ROBUSTNESS_TRAINING_PROVENANCE_SHA256,
+            ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES,
+        ),
     )
 
     for path, expected_sha256, expected_size in bindings:
         assert path.stat().st_size == expected_size
         assert hashlib.sha256(path.read_bytes()).hexdigest() == expected_sha256
+
+    assert tuple(path for path, _, _ in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS) == (
+        "src/gridguard/controllers.py",
+        "src/gridguard/domain.py",
+        "src/gridguard/evaluation.py",
+        "src/gridguard/metrics.py",
+        "src/gridguard/policy.py",
+        "src/gridguard/robustness.py",
+        "src/gridguard/scenarios.py",
+        "src/gridguard/simulation.py",
+        "src/gridguard/statistics.py",
+    )
+    for relative_path, expected_sha256, expected_size in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS:
+        path = ROOT / relative_path
+        assert path.stat().st_size == expected_size
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == expected_sha256
+
+
+def test_current_checkout_implementation_sources_are_rehashed() -> None:
+    verified = verify_robustness_implementation_sources(ROOT)
+
+    assert tuple(binding["path"] for binding in verified) == tuple(
+        path for path, _, _ in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+    )
+
+
+def test_robustness_seeds_are_disjoint_from_every_documented_training_seed_set() -> None:
+    training = load_training_provenance(
+        ROOT / "data" / "model" / "training-provenance.yaml",
+        model_manifest_path=ROOT / "data" / "model" / "manifest.json",
+    )
+    cloning = training["behavior_cloning_initialization"]
+    ppo = training["ppo"]
+    selection = training["validation_and_selection"]
+    disclosure = training["evaluation_seed_disclosure"]
+    candidate_seeds = selection["candidate_training_seeds"]
+    selected_training_seed = ppo["training_seed"]
+    teacher_start_offset = cloning["teacher_episode_seed_start"] - selected_training_seed
+    teacher_end_offset = cloning["teacher_episode_seed_end_inclusive"] - selected_training_seed
+    exploration_seed_offset = cloning["exploration_prng_seed"] - selected_training_seed
+    documented_sets = {
+        "behavior_cloning_teacher_episode_seed_range": {
+            episode_seed
+            for candidate_seed in candidate_seeds
+            for episode_seed in range(
+                candidate_seed + teacher_start_offset,
+                candidate_seed + teacher_end_offset + 1,
+            )
+        },
+        "behavior_cloning_exploration_prng_seeds": {
+            candidate_seed + exploration_seed_offset for candidate_seed in candidate_seeds
+        },
+        "behavior_cloning_shuffle_prng_seeds": set(candidate_seeds),
+        "candidate_training_seeds": set(candidate_seeds),
+        "ppo_rollout_episode_seed_range": {
+            rollout_seed
+            for candidate_seed in candidate_seeds
+            for rollout_seed in range(
+                candidate_seed + 1_001,
+                candidate_seed + 1_001 + ppo["iterations"],
+            )
+        },
+        "periodic_validation_seeds": set(selection["validation_seeds"]),
+        "accepted_evaluation_promotion_seeds": set(disclosure["seeds"]),
+    }
+    robustness_seeds = set(ROBUSTNESS_SEEDS)
+
+    assert all(robustness_seeds.isdisjoint(seeds) for seeds in documented_sets.values())
+    metadata = _valid_payload()["provenance"]["seed_separation"]  # type: ignore[index]
+    recorded = metadata["documented_seed_sets"]
+    teacher_range = recorded["behavior_cloning_teacher_episode_seed_range"]
+    assert (
+        set(range(teacher_range["start"], teacher_range["end_inclusive"] + 1))
+        == (documented_sets["behavior_cloning_teacher_episode_seed_range"])
+    )
+    assert (
+        set(recorded["behavior_cloning_exploration_prng_seeds"])
+        == documented_sets["behavior_cloning_exploration_prng_seeds"]
+    )
+    assert (
+        set(recorded["behavior_cloning_shuffle_prng_seeds"])
+        == documented_sets["behavior_cloning_shuffle_prng_seeds"]
+    )
+    assert set(recorded["candidate_training_seeds"]) == documented_sets["candidate_training_seeds"]
+    rollout = recorded["ppo_rollout_episode_seed_range"]
+    assert (
+        set(range(rollout["start"], rollout["end_inclusive"] + 1))
+        == documented_sets["ppo_rollout_episode_seed_range"]
+    )
+    assert (
+        set(recorded["periodic_validation_seeds"]) == documented_sets["periodic_validation_seeds"]
+    )
+    assert (
+        set(recorded["accepted_evaluation_promotion_seeds"])
+        == documented_sets["accepted_evaluation_promotion_seeds"]
+    )
+    validate_robustness_supplement_payload(_valid_payload())
 
 
 def test_forecast_statistics_align_both_methods_to_target_hours_three_through_twenty_three() -> (
@@ -395,10 +566,46 @@ def test_strict_validator_accepts_sign_neutral_complete_payload() -> None:
             "scenario_generator.size_bytes",
         ),
         (
+            lambda payload: payload["provenance"]["training_provenance"].__setitem__(  # type: ignore[index]
+                "sha256", "d" * 64
+            ),
+            "training_provenance.sha256",
+        ),
+        (
+            lambda payload: payload["provenance"]["implementation_sources"][0].__setitem__(  # type: ignore[index]
+                "path", "src/gridguard/not-the-controller.py"
+            ),
+            r"implementation_sources\[0\].path",
+        ),
+        (
+            lambda payload: payload["provenance"]["implementation_sources"][1].__setitem__(  # type: ignore[index]
+                "sha256", "f" * 64
+            ),
+            r"implementation_sources\[1\].sha256",
+        ),
+        (
+            lambda payload: payload["provenance"]["implementation_sources"][2].__setitem__(  # type: ignore[index]
+                "size_bytes", 1
+            ),
+            r"implementation_sources\[2\].size_bytes",
+        ),
+        (
             lambda payload: payload["protocol"].__setitem__(  # type: ignore[union-attr]
                 "matched_scenario_count", 959
             ),
             "matched_scenario_count",
+        ),
+        (
+            lambda payload: payload["forecast_metric_definitions"]["pooled_metrics"][  # type: ignore[index]
+                "rmse"
+            ].__setitem__("formula", "sqrt(SAE / count)"),
+            "forecast_metric_definitions",
+        ),
+        (
+            lambda payload: payload["provenance"]["seed_separation"].__setitem__(  # type: ignore[index]
+                "disjoint_from_all_documented_seeds", False
+            ),
+            "disjoint_from_all_documented_seeds",
         ),
         (
             lambda payload: payload["sensitivity"]["variants"].pop(),  # type: ignore[index,union-attr]
@@ -423,6 +630,24 @@ def test_strict_validator_accepts_sign_neutral_complete_payload() -> None:
             "controller means",
         ),
         (
+            lambda payload: payload["base_evaluation"]["paired_inference"][  # type: ignore[index]
+                "critical_outage_locality_hours"
+            ].__setitem__("ci95_lower", -168.01),
+            "feasible bounds",
+        ),
+        (
+            lambda payload: payload["sensitivity"]["variants"][0][  # type: ignore[index]
+                "paired_inference"
+            ]["fairness"].__setitem__("ci95_upper", 1.01),
+            "feasible bounds",
+        ),
+        (
+            lambda payload: payload["sensitivity"]["variants"][0][  # type: ignore[index]
+                "difference_in_differences"
+            ]["utilization"].__setitem__("ci95_upper", 2.01),
+            "feasible bounds",
+        ),
+        (
             lambda payload: payload["sensitivity"]["variants"][0][  # type: ignore[index]
                 "paired_inference"
             ]["fairness"].__setitem__("mean_delta", 0.05),
@@ -433,6 +658,34 @@ def test_strict_validator_accepts_sign_neutral_complete_payload() -> None:
                 "trailing_mean_3h"
             ]["pooled"]["locality_sector"].__setitem__("mae", 9.0),
             "pooled",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ][
+                "per_seed"
+            ][
+                0
+            ]["locality_sector"].update({"sum_absolute_error": 23_520.0, "sum_squared_error": 0.0}),
+            "error-sum inequality",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ][
+                "per_seed"
+            ][
+                0
+            ][
+                "system_total"
+            ].update({"sum_absolute_error": 23_521.0, "sum_squared_error": 1_000_000.0}),
+            "system SAE",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ]["per_seed"][0]["system_total"].update({"sum_squared_error": 1_700_000.0}),
+            "system SSE",
         ),
         (
             lambda payload: payload["base_evaluation"]["power_balance"].__setitem__(  # type: ignore[index]
@@ -448,6 +701,108 @@ def test_strict_validator_rejects_schema_and_arithmetic_drift(mutation, message:
 
     with pytest.raises(RobustnessArtifactError, match=message):
         validate_robustness_supplement_payload(payload)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda payload: payload["protocol"].__setitem__("episodes_per_seed", 32.0),
+            "protocol.episodes_per_seed must be an integer",
+        ),
+        (
+            lambda payload: payload["protocol"]["seeds"].__setitem__(0, 81_001.0),
+            r"protocol.seeds\[0\] must be an integer",
+        ),
+        (
+            lambda payload: payload["provenance"]["seed_separation"][  # type: ignore[index]
+                "robustness_seeds"
+            ].__setitem__(0, 81_001.0),
+            r"seed_separation.robustness_seeds\[0\] must be an integer",
+        ),
+        (
+            lambda payload: payload["protocol"]["bootstrap"].__setitem__("replicates", 10_000.0),
+            "protocol.bootstrap.replicates must be an integer",
+        ),
+        (
+            lambda payload: payload["sensitivity"]["variants"][0].__setitem__(  # type: ignore[index]
+                "component_index", 0.0
+            ),
+            "component_index must be an integer",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["target_hours"].__setitem__(0, 3.0),
+            r"forecast_evaluation.target_hours\[0\] must be an integer",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ].__setitem__("window_hours", 3.0),
+            "window_hours must be an integer",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ]["per_seed"][0].__setitem__("seed", 81_001.0),
+            "seed must be an integer",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ]["per_seed"][0]["locality_sector"].__setitem__("count", 23_520.0),
+            "count must be a positive integer",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"]["methods"][  # type: ignore[index]
+                "trailing_mean_3h"
+            ]["pooled"]["locality_sector"].__setitem__("count", 235_200.0),
+            "count must be a positive integer",
+        ),
+        (
+            lambda payload: payload["forecast_evaluation"].__setitem__("trace_count", 320.0),
+            "forecast_evaluation.trace_count must be an integer",
+        ),
+    ],
+)
+def test_strict_validator_rejects_float_encoded_integer_fields(mutation, message: str) -> None:
+    payload = _valid_payload()
+    mutation(payload)
+
+    with pytest.raises(RobustnessArtifactError, match=message):
+        validate_robustness_supplement_payload(payload)
+
+
+def test_difference_in_differences_accepts_its_expanded_feasible_extrema() -> None:
+    payload = _valid_payload()
+    payload["base_evaluation"]["controller_means"]["Fixed Rotation"][  # type: ignore[index]
+        "critical_outage_locality_hours"
+    ] = 168.0
+    payload["base_evaluation"]["controller_means"]["PPO"][  # type: ignore[index]
+        "critical_outage_locality_hours"
+    ] = 0.0
+    payload["base_evaluation"]["paired_inference"][  # type: ignore[index]
+        "critical_outage_locality_hours"
+    ] = {
+        "mean_delta": -168.0,
+        "ci95_lower": -168.0,
+        "ci95_upper": -168.0,
+        "result_classification": "favorable",
+    }
+    for variant in payload["sensitivity"]["variants"]:  # type: ignore[index,union-attr]
+        variant["paired_inference"]["critical_outage_locality_hours"] = {
+            "mean_delta": 168.0,
+            "ci95_lower": 168.0,
+            "ci95_upper": 168.0,
+            "result_classification": "adverse",
+        }
+        variant["difference_in_differences"]["critical_outage_locality_hours"] = {
+            "mean_delta": 336.0,
+            "ci95_lower": 336.0,
+            "ci95_upper": 336.0,
+            "result_classification": "adverse",
+        }
+
+    validate_robustness_supplement_payload(payload)
 
 
 def test_canonical_bytes_and_host_verifier_reject_duplicates_and_hash_drift(tmp_path: Path) -> None:
@@ -474,6 +829,22 @@ def test_canonical_bytes_and_host_verifier_reject_duplicates_and_hash_drift(tmp_
             path,
             expected_sha256=hashlib.sha256(duplicate).hexdigest(),
         )
+
+
+def test_committed_robustness_supplement_matches_its_trust_anchor() -> None:
+    path = ROOT / "data" / "evidence" / "robustness-supplement.json"
+    actual_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+
+    assert actual_sha256 == ROBUSTNESS_SUPPLEMENT_SHA256
+    verified = verify_robustness_supplement(
+        path,
+        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
+    )
+    assert verified["provenance"]["implementation_sources"] == [
+        {"path": source_path, "sha256": sha256, "size_bytes": size_bytes}
+        for source_path, sha256, size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+    ]
+    assert verified["provenance"]["seed_separation"]["disjoint_from_all_documented_seeds"] is True
 
 
 def test_verifier_requires_canonical_serialization(tmp_path: Path) -> None:
@@ -536,4 +907,6 @@ def test_payload_builder_derives_closed_counts_intervals_and_forecast_measures()
 def test_cuda_reproducer_declares_one_final_full_numeric_host_transfer() -> None:
     source = inspect.getsource(run_full_robustness_evaluation)
 
+    # This locks evidence-array movement, not a claim of zero scalar CUDA
+    # synchronization in lower-level boundary validators.
     assert source.count(".cpu().numpy()") == 1

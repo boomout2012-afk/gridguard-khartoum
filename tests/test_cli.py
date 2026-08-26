@@ -209,6 +209,35 @@ def test_verify_evidence_checks_robustness_when_trust_anchor_is_finalized(
     assert "robustness supplement" in capsys.readouterr().out
 
 
+def test_robustness_host_verification_rehashes_current_implementation_sources(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    digest = "a" * 64
+    calls: list[tuple[str, Path]] = []
+    monkeypatch.setattr(cli, "ROBUSTNESS_SUPPLEMENT_SHA256", digest)
+    monkeypatch.setattr(
+        cli,
+        "verify_robustness_implementation_sources",
+        lambda root: calls.append(("sources", root)) or (),
+    )
+    monkeypatch.setattr(
+        cli,
+        "verify_robustness_supplement",
+        lambda path, *, expected_sha256: (
+            calls.append(("artifact", path)) or {"expected_sha256": expected_sha256}
+        ),
+    )
+
+    verified = cli._verify_robustness_evidence(tmp_path)
+
+    assert calls == [
+        ("sources", tmp_path),
+        ("artifact", tmp_path / "data" / "evidence" / "robustness-supplement.json"),
+    ]
+    assert verified == {"expected_sha256": digest}
+
+
 def test_reproduction_refuses_to_overwrite_trusted_evidence() -> None:
     trusted = ROOT / "data" / "evidence" / "paired-benchmark.json"
 

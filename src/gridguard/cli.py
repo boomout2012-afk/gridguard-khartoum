@@ -32,6 +32,7 @@ from gridguard.robustness import (
     RobustnessArtifactError,
     canonical_robustness_json_bytes,
     run_full_robustness_evaluation,
+    verify_robustness_implementation_sources,
     verify_robustness_supplement,
     write_robustness_supplement,
 )
@@ -222,6 +223,7 @@ def _verify_ppo_host(repository_root: Path) -> None:
 def _verify_robustness_evidence(repository_root: Path) -> dict:
     if not ROBUSTNESS_SUPPLEMENT_SHA256:
         raise RobustnessArtifactError("robustness supplement trust anchor is not finalized")
+    verify_robustness_implementation_sources(repository_root)
     return verify_robustness_supplement(
         repository_root / "data" / "evidence" / "robustness-supplement.json",
         expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,

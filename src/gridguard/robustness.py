@@ -7,10 +7,11 @@ import json
 import math
 import re
 from collections.abc import Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from numbers import Real
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, Literal
 
 import torch
 
@@ -26,6 +27,10 @@ from gridguard.evaluation import evaluate_scenario_pair
 from gridguard.metrics import EpisodeMetrics
 from gridguard.policy import SOURCE_REVISION, load_ppo_policy
 from gridguard.provenance import sha256_file
+from gridguard.robustness_provenance import ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+from gridguard.robustness_provenance import (
+    ROBUSTNESS_SUPPLEMENT_SHA256 as ROBUSTNESS_SUPPLEMENT_SHA256,
+)
 from gridguard.scenarios import (
     ScenarioDemandParameters,
     generate_scenario_base_draws,
@@ -48,9 +53,10 @@ ROBUSTNESS_SCENARIO_GENERATOR_SHA256: Final = (
     "e07c7ee9b41ead44991fbf20e64a7c504883175bd3a6a4b6a51ac7ef0305db84"
 )
 ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES: Final = 12_513
-# Filled after the CUDA artifact is reproduced and accepted. Callers must never
-# treat an empty value as trusted; verifier entry points always require a digest.
-ROBUSTNESS_SUPPLEMENT_SHA256: Final = ""
+ROBUSTNESS_TRAINING_PROVENANCE_SHA256: Final = (
+    "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a"
+)
+ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES: Final = 14_926
 ROBUSTNESS_SEEDS: Final = tuple(range(81001, 81011))
 ROBUSTNESS_BATCH_SIZE: Final = 32
 ROBUSTNESS_BOOTSTRAP_REPLICATES: Final = 10_000
@@ -70,6 +76,11 @@ ROBUSTNESS_LIMITATIONS: Final = (
     "Sensitivity covers only one-factor-at-a-time ±25% demand-allocation perturbations.",
     "Observed interval direction is descriptive and is not a release gate.",
 )
+ROBUSTNESS_SEED_SEPARATION_CLAIM: Final = (
+    "Untouched means disjoint from every training, validation, and model-selection seed "
+    "documented in data/model/training-provenance.yaml; it does not claim knowledge of "
+    "undocumented external activity."
+)
 ROBUSTNESS_METRIC_DEFINITIONS: Final = {
     "critical_outage_locality_hours": {
         "unit": "locality-hours",
@@ -84,8 +95,35 @@ ROBUSTNESS_METRIC_DEFINITIONS: Final = {
         "role": "safety",
     },
 }
+ROBUSTNESS_FORECAST_METRIC_DEFINITIONS: Final = {
+    "target": {"quantity": "demand", "unit": "MW"},
+    "residual": {"formula": "prediction_mw - target_mw", "unit": "MW"},
+    "error_sums": {
+        "sae": {"formula": "sum(abs(residual_mw))", "unit": "MW"},
+        "sse": {"formula": "sum(residual_mw^2)", "unit": "MW^2"},
+    },
+    "pooled_metrics": {
+        "mae": {"formula": "SAE / count", "unit": "MW"},
+        "rmse": {"formula": "sqrt(SSE / count)", "unit": "MW"},
+    },
+    "aggregation": {
+        "locality_sector": {
+            "pooling": (
+                "episode x target_hour x 7 localities x 5 sectors over absolute cell "
+                "residuals and squared cell residuals"
+            )
+        },
+        "system_total": {
+            "residual": (
+                "sum the 35 signed locality-sector residuals before absolute value or squaring"
+            ),
+            "pooling": "episode x target_hour after system aggregation",
+        },
+    },
+}
 _SHA256_PATTERN: Final = re.compile(r"[0-9a-f]{64}")
 _GIT_SHA_PATTERN: Final = re.compile(r"[0-9a-f]{40}")
+type _IntervalKind = Literal["paired_effect", "difference_in_differences"]
 
 
 class RobustnessArtifactError(ValueError):
@@ -128,6 +166,37 @@ def _positive_integer(value: object, *, field: str) -> int:
     return value
 
 
+def _expected_integer(value: object, *, field: str, expected: int) -> int:
+    if type(value) is not int:
+        raise RobustnessArtifactError(f"{field} must be an integer")
+    if value != expected:
+        raise RobustnessArtifactError(f"{field} does not match the reviewed protocol")
+    return value
+
+
+def _validate_exact_contract(value: object, expected: object, *, field: str) -> None:
+    """Compare closed JSON metadata without Python's bool/int/float equality coercions."""
+
+    if isinstance(expected, Mapping):
+        actual = _require_mapping(value, field=field)
+        _require_exact_fields(actual, frozenset(expected), field=field)
+        for name, expected_value in expected.items():
+            _validate_exact_contract(actual[name], expected_value, field=f"{field}.{name}")
+        return
+    if isinstance(expected, list):
+        if not isinstance(value, list) or len(value) != len(expected):
+            raise RobustnessArtifactError(f"{field} does not match the reviewed protocol")
+        for index, (actual_item, expected_item) in enumerate(zip(value, expected, strict=True)):
+            _validate_exact_contract(actual_item, expected_item, field=f"{field}[{index}]")
+        return
+    if type(expected) is int and type(value) is not int:
+        raise RobustnessArtifactError(f"{field} must be an integer")
+    if type(expected) is bool and type(value) is not bool:
+        raise RobustnessArtifactError(f"{field} must be a boolean")
+    if type(value) is not type(expected) or value != expected:
+        raise RobustnessArtifactError(f"{field} does not match the reviewed protocol")
+
+
 def _validate_binding(
     value: object,
     *,
@@ -153,6 +222,56 @@ def _validate_binding(
     if size_bytes != expected_size_bytes:
         raise RobustnessArtifactError(f"{field}.size_bytes does not match the pinned source bytes")
     return binding
+
+
+def _validate_implementation_sources(value: object) -> None:
+    if not isinstance(value, list):
+        raise RobustnessArtifactError("provenance.implementation_sources must be an array")
+    if len(value) != len(ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS):
+        raise RobustnessArtifactError(
+            "provenance.implementation_sources does not contain the closed source bundle"
+        )
+    for index, (actual, expected) in enumerate(
+        zip(value, ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS, strict=True)
+    ):
+        expected_path, expected_sha256, expected_size_bytes = expected
+        _validate_binding(
+            actual,
+            field=f"provenance.implementation_sources[{index}]",
+            expected_path=expected_path,
+            expected_sha256=expected_sha256,
+            expected_size_bytes=expected_size_bytes,
+        )
+
+
+def _seed_separation_payload() -> dict[str, object]:
+    return {
+        "claim_scope": ROBUSTNESS_SEED_SEPARATION_CLAIM,
+        "robustness_seeds": list(ROBUSTNESS_SEEDS),
+        "documented_seed_sets": {
+            "behavior_cloning_teacher_episode_seed_range": {
+                "start": 42,
+                "end_inclusive": 54,
+            },
+            "behavior_cloning_exploration_prng_seeds": [10_042, 10_043, 10_044],
+            "behavior_cloning_shuffle_prng_seeds": [42, 43, 44],
+            "candidate_training_seeds": [42, 43, 44],
+            "ppo_rollout_episode_seed_range": {
+                "formula": "candidate_training_seed + 1000 + iteration",
+                "iteration_start": 1,
+                "iteration_end_inclusive": 600,
+                "start": 1_043,
+                "end_inclusive": 1_644,
+            },
+            "periodic_validation_seeds": [70_000, 70_001, 70_002],
+            "accepted_evaluation_promotion_seeds": [50_001, 50_002, 50_003],
+        },
+        "disjoint_from_all_documented_seeds": True,
+    }
+
+
+def _validate_seed_separation(value: object) -> None:
+    _validate_exact_contract(value, _seed_separation_payload(), field="provenance.seed_separation")
 
 
 def canonical_robustness_json_bytes(payload: object) -> bytes:
@@ -184,7 +303,7 @@ def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]
 
 def _validate_protocol(value: object) -> Mapping[str, object]:
     protocol = _require_mapping(value, field="protocol")
-    expected_values: dict[str, object] = {
+    expected: dict[str, object] = {
         "seeds": list(ROBUSTNESS_SEEDS),
         "episodes_per_seed": ROBUSTNESS_BATCH_SIZE,
         "independent_base_draw_count": len(ROBUSTNESS_SEEDS) * ROBUSTNESS_BATCH_SIZE,
@@ -196,24 +315,13 @@ def _validate_protocol(value: object) -> Mapping[str, object]:
         "sensitivity_parameterization_count": 25,
         "sensitivity_matched_scenario_count": 24_000,
         "sensitivity_controller_evaluation_count": 48_000,
+        "bootstrap": {
+            "replicates": ROBUSTNESS_BOOTSTRAP_REPLICATES,
+            "seed": ROBUSTNESS_BOOTSTRAP_SEED,
+            "ci_percent": 95,
+        },
     }
-    expected_fields = frozenset((*expected_values, "bootstrap"))
-    _require_exact_fields(protocol, expected_fields, field="protocol")
-    for field, expected in expected_values.items():
-        if protocol[field] != expected:
-            raise RobustnessArtifactError(f"protocol.{field} does not match the reviewed protocol")
-    bootstrap = _require_mapping(protocol["bootstrap"], field="protocol.bootstrap")
-    _require_exact_fields(
-        bootstrap,
-        frozenset({"replicates", "seed", "ci_percent"}),
-        field="protocol.bootstrap",
-    )
-    if bootstrap != {
-        "replicates": ROBUSTNESS_BOOTSTRAP_REPLICATES,
-        "seed": ROBUSTNESS_BOOTSTRAP_SEED,
-        "ci_percent": 95,
-    }:
-        raise RobustnessArtifactError("protocol.bootstrap does not match the reviewed protocol")
+    _validate_exact_contract(protocol, expected, field="protocol")
     return protocol
 
 
@@ -221,6 +329,19 @@ def _validate_metric_definitions(value: object) -> None:
     definitions = _require_mapping(value, field="metric_definitions")
     if definitions != ROBUSTNESS_METRIC_DEFINITIONS:
         raise RobustnessArtifactError("metric_definitions do not match the canonical contract")
+
+
+def _validate_forecast_metric_definitions(value: object) -> None:
+    try:
+        _validate_exact_contract(
+            value,
+            ROBUSTNESS_FORECAST_METRIC_DEFINITIONS,
+            field="forecast_metric_definitions",
+        )
+    except RobustnessArtifactError as error:
+        raise RobustnessArtifactError(
+            f"forecast_metric_definitions do not match the canonical contract: {error}"
+        ) from error
 
 
 def _classify_interval(metric: str, lower: float, upper: float) -> str:
@@ -237,7 +358,13 @@ def _classify_interval(metric: str, lower: float, upper: float) -> str:
     return "ambiguous"
 
 
-def _validate_interval(value: object, *, field: str, metric: str) -> float:
+def _validate_interval(
+    value: object,
+    *,
+    field: str,
+    metric: str,
+    interval_kind: _IntervalKind,
+) -> float:
     interval = _require_mapping(value, field=field)
     _require_exact_fields(
         interval,
@@ -247,6 +374,18 @@ def _validate_interval(value: object, *, field: str, metric: str) -> float:
     mean = _number(interval["mean_delta"], field=f"{field}.mean_delta")
     lower = _number(interval["ci95_lower"], field=f"{field}.ci95_lower")
     upper = _number(interval["ci95_upper"], field=f"{field}.ci95_upper")
+    paired_limit = (
+        float(HORIZON_HOURS * len(LOCALITIES))
+        if metric == "critical_outage_locality_hours"
+        else 1.0
+    )
+    feasible_limit = paired_limit * (2.0 if interval_kind == "difference_in_differences" else 1.0)
+    for name, endpoint in (("mean_delta", mean), ("ci95_lower", lower), ("ci95_upper", upper)):
+        if not -feasible_limit <= endpoint <= feasible_limit:
+            raise RobustnessArtifactError(
+                f"{field}.{name} is outside {interval_kind} feasible bounds "
+                f"[-{feasible_limit:g}, {feasible_limit:g}]"
+            )
     if lower > upper:
         raise RobustnessArtifactError(f"{field} confidence interval is reversed")
     expected = _classify_interval(metric, lower, upper)
@@ -255,11 +394,21 @@ def _validate_interval(value: object, *, field: str, metric: str) -> float:
     return mean
 
 
-def _validate_paired_inference(value: object, *, field: str) -> dict[str, float]:
+def _validate_paired_inference(
+    value: object,
+    *,
+    field: str,
+    interval_kind: _IntervalKind,
+) -> dict[str, float]:
     inference = _require_mapping(value, field=field)
     _require_exact_fields(inference, frozenset(PRIMARY_METRICS), field=field)
     return {
-        metric: _validate_interval(inference[metric], field=f"{field}.{metric}", metric=metric)
+        metric: _validate_interval(
+            inference[metric],
+            field=f"{field}.{metric}",
+            metric=metric,
+            interval_kind=interval_kind,
+        )
         for metric in PRIMARY_METRICS
     }
 
@@ -303,7 +452,9 @@ def _validate_base_evaluation(value: object) -> dict[str, float]:
             field=f"base_evaluation.controller_means.{controller}",
         )
     paired_means = _validate_paired_inference(
-        base["paired_inference"], field="base_evaluation.paired_inference"
+        base["paired_inference"],
+        field="base_evaluation.paired_inference",
+        interval_kind="paired_effect",
     )
     fixed = _require_mapping(
         controller_means["Fixed Rotation"],
@@ -439,10 +590,12 @@ def _validate_sensitivity(
         paired_means = _validate_paired_inference(
             actual["paired_inference"],
             field=f"{field}.paired_inference",
+            interval_kind="paired_effect",
         )
         difference_means = _validate_paired_inference(
             actual["difference_in_differences"],
             field=f"{field}.difference_in_differences",
+            interval_kind="difference_in_differences",
         )
         for metric in PRIMARY_METRICS:
             expected_difference = paired_means[metric] - base_paired_means[metric]
@@ -455,6 +608,12 @@ def _validate_sensitivity(
                 raise RobustnessArtifactError(
                     f"{field} {metric} difference-in-differences mean is inconsistent"
                 )
+
+
+def _floating_reduction_tolerance(*values: float) -> float:
+    """Allow 64 ULPs for independent float64 reductions and host arithmetic."""
+
+    return 64.0 * max(math.ulp(abs(value)) for value in (*values, 1.0))
 
 
 def _validate_forecast_sums(
@@ -476,6 +635,16 @@ def _validate_forecast_sums(
     sum_squared = _number(sums["sum_squared_error"], field=f"{field}.sum_squared_error")
     if sum_absolute < 0.0 or sum_squared < 0.0:
         raise RobustnessArtifactError(f"{field} error sums must be non-negative")
+    sum_absolute_squared = sum_absolute * sum_absolute
+    if not math.isfinite(sum_absolute_squared):
+        raise RobustnessArtifactError(f"{field}.sum_absolute_error is too large")
+    lower_bound = sum_absolute_squared / count
+    lower_tolerance = _floating_reduction_tolerance(lower_bound, sum_squared)
+    upper_tolerance = _floating_reduction_tolerance(sum_absolute_squared, sum_squared)
+    if sum_squared < lower_bound - lower_tolerance:
+        raise RobustnessArtifactError(f"{field} violates error-sum inequality SAE^2/count <= SSE")
+    if sum_squared > sum_absolute_squared + upper_tolerance:
+        raise RobustnessArtifactError(f"{field} violates error-sum inequality SSE <= SAE^2")
     return count, sum_absolute, sum_squared
 
 
@@ -491,8 +660,11 @@ def _validate_forecast_method(
         frozenset({"window_hours", "per_seed", "pooled"}),
         field=field,
     )
-    if method["window_hours"] != expected_window:
-        raise RobustnessArtifactError(f"{field}.window_hours does not match the method")
+    _expected_integer(
+        method["window_hours"],
+        field=f"{field}.window_hours",
+        expected=expected_window,
+    )
     per_seed = method["per_seed"]
     if not isinstance(per_seed, list) or len(per_seed) != len(ROBUSTNESS_SEEDS):
         raise RobustnessArtifactError(f"{field}.per_seed must contain ten seed summaries")
@@ -510,8 +682,12 @@ def _validate_forecast_method(
             frozenset({"seed", "locality_sector", "system_total"}),
             field=seed_field,
         )
-        if seed_summary["seed"] != expected_seed:
-            raise RobustnessArtifactError(f"{seed_field}.seed does not match reviewed order")
+        _expected_integer(
+            seed_summary["seed"],
+            field=f"{seed_field}.seed",
+            expected=expected_seed,
+        )
+        seed_values: dict[str, tuple[int, float, float]] = {}
         for aggregation, expected_count in (
             ("locality_sector", ROBUSTNESS_BATCH_SIZE * len(FORECAST_TARGET_HOURS) * 35),
             ("system_total", ROBUSTNESS_BATCH_SIZE * len(FORECAST_TARGET_HOURS)),
@@ -521,8 +697,20 @@ def _validate_forecast_method(
                 field=f"{seed_field}.{aggregation}",
                 expected_count=expected_count,
             )
+            seed_values[aggregation] = values
             for index, item in enumerate(values):
                 totals[aggregation][index] += item
+        _, locality_sae, locality_sse = seed_values["locality_sector"]
+        _, system_sae, system_sse = seed_values["system_total"]
+        sae_tolerance = _floating_reduction_tolerance(locality_sae, system_sae)
+        if system_sae > locality_sae + sae_tolerance:
+            raise RobustnessArtifactError(f"{seed_field} system SAE exceeds locality-sector SAE")
+        system_sse_limit = len(LOCALITIES) * len(SECTORS) * locality_sse
+        sse_tolerance = _floating_reduction_tolerance(system_sse_limit, system_sse)
+        if system_sse > system_sse_limit + sse_tolerance:
+            raise RobustnessArtifactError(
+                f"{seed_field} system SSE exceeds 35 times locality-sector SSE"
+            )
 
     pooled = _require_mapping(method["pooled"], field=f"{field}.pooled")
     _require_exact_fields(
@@ -540,7 +728,8 @@ def _validate_forecast_method(
             field=aggregate_field,
         )
         total_count, absolute_sum, squared_sum = totals[aggregation]
-        if aggregate["count"] != total_count:
+        count = _positive_integer(aggregate["count"], field=f"{aggregate_field}.count")
+        if count != total_count:
             raise RobustnessArtifactError(f"{aggregate_field}.count does not match per-seed sums")
         expected_mae = absolute_sum / total_count
         expected_rmse = math.sqrt(squared_sum / total_count)
@@ -570,15 +759,17 @@ def _validate_forecast_evaluation(value: object) -> None:
         ),
         field="forecast_evaluation",
     )
-    exact_values = {
-        "target_hours": list(FORECAST_TARGET_HOURS),
-        "trace_count": len(ROBUSTNESS_SEEDS) * ROBUSTNESS_BATCH_SIZE,
-        "locality_sector_prediction_count": 235_200,
-        "system_total_prediction_count": 6_720,
-    }
-    for name, expected in exact_values.items():
-        if forecast[name] != expected:
-            raise RobustnessArtifactError(f"forecast_evaluation.{name} is not aligned")
+    _validate_exact_contract(
+        forecast["target_hours"],
+        list(FORECAST_TARGET_HOURS),
+        field="forecast_evaluation.target_hours",
+    )
+    for name, expected in (
+        ("trace_count", len(ROBUSTNESS_SEEDS) * ROBUSTNESS_BATCH_SIZE),
+        ("locality_sector_prediction_count", 235_200),
+        ("system_total_prediction_count", 6_720),
+    ):
+        _expected_integer(forecast[name], field=f"forecast_evaluation.{name}", expected=expected)
     methods = _require_mapping(forecast["methods"], field="forecast_evaluation.methods")
     _require_exact_fields(methods, frozenset(FORECAST_METHODS), field="forecast_evaluation.methods")
     measurements = {
@@ -829,6 +1020,7 @@ def build_robustness_supplement_payload(
         "metric_definitions": {
             metric: dict(definition) for metric, definition in ROBUSTNESS_METRIC_DEFINITIONS.items()
         },
+        "forecast_metric_definitions": deepcopy(ROBUSTNESS_FORECAST_METRIC_DEFINITIONS),
         "base_evaluation": {
             "controller_means": controller_means,
             "paired_inference": _paired_inference_payload(base_intervals),
@@ -872,6 +1064,33 @@ def _file_binding(path: Path, *, relative_path: str) -> dict[str, object]:
     return {"path": relative_path, "sha256": digest, "size_bytes": size_bytes}
 
 
+def verify_robustness_implementation_sources(
+    repository_root: str | Path,
+) -> tuple[dict[str, object], ...]:
+    """Re-hash the current checkout against the non-circular source trust anchor."""
+
+    root = Path(repository_root).expanduser().resolve()
+    verified: list[dict[str, object]] = []
+    for index, (relative_path, expected_sha256, expected_size_bytes) in enumerate(
+        ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+    ):
+        candidate = (root / relative_path).resolve()
+        if not candidate.is_relative_to(root):
+            raise RobustnessArtifactError(
+                f"implementation source escapes repository root: {relative_path}"
+            )
+        binding = _file_binding(candidate, relative_path=relative_path)
+        _validate_binding(
+            binding,
+            field=f"implementation_sources[{index}]",
+            expected_path=relative_path,
+            expected_sha256=expected_sha256,
+            expected_size_bytes=expected_size_bytes,
+        )
+        verified.append(binding)
+    return tuple(verified)
+
+
 def _build_robustness_provenance(manifest_path: Path) -> dict[str, object]:
     if manifest_path.parent.name != "model" or manifest_path.parent.parent.name != "data":
         raise RobustnessArtifactError(
@@ -880,6 +1099,7 @@ def _build_robustness_provenance(manifest_path: Path) -> dict[str, object]:
     repository_root = manifest_path.parent.parent.parent
     scenario_generator_path = repository_root / "src" / "gridguard" / "scenarios.py"
     actor_path = manifest_path.parent / "ppo-policy.npz"
+    training_provenance_path = manifest_path.parent / "training-provenance.yaml"
     return {
         "artifact_id": ROBUSTNESS_ARTIFACT_ID,
         "source_revision": SOURCE_REVISION,
@@ -895,6 +1115,15 @@ def _build_robustness_provenance(manifest_path: Path) -> dict[str, object]:
             scenario_generator_path,
             relative_path="src/gridguard/scenarios.py",
         ),
+        "training_provenance": _file_binding(
+            training_provenance_path,
+            relative_path="data/model/training-provenance.yaml",
+        ),
+        "implementation_sources": [
+            _file_binding(repository_root / relative_path, relative_path=relative_path)
+            for relative_path, _, _ in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+        ],
+        "seed_separation": _seed_separation_payload(),
     }
 
 
@@ -1039,7 +1268,8 @@ def run_full_robustness_evaluation(
     sensitivity_tensor = torch.stack(sensitivity_summaries)
     difference_tensor = torch.stack(difference_summaries)
 
-    # This is the only full numeric device-to-host transfer in the robustness evaluator.
+    # This is the evaluator's only full numeric evidence-array device-to-host
+    # transfer. Boundary invariant checks elsewhere may legitimately scalar-sync.
     packed = torch.cat(
         (
             base_means.flatten(),
@@ -1098,6 +1328,7 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
                 "provenance",
                 "protocol",
                 "metric_definitions",
+                "forecast_metric_definitions",
                 "base_evaluation",
                 "sensitivity",
                 "forecast_evaluation",
@@ -1121,7 +1352,16 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
     _require_exact_fields(
         provenance,
         frozenset(
-            {"artifact_id", "source_revision", "model_manifest", "actor", "scenario_generator"}
+            {
+                "artifact_id",
+                "source_revision",
+                "model_manifest",
+                "actor",
+                "scenario_generator",
+                "training_provenance",
+                "implementation_sources",
+                "seed_separation",
+            }
         ),
         field="provenance",
     )
@@ -1155,8 +1395,18 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
         expected_sha256=ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
         expected_size_bytes=ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
     )
+    _validate_binding(
+        provenance["training_provenance"],
+        field="provenance.training_provenance",
+        expected_path="data/model/training-provenance.yaml",
+        expected_sha256=ROBUSTNESS_TRAINING_PROVENANCE_SHA256,
+        expected_size_bytes=ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES,
+    )
+    _validate_implementation_sources(provenance["implementation_sources"])
+    _validate_seed_separation(provenance["seed_separation"])
     _validate_protocol(document["protocol"])
     _validate_metric_definitions(document["metric_definitions"])
+    _validate_forecast_metric_definitions(document["forecast_metric_definitions"])
     base_paired_means = _validate_base_evaluation(document["base_evaluation"])
     _validate_sensitivity(
         document["sensitivity"],
