@@ -75,14 +75,14 @@
 
 - [x] Preserve and dispose R01–R14 in a clean review ledger bound to the raw review SHA-256.
 - [x] Add bounded Related Work and seven vetted domain references, for 15 references total.
-- [ ] Publish and strictly validate the hash-bound PPO training-provenance YAML.
-- [ ] Reclassify the training-objective score as diagnostic and enforce the three primary outcomes.
-- [ ] Preserve byte-identical frozen benchmark and PPO actor trust anchors.
-- [ ] Generate and verify the ten-seed untouched confirmatory evidence.
-- [ ] Generate and verify all 24 one-factor ±25% sensitivity variants.
-- [ ] Compare the trailing-mean forecast with one-hour persistence using MAE and RMSE.
-- [ ] Apply R01–R14 language, precision, and claim boundaries across UI, report, and deck.
-- [ ] Rebuild and visually inspect every report page and all 13 slides.
-- [ ] Package the YAML and robustness evidence in wheel and PyInstaller distributions.
-- [ ] Pass full tests, Ruff, CUDA doctor, evidence reproduction, package smoke, and release audit.
-- [ ] Remove `point.md` only after all remediation evidence is complete and verified.
+- [x] Publish and strictly validate the hash-bound PPO training-provenance YAML.
+- [x] Reclassify the training-objective score as diagnostic and enforce the three primary outcomes.
+- [x] Preserve byte-identical frozen benchmark and PPO actor trust anchors.
+- [x] Generate and verify the ten-seed untouched confirmatory evidence.
+- [x] Generate and verify all 24 one-factor ±25% sensitivity variants.
+- [x] Compare the trailing-mean forecast with one-hour persistence using MAE and RMSE.
+- [x] Apply R01–R14 language, precision, and claim boundaries across UI, report, and deck.
+- [x] Rebuild and visually inspect every report page and all 13 slides.
+- [x] Package the YAML and robustness evidence in wheel and PyInstaller distributions.
+- [x] Pass full tests, Ruff, CUDA doctor, evidence reproduction, package smoke, and release audit.
+- [x] Remove `point.md` only after all remediation evidence is complete and verified.
