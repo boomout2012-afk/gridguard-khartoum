@@ -36,6 +36,7 @@ from tools.export_ppo_policy import (
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 BUNDLED_MANIFEST_PATH = REPOSITORY_ROOT / "data" / "model" / "manifest.json"
+BUNDLED_TRAINING_PROVENANCE_PATH = REPOSITORY_ROOT / "data" / "model" / "training-provenance.yaml"
 ARCHIVED_MODELS_PATH = "src/aipower_rl/models.py"
 ARCHIVED_MODELS_SHA256 = "6fedcc55675a72aff048a3b1a9a98c86a87962427031c6a4450239fdccbbde03"
 SOURCE_REVISION = "52f6dd82605c993c8094448caecec86faa289c0c"
@@ -296,9 +297,49 @@ def test_artifact_writer_is_byte_reproducible(tmp_path: Path) -> None:
 def test_bundled_manifest_hash_matches_committed_actor() -> None:
     manifest = json.loads(BUNDLED_MANIFEST_PATH.read_text(encoding="utf-8"))
     artifact = BUNDLED_MANIFEST_PATH.parent / manifest["artifact"]["filename"]
+    training_provenance = BUNDLED_MANIFEST_PATH.parent / manifest["training_provenance"]["filename"]
 
+    assert training_provenance == BUNDLED_TRAINING_PROVENANCE_PATH
     assert hashlib.sha256(artifact.read_bytes()).hexdigest() == manifest["artifact"]["sha256"]
     assert artifact.stat().st_size == manifest["artifact"]["size_bytes"]
+    assert manifest["schema_version"] == 2
+    assert manifest["training_provenance"]["schema"] == ("gridguard.ppo_training_provenance")
+    assert (
+        hashlib.sha256(training_provenance.read_bytes()).hexdigest()
+        == (manifest["training_provenance"]["sha256"])
+    )
+    assert training_provenance.stat().st_size == manifest["training_provenance"]["size_bytes"]
+
+
+def test_host_verifier_rejects_tampered_training_provenance_bytes(tmp_path: Path) -> None:
+    manifest_path, digest = _write_synthetic_artifact(tmp_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    provenance_path = manifest_path.parent / manifest["training_provenance"]["filename"]
+    tampered = bytearray(provenance_path.read_bytes())
+    tampered[len(tampered) // 2] ^= 0x01
+    provenance_path.write_bytes(tampered)
+
+    with pytest.raises(PolicyArtifactError, match="training provenance SHA-256"):
+        verify_ppo_artifact(manifest_path, expected_artifact_sha256=digest)
+
+
+def test_runtime_verifier_hashes_training_provenance_without_importing_yaml(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest_path, digest = _write_synthetic_artifact(tmp_path)
+    original_import = __import__
+
+    def guarded_import(name: str, *args: object, **kwargs: object) -> object:
+        if name == "yaml" or name.startswith("yaml."):
+            raise AssertionError("runtime policy verification must not import PyYAML")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr("builtins.__import__", guarded_import)
+
+    verified = verify_ppo_artifact(manifest_path, expected_artifact_sha256=digest)
+
+    assert verified.artifact_sha256 == digest
 
 
 @pytest.mark.source_archive

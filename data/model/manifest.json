@@ -14,7 +14,7 @@
     "size_bytes": 5160058
   },
   "schema": "gridguard.ppo_actor",
-  "schema_version": 1,
+  "schema_version": 2,
   "source": {
     "checkpoint_path": "artifacts/checkpoints/best.pt",
     "checkpoint_sha256": "c6e5712f966b46ba18f4c69fb457b9e69f78887c0c5c0279e5ce034f40f9c665",
@@ -60,5 +60,13 @@
         512
       ]
     }
+  },
+  "training_provenance": {
+    "filename": "training-provenance.yaml",
+    "format": "yaml",
+    "schema": "gridguard.ppo_training_provenance",
+    "schema_version": 1,
+    "sha256": "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a",
+    "size_bytes": 14926
   }
 }

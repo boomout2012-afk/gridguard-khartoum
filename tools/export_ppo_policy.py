@@ -27,12 +27,19 @@ from gridguard.policy import (
     SOURCE_CHECKPOINT_PATH,
     SOURCE_CHECKPOINT_SHA256,
     SOURCE_REVISION,
+    TRAINING_PROVENANCE_FILENAME,
+    TRAINING_PROVENANCE_FORMAT,
+    TRAINING_PROVENANCE_SCHEMA,
+    TRAINING_PROVENANCE_SCHEMA_VERSION,
 )
 from gridguard.provenance import sha256_file
 
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 _FIXED_ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
+_DEFAULT_TRAINING_PROVENANCE_PATH = (
+    Path(__file__).resolve().parents[1] / "data" / "model" / TRAINING_PROVENANCE_FILENAME
+)
 
 
 class PolicyExportError(RuntimeError):
@@ -108,6 +115,7 @@ def write_ppo_artifact(
     source_checkpoint_sha256: str,
     source_checkpoint_path: str,
     source_revision: str,
+    training_provenance_path: str | Path | None = None,
     validate_shapes: bool = True,
 ) -> ExportedArtifact:
     """Serialize validated actor tensors with deterministic bytes and a strict manifest."""
@@ -144,6 +152,29 @@ def write_ppo_artifact(
 
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
+    provenance_source = (
+        Path(training_provenance_path)
+        if training_provenance_path is not None
+        else _DEFAULT_TRAINING_PROVENANCE_PATH
+    )
+    try:
+        provenance_bytes = provenance_source.read_bytes()
+    except OSError as error:
+        raise PolicyExportError(f"PPO training provenance cannot be read: {error}") from error
+    provenance_destination = destination / TRAINING_PROVENANCE_FILENAME
+    if provenance_source.resolve() != provenance_destination.resolve():
+        temporary_provenance = destination / f".{TRAINING_PROVENANCE_FILENAME}.tmp"
+        try:
+            temporary_provenance.write_bytes(provenance_bytes)
+            temporary_provenance.replace(provenance_destination)
+        except OSError as error:
+            temporary_provenance.unlink(missing_ok=True)
+            raise PolicyExportError(
+                f"PPO training provenance could not be copied: {error}"
+            ) from error
+    provenance_sha256 = sha256_file(provenance_destination)
+    provenance_size_bytes = provenance_destination.stat().st_size
+
     artifact_path = destination / MODEL_ARTIFACT_FILENAME
     temporary_artifact = destination / f".{MODEL_ARTIFACT_FILENAME}.tmp"
     try:
@@ -179,6 +210,14 @@ def write_ppo_artifact(
             "checkpoint_path": source_checkpoint_path,
             "checkpoint_sha256": source_checkpoint_sha256,
             "source_revision": source_revision,
+        },
+        "training_provenance": {
+            "filename": TRAINING_PROVENANCE_FILENAME,
+            "format": TRAINING_PROVENANCE_FORMAT,
+            "schema": TRAINING_PROVENANCE_SCHEMA,
+            "schema_version": TRAINING_PROVENANCE_SCHEMA_VERSION,
+            "sha256": provenance_sha256,
+            "size_bytes": provenance_size_bytes,
         },
         "tensors": {
             name: {"dtype": "float32", "shape": list(array.shape)}

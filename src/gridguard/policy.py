@@ -22,9 +22,13 @@ ACTION_LEVELS: Final = 3
 ACTION_COUNT: Final = ACTION_LEVELS**LOCALITY_COUNT
 
 MODEL_SCHEMA: Final = "gridguard.ppo_actor"
-MODEL_SCHEMA_VERSION: Final = 1
+MODEL_SCHEMA_VERSION: Final = 2
 MODEL_ARTIFACT_FILENAME: Final = "ppo-policy.npz"
 MODEL_MANIFEST_FILENAME: Final = "manifest.json"
+TRAINING_PROVENANCE_FILENAME: Final = "training-provenance.yaml"
+TRAINING_PROVENANCE_FORMAT: Final = "yaml"
+TRAINING_PROVENANCE_SCHEMA: Final = "gridguard.ppo_training_provenance"
+TRAINING_PROVENANCE_SCHEMA_VERSION: Final = 1
 SOURCE_CHECKPOINT_SHA256: Final = "c6e5712f966b46ba18f4c69fb457b9e69f78887c0c5c0279e5ce034f40f9c665"
 SOURCE_CHECKPOINT_PATH: Final = "artifacts/checkpoints/best.pt"
 SOURCE_REVISION: Final = "52f6dd82605c993c8094448caecec86faa289c0c"
@@ -43,9 +47,20 @@ BUNDLED_ARTIFACT_SHA256: Final = "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 _TOP_LEVEL_FIELDS = frozenset(
-    {"schema", "schema_version", "artifact", "architecture", "source", "tensors"}
+    {
+        "schema",
+        "schema_version",
+        "artifact",
+        "architecture",
+        "source",
+        "tensors",
+        "training_provenance",
+    }
 )
 _ARTIFACT_FIELDS = frozenset({"filename", "format", "sha256", "size_bytes"})
+_TRAINING_PROVENANCE_FIELDS = frozenset(
+    {"filename", "format", "schema", "schema_version", "sha256", "size_bytes"}
+)
 _ARCHITECTURE_FIELDS = frozenset(
     {
         "observation_dim",
@@ -210,6 +225,30 @@ def verify_ppo_artifact(
     resolved_manifest_path = Path(manifest_path)
     manifest = _read_and_validate_manifest(resolved_manifest_path)
     artifact_metadata = _require_mapping(manifest["artifact"], field="artifact")
+    training_metadata = _require_mapping(
+        manifest["training_provenance"],
+        field="training_provenance",
+    )
+    training_path = resolved_manifest_path.parent / training_metadata["filename"]
+    try:
+        training_size_bytes = training_path.stat().st_size
+    except OSError as error:
+        raise PolicyArtifactError(f"PPO training provenance is unavailable: {error}") from error
+    if training_size_bytes != training_metadata["size_bytes"]:
+        raise PolicyArtifactError(
+            "training provenance size mismatch: "
+            f"expected {training_metadata['size_bytes']}, found {training_size_bytes}"
+        )
+    try:
+        training_hash = sha256_file(training_path)
+    except OSError as error:
+        raise PolicyArtifactError(f"PPO training provenance cannot be hashed: {error}") from error
+    if training_hash != training_metadata["sha256"]:
+        raise PolicyArtifactError(
+            "training provenance SHA-256 mismatch: "
+            f"expected {training_metadata['sha256']}, found {training_hash}"
+        )
+
     declared_hash = artifact_metadata["sha256"]
     if declared_hash != expected_artifact_sha256:
         raise PolicyArtifactError("actor SHA-256 trust anchor does not match the artifact manifest")
@@ -281,6 +320,30 @@ def _read_and_validate_manifest(path: Path) -> dict[str, Any]:
         raise PolicyArtifactError("artifact.sha256 must be a lowercase SHA-256 digest")
     if type(artifact["size_bytes"]) is not int or artifact["size_bytes"] <= 0:
         raise PolicyArtifactError("artifact.size_bytes must be a positive integer")
+
+    training_provenance = _require_mapping(
+        manifest["training_provenance"],
+        field="training_provenance",
+    )
+    _require_exact_fields(
+        training_provenance,
+        expected=_TRAINING_PROVENANCE_FIELDS,
+        field="training_provenance",
+    )
+    if (
+        training_provenance["filename"] != TRAINING_PROVENANCE_FILENAME
+        or training_provenance["format"] != TRAINING_PROVENANCE_FORMAT
+        or training_provenance["schema"] != TRAINING_PROVENANCE_SCHEMA
+        or type(training_provenance["schema_version"]) is not int
+        or training_provenance["schema_version"] != TRAINING_PROVENANCE_SCHEMA_VERSION
+    ):
+        raise PolicyArtifactError("unsupported PPO training provenance format")
+    if not isinstance(training_provenance["sha256"], str) or not _SHA256_PATTERN.fullmatch(
+        training_provenance["sha256"]
+    ):
+        raise PolicyArtifactError("training_provenance.sha256 must be a lowercase SHA-256 digest")
+    if type(training_provenance["size_bytes"]) is not int or training_provenance["size_bytes"] <= 0:
+        raise PolicyArtifactError("training_provenance.size_bytes must be a positive integer")
 
     architecture = _require_mapping(manifest["architecture"], field="architecture")
     _require_exact_fields(
