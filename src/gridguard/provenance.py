@@ -23,7 +23,7 @@ _LINEAGE_FIELDS = {
     "sha256",
 }
 
-PROJECT_SOURCE_MANIFEST_SHA256 = "cc06df2492512d1c4de9c73051311f3401d5ddf90eb2563f2f440e53f26194c9"
+PROJECT_SOURCE_MANIFEST_SHA256 = "7f0a865686de7ff4f7264ff9211fb60ad226abad9445573ab72615172b963fa4"
 PROJECT_SOURCE_ARTIFACT_IDS = frozenset(
     {
         "accepted-proposal",
@@ -31,6 +31,9 @@ PROJECT_SOURCE_ARTIFACT_IDS = frozenset(
         "paired-proposal-benchmark",
         "ppo-inference-artifact",
         "ppo-inference-manifest",
+        "ppo-training-provenance",
+        "robustness-supplement",
+        "robustness-trust-anchor-source",
     }
 )
 PROJECT_SOURCE_LINEAGE_IDS = frozenset(
@@ -44,6 +47,12 @@ PROJECT_SOURCE_LINEAGE_IDS = frozenset(
         "source-dispatch-and-reward",
         "source-policy-network",
         "source-evaluation",
+        "source-training-manifest",
+        "source-training-metrics",
+        "source-candidate-experiment-summary",
+        "source-training-orchestration",
+        "source-learning-algorithm",
+        "source-experiment-selection",
     }
 )
 

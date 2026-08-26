@@ -27,13 +27,31 @@
       "id": "ppo-inference-manifest",
       "kind": "model-manifest",
       "path": "data/model/manifest.json",
-      "sha256": "89ece396d8d5ef55d11f5f59ed946a593a37a6b4b10a08040cf80aa58ef20fe2"
+      "sha256": "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+    },
+    {
+      "id": "ppo-training-provenance",
+      "kind": "historical-training-provenance",
+      "path": "data/model/training-provenance.yaml",
+      "sha256": "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a"
     },
     {
       "id": "paired-proposal-benchmark",
       "kind": "paired-evaluation-evidence",
       "path": "data/evidence/paired-benchmark.json",
-      "sha256": "2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11"
+      "sha256": "6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677"
+    },
+    {
+      "id": "robustness-supplement",
+      "kind": "untouched-confirmatory-evidence",
+      "path": "data/evidence/robustness-supplement.json",
+      "sha256": "c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b"
+    },
+    {
+      "id": "robustness-trust-anchor-source",
+      "kind": "evidence-trust-anchor-source",
+      "path": "src/gridguard/robustness_provenance.py",
+      "sha256": "d84dc43b14178883cb621607e0e4eb466a6134b636c5f84d1f52168ce2cbc661"
     }
   ],
   "lineage": [
@@ -117,6 +135,60 @@
       "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
       "size_bytes": 9735,
       "sha256": "1d0aeef17ed84c3184731cc89c3a39c7f982981183c98047c92fb9c6ffd4cf68"
+    },
+    {
+      "id": "source-training-manifest",
+      "git_blob_sha256": "3b866b6f470e116ff009022032059a1f91b509fadc54dbff6c5962a8f2236a59",
+      "git_blob_size_bytes": 2162,
+      "source_path": "artifacts/training_manifest.json",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 2162,
+      "sha256": "3b866b6f470e116ff009022032059a1f91b509fadc54dbff6c5962a8f2236a59"
+    },
+    {
+      "id": "source-training-metrics",
+      "git_blob_sha256": "f48d2f6da29682e1c47330aa2b33b6bb4941f4e0e248f2c846436f09a4b89bc4",
+      "git_blob_size_bytes": 345611,
+      "source_path": "artifacts/training_metrics.jsonl",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 345611,
+      "sha256": "f48d2f6da29682e1c47330aa2b33b6bb4941f4e0e248f2c846436f09a4b89bc4"
+    },
+    {
+      "id": "source-candidate-experiment-summary",
+      "git_blob_sha256": "619eb67aa253a35d7a7dc0efdbc6c743d7b0af6db4687575e7fade9dbcfe940b",
+      "git_blob_size_bytes": 14677,
+      "source_path": "experiments/s2-600-hidden512.json",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 14677,
+      "sha256": "619eb67aa253a35d7a7dc0efdbc6c743d7b0af6db4687575e7fade9dbcfe940b"
+    },
+    {
+      "id": "source-training-orchestration",
+      "git_blob_sha256": "886931d6c12b0ef45f4f17b89d134e27682c68a2dc4c2f90e2911e2dfec708fb",
+      "git_blob_size_bytes": 21930,
+      "source_path": "src/aipower_rl/training.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 21930,
+      "sha256": "886931d6c12b0ef45f4f17b89d134e27682c68a2dc4c2f90e2911e2dfec708fb"
+    },
+    {
+      "id": "source-learning-algorithm",
+      "git_blob_sha256": "18cf22b0b58584b2abef164ec3ea956fa2f61197336a67a7b9c1f4faefc4fac2",
+      "git_blob_size_bytes": 15802,
+      "source_path": "src/aipower_rl/learning.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 15802,
+      "sha256": "18cf22b0b58584b2abef164ec3ea956fa2f61197336a67a7b9c1f4faefc4fac2"
+    },
+    {
+      "id": "source-experiment-selection",
+      "git_blob_sha256": "605e32626caece41508f37cbfac0cb061f7510118ba463cf3ff5843f92a9d753",
+      "git_blob_size_bytes": 14158,
+      "source_path": "src/aipower_rl/experiments.py",
+      "source_revision": "52f6dd82605c993c8094448caecec86faa289c0c",
+      "size_bytes": 14158,
+      "sha256": "605e32626caece41508f37cbfac0cb061f7510118ba463cf3ff5843f92a9d753"
     }
   ]
 }

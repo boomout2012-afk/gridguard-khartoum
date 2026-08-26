@@ -21,7 +21,10 @@ def test_repository_source_manifest_verifies_committed_artifacts() -> None:
         "frozen-proposal-benchmark",
         "ppo-inference-artifact",
         "ppo-inference-manifest",
+        "ppo-training-provenance",
         "paired-proposal-benchmark",
+        "robustness-supplement",
+        "robustness-trust-anchor-source",
     ]
 
 
@@ -57,6 +60,11 @@ def test_ppo_manifest_is_bound_to_source_lineage_and_exported_artifact() -> None
         model_manifest["source"]["source_revision"]
         == lineage["source-ppo-checkpoint"]["source_revision"]
     )
+    training_binding = model_manifest["training_provenance"]
+    assert artifacts["ppo-training-provenance"]["path"] == ("data/model/training-provenance.yaml")
+    assert training_binding["filename"] == "training-provenance.yaml"
+    assert training_binding["sha256"] == artifacts["ppo-training-provenance"]["sha256"]
+    assert training_binding["size_bytes"] == 14_926
 
 
 def test_source_manifest_covers_every_migrated_behavior_dependency() -> None:
@@ -64,16 +72,22 @@ def test_source_manifest_covers_every_migrated_behavior_dependency() -> None:
         (ROOT / "data" / "evidence" / "source-manifest.json").read_text(encoding="utf-8")
     )
 
-    assert {item["id"] for item in source_manifest["lineage"]} == {
-        "source-benchmark",
-        "source-ppo-checkpoint",
-        "source-simulation-config",
-        "source-controllers",
-        "source-scenarios",
-        "source-simulator",
-        "source-dispatch-and-reward",
-        "source-policy-network",
-        "source-evaluation",
+    assert {item["id"]: item["source_path"] for item in source_manifest["lineage"]} == {
+        "source-benchmark": "artifacts/benchmark.json",
+        "source-ppo-checkpoint": "artifacts/checkpoints/best.pt",
+        "source-simulation-config": "src/aipower_rl/config.py",
+        "source-controllers": "src/aipower_rl/controllers.py",
+        "source-scenarios": "src/aipower_rl/scenarios.py",
+        "source-simulator": "src/aipower_rl/simulator.py",
+        "source-dispatch-and-reward": "src/aipower_rl/dynamics.py",
+        "source-policy-network": "src/aipower_rl/models.py",
+        "source-evaluation": "src/aipower_rl/evaluation.py",
+        "source-training-manifest": "artifacts/training_manifest.json",
+        "source-training-metrics": "artifacts/training_metrics.jsonl",
+        "source-candidate-experiment-summary": "experiments/s2-600-hidden512.json",
+        "source-training-orchestration": "src/aipower_rl/training.py",
+        "source-learning-algorithm": "src/aipower_rl/learning.py",
+        "source-experiment-selection": "src/aipower_rl/experiments.py",
     }
     assert {item["source_revision"] for item in source_manifest["lineage"]} == {
         "52f6dd82605c993c8094448caecec86faa289c0c"

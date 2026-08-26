@@ -6,7 +6,43 @@ from pathlib import Path
 
 import pytest
 
-from gridguard.provenance import ProvenanceError, sha256_file, verify_source_manifest
+from gridguard.provenance import (
+    PROJECT_SOURCE_ARTIFACT_IDS,
+    PROJECT_SOURCE_LINEAGE_IDS,
+    ProvenanceError,
+    sha256_file,
+    verify_source_manifest,
+)
+
+
+def test_project_trust_anchor_closes_review_provenance_identities() -> None:
+    assert {
+        "accepted-proposal",
+        "frozen-proposal-benchmark",
+        "paired-proposal-benchmark",
+        "ppo-inference-artifact",
+        "ppo-inference-manifest",
+        "ppo-training-provenance",
+        "robustness-supplement",
+        "robustness-trust-anchor-source",
+    } == PROJECT_SOURCE_ARTIFACT_IDS
+    assert {
+        "source-benchmark",
+        "source-ppo-checkpoint",
+        "source-simulation-config",
+        "source-controllers",
+        "source-scenarios",
+        "source-simulator",
+        "source-dispatch-and-reward",
+        "source-policy-network",
+        "source-evaluation",
+        "source-training-manifest",
+        "source-training-metrics",
+        "source-candidate-experiment-summary",
+        "source-training-orchestration",
+        "source-learning-algorithm",
+        "source-experiment-selection",
+    } == PROJECT_SOURCE_LINEAGE_IDS
 
 
 def _write_manifest(path: Path, *, artifact_path: str, digest: str) -> None:
