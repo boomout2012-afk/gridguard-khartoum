@@ -69,7 +69,8 @@
 - [x] Freeze the final provenance manifest after all documents are stable.
 - [x] Review tracked files and secrets; confirm the intended release tree is clean.
 - [x] Create reviewed release commits from sanitized history.
-- [x] Publish the approved private GitHub repository; no PR is required for the initial main release.
+- [ ] Publish the current reviewed private branch and verify its remote SHA; the adversarial audit
+  found that the local feature branch had no upstream.
 
 ## Phase 5 - Review remediation
 
@@ -78,7 +79,8 @@
 - [x] Publish and strictly validate the hash-bound PPO training-provenance YAML.
 - [x] Reclassify the training-objective score as diagnostic and enforce the three primary outcomes.
 - [x] Preserve byte-identical frozen benchmark and PPO actor trust anchors.
-- [x] Generate and verify the ten-seed untouched confirmatory evidence.
+- [x] Generate and verify the ten-seed seed-disjoint supplemental evidence; Phase 6 corrects the
+  overstrong historical `untouched confirmatory` label.
 - [x] Generate and verify all 24 one-factor ±25% sensitivity variants.
 - [x] Compare the trailing-mean forecast with one-hour persistence using MAE and RMSE.
 - [x] Apply R01–R14 language, precision, and claim boundaries across UI, report, and deck.
@@ -86,3 +88,57 @@
 - [x] Package the YAML and robustness evidence in wheel and PyInstaller distributions.
 - [x] Pass full tests, Ruff, CUDA doctor, evidence reproduction, package smoke, and release audit.
 - [x] Remove `point.md` only after all remediation evidence is complete and verified.
+
+## Phase 6 - Adversarial hardening and concrete 1.2.0 release
+
+### Contract and hermetic gates
+
+- [ ] Record A01-A24 in a tracked audit ledger with owner, disposition, and closure evidence.
+- [ ] Set 1.2.0 consistently in specification, package metadata, changelog, and release paths.
+- [ ] Link the strict training-parameter YAML directly from README, report, and packaged reviewer assets.
+- [ ] Pin the build backend and prove the wheel smoke with no index, no sync, and no network.
+- [ ] Split portable tests from strict post-build `release_artifact` tests; require zero skips in both.
+- [ ] Remove the sibling research archive as a required release-build or runtime input.
+
+### Scientific assurance
+
+- [ ] Add CUDA mutation guards around matched controller evaluation.
+- [ ] Add and validate a unique canonical scenario SHA-256 on every paired row.
+- [ ] Hold the base available-supply trace exactly fixed for every demand-allocation sensitivity.
+- [ ] Persist strict per-draw robustness inputs and reconstruct every reported bootstrap endpoint.
+- [ ] Rename the holdout to documented-seed-disjoint and state its custody limitations.
+- [ ] Label all sensitivity intervals pointwise, descriptive, and unadjusted for multiplicity.
+- [ ] State that no behavior-cloning-only ablation isolates PPO fine-tuning's incremental effect.
+- [ ] Reproduce paired and robustness evidence twice on CUDA and require byte-identical outputs.
+- [ ] Confirm frozen benchmark, paired values, robustness base values, forecast values, counts, seeds,
+  and zero balance violations remain unchanged; review sensitivity-only changes without a direction gate.
+
+### Claims, UI, report, and deck
+
+- [ ] Put the supply-blind, Off/Full-only, no-Critical-Only Fixed Rotation limitation beside Results.
+- [ ] Split `PresentationWindow` and `LiveScenarioPage` into tested focused components.
+- [ ] Re-run keyboard, accessibility, live/frozen separation, and 1366x768 visual tests.
+- [ ] Correct reference [14], robustness/UI module maps, and bundled provenance-source documentation.
+- [ ] Use Mild, Moderate, and Severe consistently on slide 4.
+- [ ] Bound slide 13 and its notes explicitly to the weak Fixed Rotation comparator.
+- [ ] Apply seed-disjoint, interval, attribution, and synthetic-only wording across every claim surface.
+
+### Windows release and provenance
+
+- [ ] Safely remove only known stale 1.0.0/generated outputs and emit current 1.2.0 artifacts only.
+- [ ] Replace ambient smoke/offscreen control with an explicit private argument and validated output path.
+- [ ] Remove byte-identical CUDA DLL duplicates after PyInstaller analysis.
+- [ ] Keep the final package at or below 5,100,000,000 bytes and prove all GPU smoke paths still work.
+- [ ] Generate a fresh machine validation report from actual commands, JUnit totals, hashes, and counts.
+- [ ] Render and inspect every final report page, slide, note source, and screenshot.
+- [ ] Bind a complete visual-review attestation to the final PDF/PPTX hashes.
+- [ ] Rebuild the release manifest from validation evidence; disclose the unsigned Git-anchor trust model.
+
+### Final proof and publication
+
+- [ ] Pass locked sync, Ruff check/format, full pytest, release-artifact pytest, CUDA doctor,
+  evidence reconstruction, two reproductions, packaged smoke, and manifest verification with zero skips.
+- [ ] Confirm the release tree contains no stale version, duplicate CUDA DLL, cache, secret, or unknown file.
+- [ ] Freeze the manifest last, create reviewed atomic commits, and finish with a clean worktree.
+- [ ] Push `feature/review-remediation`, set its upstream, and verify the remote SHA equals local `HEAD`.
+- [ ] Update this checklist to complete only after every closure artifact and remote proof exists.
