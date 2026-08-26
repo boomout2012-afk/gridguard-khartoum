@@ -1,12 +1,6 @@
-param(
-    [string]$OutputPath = ""
-)
+param([string]$OutputPath = "")
 
 $ErrorActionPreference = "Stop"
-
-# Native PowerPoint automation preserves editable text, shapes, speaker notes, and slide
-# structure while also exporting deterministic review images for every slide.
-
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = Join-Path $projectRoot "output\presentation\gridguard-khartoum-defense.pptx"
@@ -16,47 +10,183 @@ $renderDirectory = Join-Path $projectRoot "tmp\presentation\rendered"
 $overviewImage = Join-Path $projectRoot "docs\assets\screenshots\overview.png"
 $liveImage = Join-Path $projectRoot "docs\assets\screenshots\live.png"
 $pairedEvidencePath = Join-Path $projectRoot "data\evidence\paired-benchmark.json"
-$expectedEvidenceSha256 = "2c3e71e48c4c7bff4fe609d42a76ca4f770f6dd717cd7d45d5e8e0d99fdf2d11"
+$robustnessEvidencePath = Join-Path $projectRoot "data\evidence\robustness-supplement.json"
+$trainingProvenancePath = Join-Path $projectRoot "data\model\training-provenance.yaml"
+$modelManifestPath = Join-Path $projectRoot "data\model\manifest.json"
+$trainingToolPath = Join-Path $projectRoot "tools\training_provenance.py"
+$expectedPairedSha256 = "6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677"
+$expectedRobustnessSha256 = "c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b"
+$expectedTrainingSha256 = "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a"
 
-foreach ($requiredPath in @($overviewImage, $liveImage, $pairedEvidencePath)) {
-    if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
-        throw "Missing presentation image: $requiredPath"
+foreach ($path in @(
+        $overviewImage,
+        $liveImage,
+        $pairedEvidencePath,
+        $robustnessEvidencePath,
+        $trainingProvenancePath,
+        $modelManifestPath,
+        $trainingToolPath
+    )) {
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "Missing presentation input: $path"
     }
 }
 
-$actualEvidenceSha256 = (Get-FileHash -LiteralPath $pairedEvidencePath -Algorithm SHA256).Hash.ToLowerInvariant()
-if ($actualEvidenceSha256 -cne $expectedEvidenceSha256) {
-    throw "Paired evidence SHA-256 mismatch: expected $expectedEvidenceSha256, got $actualEvidenceSha256"
-}
-$evidence = [System.IO.File]::ReadAllText($pairedEvidencePath) | ConvertFrom-Json
-if ($evidence.schema_version -ne 1) {
-    throw "Unsupported paired evidence schema version: $($evidence.schema_version)"
-}
-if ((@($evidence.protocol.controllers) | Sort-Object) -join "|" -cne "Fixed Rotation|PPO") {
-    throw "Paired evidence must contain exactly PPO and Fixed Rotation"
+function Assert-FileHash {
+    param([string]$Path, [string]$Expected, [string]$Label)
+
+    $actual = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -cne $Expected) {
+        throw "$Label SHA-256 mismatch: expected $Expected, got $actual"
+    }
 }
 
-New-Item -ItemType Directory -Force -Path (Split-Path -Parent $OutputPath) | Out-Null
-New-Item -ItemType Directory -Force -Path $renderDirectory | Out-Null
+Assert-FileHash $pairedEvidencePath $expectedPairedSha256 "Accepted paired evidence"
+Assert-FileHash $robustnessEvidencePath $expectedRobustnessSha256 "Robustness supplement"
+Assert-FileHash $trainingProvenancePath $expectedTrainingSha256 "Training provenance"
+
+$pairedEvidence = [System.IO.File]::ReadAllText($pairedEvidencePath) | ConvertFrom-Json
+$robustnessEvidence = [System.IO.File]::ReadAllText($robustnessEvidencePath) | ConvertFrom-Json
+if ($pairedEvidence.schema_version -ne 2 -or $pairedEvidence.evidence_role -cne "accepted_reproduction") {
+    throw "Paired evidence must remain schema version 2 accepted reproduction context"
+}
+if (
+    $robustnessEvidence.schema.name -cne "gridguard.robustness_supplement" -or
+    $robustnessEvidence.schema.version -ne 1 -or
+    $robustnessEvidence.evidence_role -cne "untouched_confirmatory" -or
+    $robustnessEvidence.provenance.artifact_id -cne "gridguard-robustness-supplement-v1"
+) {
+    throw "Robustness supplement identity does not match the reviewed contract"
+}
+foreach ($controllers in @($pairedEvidence.protocol.controllers, $robustnessEvidence.protocol.controllers)) {
+    if ((@($controllers) | Sort-Object) -join "|" -cne "Fixed Rotation|PPO") {
+        throw "Evidence must contain exactly Fixed Rotation and PPO"
+    }
+}
+
+$primaryMetricKeys = @("critical_outage_locality_hours", "fairness", "utilization")
+$baseMetricKeys = @(
+    $robustnessEvidence.base_evaluation.paired_inference.PSObject.Properties.Name |
+        Sort-Object
+)
+if (($baseMetricKeys -join "|") -cne (($primaryMetricKeys | Sort-Object) -join "|")) {
+    throw "Untouched evidence must contain exactly the three primary outcomes"
+}
+foreach ($metricKey in $primaryMetricKeys) {
+    if (
+        $robustnessEvidence.metric_definitions.$metricKey.role -cne "primary" -or
+        $pairedEvidence.metric_definitions.$metricKey.role -cne "primary"
+    ) {
+        throw "$metricKey must remain primary"
+    }
+}
+if (
+    $pairedEvidence.metric_definitions.episode_reward.role -cne "diagnostic" -or
+    $pairedEvidence.metric_definitions.episode_reward.label -cne "Training-objective score (diagnostic)"
+) {
+    throw "Episode reward must remain a training-objective diagnostic"
+}
+
+$trainingArguments = @(
+    "run", "--project", $projectRoot, "--extra", "docs", "python", $trainingToolPath,
+    "--path", $trainingProvenancePath, "--model-manifest", $modelManifestPath, "--summary-json"
+)
+$trainingOutput = & uv @trainingArguments
+if ($LASTEXITCODE -ne 0) {
+    throw "Strict training provenance validation failed with exit code $LASTEXITCODE"
+}
+$trainingSummary = ($trainingOutput -join [Environment]::NewLine) | ConvertFrom-Json
+if (
+    $trainingSummary.controller -cne "PPO" -or
+    $trainingSummary.training_provenance.sha256 -cne $expectedTrainingSha256
+) {
+    throw "Training summary does not bind the expected PPO provenance"
+}
+
+$robustnessProtocol = $robustnessEvidence.protocol
+$baseDrawCount = [int]$robustnessProtocol.independent_base_draw_count
+$shortageCount = @($robustnessProtocol.shortage_levels).Count
+$matchedScenarioCount = [int]$robustnessProtocol.matched_scenario_count
+$controllerEvaluationCount = [int]$robustnessProtocol.controller_evaluation_count
+$controllerCount = @($robustnessProtocol.controllers).Count
+$sensitivityParameterizationCount = [int]$robustnessProtocol.sensitivity_parameterization_count
+$sensitivityVariants = @($robustnessEvidence.sensitivity.variants)
+if (
+    $baseDrawCount -ne 320 -or
+    $shortageCount -ne 3 -or
+    $matchedScenarioCount -ne 960 -or
+    $controllerEvaluationCount -ne 1920 -or
+    $baseDrawCount * $shortageCount -ne $matchedScenarioCount -or
+    $matchedScenarioCount * $controllerCount -ne $controllerEvaluationCount
+) {
+    throw "Robustness protocol no longer matches the locked 320/960/1920 design"
+}
+if ($sensitivityParameterizationCount -ne 25 -or $sensitivityVariants.Count -ne 24) {
+    throw "Sensitivity design must contain one base plus 24 variants"
+}
+if (
+    [int]$pairedEvidence.protocol.independent_base_draw_count -ne 96 -or
+    [int]$pairedEvidence.protocol.matched_scenario_count -ne 288 -or
+    [int]$pairedEvidence.protocol.controller_evaluation_count -ne 576
+) {
+    throw "Accepted reproduction no longer matches the 96/288/576 context"
+}
+$seedOverlap = @(
+    @($pairedEvidence.protocol.seeds) |
+        Where-Object { @($robustnessProtocol.seeds) -contains $_ }
+)
+if ($seedOverlap.Count -ne 0) {
+    throw "Accepted and untouched evaluation seeds must remain disjoint"
+}
+
+$robustnessBase = $robustnessEvidence.base_evaluation
+$fixed = $robustnessBase.controller_means.'Fixed Rotation'
+$ppo = $robustnessBase.controller_means.PPO
+$inference = $robustnessBase.paired_inference
+$powerBalanceRate = [double]$robustnessBase.power_balance.maximum_violation_rate
+$acceptedFixed = $pairedEvidence.aggregate.'Fixed Rotation'
+$acceptedPpo = $pairedEvidence.aggregate.PPO
+$acceptedInference = $pairedEvidence.paired_inference
+$forecast = $robustnessEvidence.forecast_evaluation
+$persistence = $forecast.methods.persistence_1h.pooled
+$trailingMean = $forecast.methods.trailing_mean_3h.pooled
+
+function Count-SensitivityClass {
+    param([string]$Metric, [string]$Classification, [string]$Layer = "paired_inference")
+
+    return @(
+        $sensitivityVariants |
+            Where-Object { $_.$Layer.$Metric.result_classification -ceq $Classification }
+    ).Count
+}
+
+$sensitivityFavorable = @{}
+foreach ($metricKey in $primaryMetricKeys) {
+    $sensitivityFavorable[$metricKey] = Count-SensitivityClass $metricKey "favorable"
+}
+$outageDidAdverse = Count-SensitivityClass "critical_outage_locality_hours" "adverse" "difference_in_differences"
+$outageDidFavorable = Count-SensitivityClass "critical_outage_locality_hours" "favorable" "difference_in_differences"
+$outageDidAmbiguous = Count-SensitivityClass "critical_outage_locality_hours" "ambiguous" "difference_in_differences"
 
 $script:SlideWidth = 960.0
 $script:SlideHeight = 540.0
 $script:Navy = "071923"
 $script:Slate = "102A3B"
+$script:SoftSlate = "1A394A"
 $script:Teal = "3FC6AC"
 $script:Gold = "E0B957"
 $script:OffWhite = "F3F0E8"
 $script:Ink = "13232E"
 $script:Muted = "83939D"
-$script:SoftSlate = "1A394A"
 $script:Grid = "365568"
+$script:Risk = "A15E40"
 
 function ConvertTo-Rgb {
-    param([Parameter(Mandatory = $true)][string]$Hex)
+    param([string]$Hex)
 
     $clean = $Hex.TrimStart("#")
     if ($clean.Length -ne 6) {
-        throw "Expected a six-digit hex color, got: $Hex"
+        throw "Expected a six-digit hex color"
     }
     $red = [Convert]::ToInt32($clean.Substring(0, 2), 16)
     $green = [Convert]::ToInt32($clean.Substring(2, 2), 16)
@@ -75,17 +205,9 @@ function Set-SlideBackground {
 
 function Add-Text {
     param(
-        $Slide,
-        [string]$Text,
-        [double]$Left,
-        [double]$Top,
-        [double]$Width,
-        [double]$Height,
-        [double]$FontSize,
-        [string]$Color,
-        [bool]$Bold = $false,
-        [int]$Alignment = 1,
-        [string]$FontName = "Aptos"
+        $Slide, [string]$Text, [double]$Left, [double]$Top, [double]$Width,
+        [double]$Height, [double]$FontSize, [string]$Color,
+        [bool]$Bold = $false, [int]$Alignment = 1, [string]$FontName = "Aptos"
     )
 
     $shape = $Slide.Shapes.AddTextbox(1, $Left, $Top, $Width, $Height)
@@ -103,8 +225,6 @@ function Add-Text {
     $shape.TextFrame.TextRange.Font.Bold = if ($Bold) { -1 } else { 0 }
     $shape.TextFrame.TextRange.Font.Color.RGB = ConvertTo-Rgb $Color
     $shape.TextFrame.TextRange.ParagraphFormat.Alignment = $Alignment
-    # PowerPoint may collapse a newly populated text box to its one-line default height.
-    # Restore the requested geometry after assigning the text and font properties.
     $shape.Width = $Width
     $shape.Height = $Height
     return $shape
@@ -112,14 +232,8 @@ function Add-Text {
 
 function Add-Box {
     param(
-        $Slide,
-        [double]$Left,
-        [double]$Top,
-        [double]$Width,
-        [double]$Height,
-        [string]$FillColor,
-        [string]$LineColor = "",
-        [int]$Geometry = 5,
+        $Slide, [double]$Left, [double]$Top, [double]$Width, [double]$Height,
+        [string]$FillColor, [string]$LineColor = "", [int]$Geometry = 5,
         [double]$Transparency = 0
     )
 
@@ -141,14 +255,8 @@ function Add-Box {
 
 function Add-Line {
     param(
-        $Slide,
-        [double]$X1,
-        [double]$Y1,
-        [double]$X2,
-        [double]$Y2,
-        [string]$Color,
-        [double]$Weight = 1.5,
-        [bool]$Arrow = $false
+        $Slide, [double]$X1, [double]$Y1, [double]$X2, [double]$Y2,
+        [string]$Color, [double]$Weight = 1.5, [bool]$Arrow = $false
     )
 
     $line = $Slide.Shapes.AddLine($X1, $Y1, $X2, $Y2)
@@ -162,13 +270,8 @@ function Add-Line {
 
 function Add-Picture {
     param(
-        $Slide,
-        [string]$Path,
-        [double]$Left,
-        [double]$Top,
-        [double]$Width,
-        [double]$Height,
-        [string]$AltText
+        $Slide, [string]$Path, [double]$Left, [double]$Top,
+        [double]$Width, [double]$Height, [string]$AltText
     )
 
     $picture = $Slide.Shapes.AddPicture($Path, 0, -1, $Left, $Top, $Width, $Height)
@@ -179,7 +282,6 @@ function Add-Picture {
 function Add-Chrome {
     param($Slide, [int]$Number, [bool]$Light = $false)
 
-    $foreground = if ($Light) { $script:Ink } else { $script:OffWhite }
     $muted = if ($Light) { "60727D" } else { $script:Muted }
     Add-Text $Slide "GRIDGUARD KHARTOUM" 48 18 300 22 16 $muted $true | Out-Null
     Add-Line $Slide 48 42 912 42 $(if ($Light) { "CFD8DC" } else { $script:Grid }) 0.8 | Out-Null
@@ -196,22 +298,27 @@ function Add-SlideTitle {
 
 function Add-BulletList {
     param(
-        $Slide,
-        [string[]]$Items,
-        [double]$Left,
-        [double]$Top,
-        [double]$Width,
-        [double]$FontSize = 20,
-        [string]$Color = "F3F0E8",
-        [double]$Gap = 50,
-        [string]$Accent = "E0B957"
+        $Slide, [string[]]$Items, [double]$Left, [double]$Top, [double]$Width,
+        [double]$FontSize = 20, [string]$Color = "F3F0E8",
+        [double]$Gap = 50, [string]$Accent = "E0B957"
     )
 
     for ($index = 0; $index -lt $Items.Count; $index++) {
         $itemTop = $Top + ($index * $Gap)
         Add-Line $Slide $Left ($itemTop + 12) ($Left + 16) ($itemTop + 12) $Accent 3 | Out-Null
-        Add-Text $Slide $Items[$index] ($Left + 28) $itemTop ($Width - 28) ($Gap - 4) $FontSize $Color | Out-Null
+        Add-Text $Slide $Items[$index] ($Left + 28) $itemTop ($Width - 28) ($Gap - 3) $FontSize $Color | Out-Null
     }
+}
+
+function New-Notes {
+    param([string]$Narrative, [string[]]$Sources)
+
+    $lines = @($Narrative, "", "[Sources]")
+    foreach ($source in $Sources) {
+        $lines += "- $source"
+    }
+    $lines += "[/Sources]"
+    return ($lines -join [Environment]::NewLine)
 }
 
 function Add-Notes {
@@ -221,11 +328,9 @@ function Add-Notes {
     $body = $null
     for ($index = 1; $index -le $notesPage.Shapes.Count; $index++) {
         $candidate = $notesPage.Shapes.Item($index)
-        if ($candidate.HasTextFrame -eq -1 -and $candidate.TextFrame.HasText -eq -1) {
-            if ($candidate.Name -match "Text Placeholder|Body") {
-                $body = $candidate
-                break
-            }
+        if ($candidate.HasTextFrame -eq -1 -and $candidate.Name -match "Text Placeholder|Body") {
+            $body = $candidate
+            break
         }
     }
     if ($null -eq $body) {
@@ -234,27 +339,54 @@ function Add-Notes {
     $body.TextFrame.TextRange.Text = $Notes
 }
 
-function Add-ComparisonBar {
-    param(
-        $Slide,
-        [string]$Label,
-        [double]$Top,
-        [double]$FixedFraction,
-        [double]$PpoFraction,
-        [string]$FixedLabel,
-        [string]$PpoLabel,
-        [bool]$Light = $false
-    )
+function Assert-PresentationLayout {
+    param($Presentation)
 
-    $textColor = if ($Light) { $script:Ink } else { $script:OffWhite }
-    $trackColor = if ($Light) { "DDE5E8" } else { $script:SoftSlate }
-    Add-Text $Slide $Label 70 $Top 190 26 18 $textColor $true | Out-Null
-    Add-Box $Slide 270 ($Top + 2) 500 12 $trackColor "" 1 | Out-Null
-    Add-Box $Slide 270 ($Top + 2) (500 * $FixedFraction) 12 "71838D" "" 1 | Out-Null
-    Add-Box $Slide 270 ($Top + 23) 500 12 $trackColor "" 1 | Out-Null
-    Add-Box $Slide 270 ($Top + 23) (500 * $PpoFraction) 12 $script:Teal "" 1 | Out-Null
-    Add-Text $Slide $FixedLabel 780 ($Top - 4) 120 22 16 $(if ($Light) { "60727D" } else { $script:Muted }) | Out-Null
-    Add-Text $Slide $PpoLabel 780 ($Top + 17) 120 22 16 $textColor $true | Out-Null
+    $tolerance = 1.0
+    for ($slideIndex = 1; $slideIndex -le $Presentation.Slides.Count; $slideIndex++) {
+        $slide = $Presentation.Slides.Item($slideIndex)
+        for ($shapeIndex = 1; $shapeIndex -le $slide.Shapes.Count; $shapeIndex++) {
+            $shape = $slide.Shapes.Item($shapeIndex)
+            $right = [double]$shape.Left + [double]$shape.Width
+            $bottom = [double]$shape.Top + [double]$shape.Height
+            if (
+                [double]$shape.Left -lt -$tolerance -or
+                [double]$shape.Top -lt -$tolerance -or
+                $right -gt ($script:SlideWidth + $tolerance) -or
+                $bottom -gt ($script:SlideHeight + $tolerance)
+            ) {
+                throw "Slide $slideIndex shape '$($shape.Name)' exceeds the slide canvas"
+            }
+            if ($shape.HasTextFrame -eq -1 -and $shape.TextFrame.HasText -eq -1) {
+                $range = $shape.TextFrame.TextRange
+                $boundWidth = [double]$range.BoundWidth
+                $boundHeight = [double]$range.BoundHeight
+                if (
+                    $boundWidth -gt ([double]$shape.Width + $tolerance) -or
+                    $boundHeight -gt ([double]$shape.Height + $tolerance)
+                ) {
+                    throw (
+                        "Slide $slideIndex text overflow in '$($shape.Name)': " +
+                        "bound ${boundWidth}x${boundHeight}, frame $($shape.Width)x$($shape.Height)"
+                    )
+                }
+            }
+        }
+    }
+}
+
+function Format-OneDecimal {
+    param([double]$Value, [bool]$Signed = $false)
+
+    $prefix = if ($Signed -and $Value -gt 0) { "+" } else { "" }
+    return $prefix + $Value.ToString("0.0", [Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Format-TwoDecimals {
+    param([double]$Value, [bool]$Signed = $false)
+
+    $prefix = if ($Signed -and $Value -gt 0) { "+" } else { "" }
+    return $prefix + $Value.ToString("0.00", [Globalization.CultureInfo]::InvariantCulture)
 }
 
 function Format-Percent {
@@ -264,424 +396,381 @@ function Format-Percent {
 }
 
 function Format-Points {
-    param([double]$Value, [bool]$Signed = $true)
+    param([double]$Value)
 
     $scaled = $Value * 100
-    $prefix = if ($Signed -and $scaled -gt 0) { "+" } else { "" }
+    $prefix = if ($scaled -gt 0) { "+" } else { "" }
     return ($prefix + $scaled.ToString("0.00", [Globalization.CultureInfo]::InvariantCulture) + " pp")
 }
 
-function Format-Energy {
-    param([double]$Value, [bool]$Signed = $false)
-
-    $prefix = if ($Signed -and $Value -gt 0) { "+" } else { "" }
-    return ($prefix + $Value.ToString("N0", [Globalization.CultureInfo]::InvariantCulture) + " MWh")
-}
-
-function Format-Decimal {
-    param([double]$Value, [bool]$Signed = $false)
-
-    $prefix = if ($Signed -and $Value -gt 0) { "+" } else { "" }
-    return ($prefix + $Value.ToString("0.00", [Globalization.CultureInfo]::InvariantCulture))
-}
-
-function Format-DecimalInterval {
+function Format-OutageInterval {
     param([double]$Lower, [double]$Upper)
 
-    return "[{0}, {1}]" -f (Format-Decimal $Lower), (Format-Decimal $Upper)
+    return "[{0}, {1}] locality-hours" -f (Format-OneDecimal $Lower), (Format-OneDecimal $Upper)
 }
 
 function Format-PointsInterval {
     param([double]$Lower, [double]$Upper)
 
-    $culture = [Globalization.CultureInfo]::InvariantCulture
-    return "[{0}, {1}] pp" -f (($Lower * 100).ToString("0.00", $culture)), (($Upper * 100).ToString("0.00", $culture))
+    return "[{0}, {1}] pp" -f (Format-TwoDecimals ($Lower * 100)), (Format-TwoDecimals ($Upper * 100))
 }
 
-function Format-EnergyInterval {
-    param([double]$Lower, [double]$Upper)
+function Add-OutcomeRow {
+    param(
+        $Slide, [double]$Top, [string]$Metric, [string]$FixedValue,
+        [string]$PpoValue, [string]$Delta, [string]$Interval,
+        [bool]$Shaded = $false
+    )
 
-    $culture = [Globalization.CultureInfo]::InvariantCulture
-    return "[{0}, {1}] MWh" -f ($Lower.ToString("N0", $culture)), ($Upper.ToString("N0", $culture))
-}
-
-function Count-FavorableCells {
-    param([string]$MetricKey)
-
-    $definition = $evidence.metric_definitions.$MetricKey
-    $count = 0
-    foreach ($cell in @($evidence.cells)) {
-        $delta = [double]$cell.paired_delta.$MetricKey
-        if (
-            ($definition.direction -ceq "higher_is_better" -and $delta -gt 0) -or
-            ($definition.direction -ceq "lower_is_better" -and $delta -lt 0)
-        ) {
-            $count += 1
-        }
+    if ($Shaded) {
+        Add-Box $Slide 54 ($Top - 7) 852 51 "E7ECEE" "" 1 | Out-Null
     }
-    return $count
+    Add-Text $Slide $Metric 64 $Top 226 44 17 $script:Ink $true | Out-Null
+    Add-Text $Slide $FixedValue 300 $Top 126 44 18 "60727D" $true | Out-Null
+    Add-Text $Slide $PpoValue 434 $Top 126 44 18 $script:Teal $true | Out-Null
+    Add-Text $Slide $Delta 568 $Top 112 44 18 $script:Teal $true | Out-Null
+    Add-Text $Slide $Interval 688 $Top 204 44 16 $script:Ink | Out-Null
 }
 
-$fixed = $evidence.aggregate.'Fixed Rotation'
-$ppo = $evidence.aggregate.PPO
-$inference = $evidence.paired_inference
-$independentBaseDrawCount = [int]$evidence.protocol.independent_base_draw_count
-$shortageVariantCount = [int]$evidence.protocol.severity_variants_per_base_draw
-$matchedScenarioCount = [int]$evidence.protocol.matched_scenario_count
-$controllerCount = @($evidence.protocol.controllers).Count
-$controllerEvaluationCount = [int]$evidence.protocol.controller_evaluation_count
-$cellCount = [int]$evidence.protocol.cell_count
-$bootstrapReplicates = [int]$evidence.protocol.bootstrap.replicates
+function Add-StatCard {
+    param(
+        $Slide, [double]$Left, [double]$Top, [double]$Width, [double]$Height,
+        [string]$Value, [string]$Label, [string]$FillColor,
+        [string]$ValueColor = "F3F0E8"
+    )
 
-if ($independentBaseDrawCount * $shortageVariantCount -ne $matchedScenarioCount) {
-    throw "Paired evidence count identity is invalid"
-}
-if ($matchedScenarioCount * $controllerCount -ne $controllerEvaluationCount) {
-    throw "Paired evidence controller-evaluation count is invalid"
+    Add-Box $Slide $Left $Top $Width $Height $FillColor "" 5 | Out-Null
+    Add-Text $Slide $Value ($Left + 14) ($Top + 12) ($Width - 28) 58 23 $ValueColor $true 2 | Out-Null
+    Add-Text $Slide $Label ($Left + 14) ($Top + 76) ($Width - 28) ($Height - 84) 16 $script:OffWhite $true 2 | Out-Null
 }
 
-$criticalFixedLabel = Format-Percent ([double]$fixed.critical_service_ratio)
-$criticalPpoLabel = Format-Percent ([double]$ppo.critical_service_ratio)
-$criticalDeltaLabel = Format-Points ([double]$inference.critical_service_ratio.mean_delta)
-$fixedOutageLabel = Format-Decimal ([double]$fixed.critical_outage_locality_hours)
-$ppoOutageLabel = Format-Decimal ([double]$ppo.critical_outage_locality_hours)
-
-$fixedServedLabel = Format-Energy ([double]$fixed.served_mwh)
-$ppoServedLabel = Format-Energy ([double]$ppo.served_mwh)
-$servedDeltaLabel = Format-Energy ([double]$inference.served_mwh.mean_delta) $true
-$servedDeltaMagnitudeLabel = Format-Energy ([Math]::Abs([double]$inference.served_mwh.mean_delta))
-$fixedUtilizationLabel = Format-Percent ([double]$fixed.utilization)
-$ppoUtilizationLabel = Format-Percent ([double]$ppo.utilization)
-$utilizationDeltaLabel = Format-Points ([double]$inference.utilization.mean_delta)
-$fixedCurtailedLabel = Format-Energy ([double]$fixed.curtailed_mwh)
-$ppoCurtailedLabel = Format-Energy ([double]$ppo.curtailed_mwh)
-$curtailedDeltaLabel = Format-Energy ([double]$inference.curtailed_mwh.mean_delta) $true
-$switchingDeltaLabel = Format-Points ([double]$inference.switching_rate.mean_delta)
-
-$primaryMetricKeys = @(
-    "episode_reward",
-    "critical_service_ratio",
-    "utilization",
-    "fairness",
-    "served_mwh",
-    "curtailed_mwh"
-)
-$primaryMetricLabels = @(
-    "Reward",
-    "Critical service",
-    "Utilization",
-    "Fairness",
-    "Served energy",
-    "Curtailed energy"
-)
-$primaryFavorableCounts = @()
-foreach ($metricKey in $primaryMetricKeys) {
-    $primaryFavorableCounts += Count-FavorableCells $metricKey
-}
-$switchingFavorableCount = Count-FavorableCells "switching_rate"
-$allPrimaryCellsFavorable = ($primaryFavorableCounts | Where-Object { $_ -ne $cellCount }).Count -eq 0
-if (-not $allPrimaryCellsFavorable) {
-    throw "Paired evidence no longer supports the all-primary-cells-favorable slide claim"
-}
-
-$powerBalanceRate = [Math]::Max(
-    [double]$fixed.power_balance_violation_rate,
-    [double]$ppo.power_balance_violation_rate
-)
+$outageDelta = (Format-OneDecimal ([double]$inference.critical_outage_locality_hours.mean_delta) $true) + " locality-hours"
+$outageInterval = Format-OutageInterval ([double]$inference.critical_outage_locality_hours.ci95_lower) ([double]$inference.critical_outage_locality_hours.ci95_upper)
+$fairnessDelta = Format-Points ([double]$inference.fairness.mean_delta)
+$fairnessInterval = Format-PointsInterval ([double]$inference.fairness.ci95_lower) ([double]$inference.fairness.ci95_upper)
+$utilizationDelta = Format-Points ([double]$inference.utilization.mean_delta)
+$utilizationInterval = Format-PointsInterval ([double]$inference.utilization.ci95_lower) ([double]$inference.utilization.ci95_upper)
 $powerBalanceLabel = Format-Percent $powerBalanceRate
 
-$rewardInterval = Format-DecimalInterval `
-    -Lower ([double]$inference.episode_reward.ci95_lower) `
-    -Upper ([double]$inference.episode_reward.ci95_upper)
-$criticalInterval = Format-PointsInterval `
-    -Lower ([double]$inference.critical_service_ratio.ci95_lower) `
-    -Upper ([double]$inference.critical_service_ratio.ci95_upper)
-$utilizationInterval = Format-PointsInterval `
-    -Lower ([double]$inference.utilization.ci95_lower) `
-    -Upper ([double]$inference.utilization.ci95_upper)
-$fairnessInterval = Format-PointsInterval `
-    -Lower ([double]$inference.fairness.ci95_lower) `
-    -Upper ([double]$inference.fairness.ci95_upper)
-$servedInterval = Format-EnergyInterval `
-    -Lower ([double]$inference.served_mwh.ci95_lower) `
-    -Upper ([double]$inference.served_mwh.ci95_upper)
-$curtailedInterval = Format-EnergyInterval `
-    -Lower ([double]$inference.curtailed_mwh.ci95_lower) `
-    -Upper ([double]$inference.curtailed_mwh.ci95_upper)
-$switchingInterval = Format-PointsInterval `
-    -Lower ([double]$inference.switching_rate.ci95_lower) `
-    -Upper ([double]$inference.switching_rate.ci95_upper)
-
-$intervalRows = @(
-    @(
-        "Episode reward",
-        (Format-Decimal ([double]$inference.episode_reward.mean_delta) $true),
-        $rewardInterval
-    ),
-    @(
-        "Critical service",
-        (Format-Points ([double]$inference.critical_service_ratio.mean_delta)),
-        $criticalInterval
-    ),
-    @(
-        "Utilization",
-        (Format-Points ([double]$inference.utilization.mean_delta)),
-        $utilizationInterval
-    ),
-    @(
-        "Jain fairness",
-        (Format-Points ([double]$inference.fairness.mean_delta)),
-        $fairnessInterval
-    ),
-    @(
-        "Served energy",
-        (Format-Energy ([double]$inference.served_mwh.mean_delta) $true),
-        $servedInterval
-    ),
-    @(
-        "Curtailed energy",
-        (Format-Energy ([double]$inference.curtailed_mwh.mean_delta) $true),
-        $curtailedInterval
-    ),
-    @(
-        "Switching rate",
-        (Format-Points ([double]$inference.switching_rate.mean_delta)),
-        $switchingInterval
-    )
-)
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $OutputPath) | Out-Null
+New-Item -ItemType Directory -Force -Path $renderDirectory | Out-Null
 
 $powerPoint = $null
 $presentation = $null
-
 try {
     $powerPoint = New-Object -ComObject PowerPoint.Application
     $presentation = $powerPoint.Presentations.Add()
     $presentation.PageSetup.SlideWidth = $script:SlideWidth
     $presentation.PageSetup.SlideHeight = $script:SlideHeight
 
-    # Slide 1 - title
+    # 1 - title
     $slide = $presentation.Slides.Add(1, 12)
     Set-SlideBackground $slide $script:Navy
     Add-Text $slide "GRADUATION PROJECT DEFENSE" 60 58 420 24 16 $script:Teal $true | Out-Null
     Add-Text $slide "GridGuard Khartoum" 60 128 780 70 54 $script:OffWhite $true | Out-Null
     Add-Text $slide "PPO-assisted load shedding and energy management for developing countries" 60 212 760 68 26 $script:Gold | Out-Null
     Add-Line $slide 60 302 286 302 $script:Gold 5 | Out-Null
-    Add-Text $slide "Murtada Asim Ibrahim Bakhit (18-317)" 60 345 420 24 17 $script:OffWhite | Out-Null
-    Add-Text $slide "Suliman Elawad Suliman Babiker (18-310)" 60 374 420 24 17 $script:OffWhite | Out-Null
-    Add-Text $slide "Abdalhay Abass Mobarak Abass (15-306)" 60 403 420 24 17 $script:OffWhite | Out-Null
+    Add-Text $slide "Murtada Asim Ibrahim Bakhit (18-317)" 60 345 430 24 17 $script:OffWhite | Out-Null
+    Add-Text $slide "Suliman Elawad Suliman Babiker (18-310)" 60 374 430 24 17 $script:OffWhite | Out-Null
+    Add-Text $slide "Abdalhay Abass Mobarak Abass (15-306)" 60 403 430 24 17 $script:OffWhite | Out-Null
     Add-Text $slide "Offline research simulation  |  August 2026" 60 470 480 24 16 $script:Muted | Out-Null
-    Add-Notes $slide ("Open with the project question: can a learned policy allocate limited modeled supply more effectively than a traditional schedule?`r`n`r`n[Sources]`r`n- docs/source/graduation-project-proposal.pdf`r`n- docs/REPORT.md`r`n[/Sources]")
+    Add-Notes $slide (New-Notes "Can PPO allocate limited modeled supply more effectively than Fixed Rotation?" @(
+            "docs/source/graduation-project-proposal.pdf",
+            "docs/REPORT.md"
+        ))
 
-    # Slide 2 - problem
+    # 2 - problem
     $slide = $presentation.Slides.Add(2, 12)
     Set-SlideBackground $slide $script:Navy
     Add-Chrome $slide 2
-    Add-SlideTitle $slide "A shortage creates seven simultaneous allocation choices"
+    Add-SlideTitle $slide "Seven simultaneous allocation choices under shortage"
     Add-BulletList $slide @(
         "Protect Hospital, Water, and Bakery demand",
-        "Use the available supply without exceeding it",
+        "Use available supply without exceeding it",
         "Share service across seven modeled localities"
     ) 58 160 330 21 $script:OffWhite 66 | Out-Null
     Add-Box $slide 425 140 485 273 $script:Slate $script:Grid 5 | Out-Null
-    Add-Picture $slide $overviewImage 432 147 471 265 "GridGuard overview showing seven administrative locality boundaries and the frozen controller summary" | Out-Null
-    Add-Text $slide "Synthetic decision-support scope - not a live grid controller" 58 438 790 30 17 $script:Teal $true | Out-Null
-    Add-Notes $slide ("Frame the problem as constrained allocation, not a claim that the simulator models the full electrical network. The administrative boundaries provide presentation context only.`r`n`r`n[Sources]`r`n- docs/METHODOLOGY.md (Simulation domain; Limitations)`r`n- docs/assets/screenshots/overview.png`r`n[/Sources]")
+    Add-Picture $slide $overviewImage 432 147 471 265 "Overview showing seven administrative locality boundaries and frozen outcomes" | Out-Null
+    Add-Text $slide "Synthetic decision support - not a live grid controller" 58 438 790 30 17 $script:Teal $true | Out-Null
+    Add-Notes $slide (New-Notes "Administrative locality boundaries provide presentation context and are not electrical-network topology." @(
+            "docs/METHODOLOGY.md",
+            "docs/assets/screenshots/overview.png"
+        ))
 
-    # Slide 3 - system
+    # 3 - system boundary
     $slide = $presentation.Slides.Add(3, 12)
     Set-SlideBackground $slide $script:OffWhite
     Add-Chrome $slide 3 $true
-    Add-SlideTitle $slide "The proposal became a clean, auditable desktop system" $true
-    $nodeCenters = @(130, 305, 480, 655, 830)
+    Add-SlideTitle $slide "The controller evidence path is isolated from presentation context" $true
+    $nodeCenters = @(125, 300, 475, 650, 825)
     for ($index = 0; $index -lt 4; $index++) {
-        Add-Line $slide ($nodeCenters[$index] + 65) 230 ($nodeCenters[$index + 1] - 65) 230 $script:Gold 2.5 $true | Out-Null
+        Add-Line $slide ($nodeCenters[$index] + 62) 230 ($nodeCenters[$index + 1] - 62) 230 $script:Gold 2.5 $true | Out-Null
     }
-    $nodeLabels = @("Seeded`nscenarios", "Shared CUDA`ntensors", "PPO and`nFixed Rotation", "Paired`nevidence", "Desktop`nreplay")
+    $nodeLabels = @(
+        ("Seeded" + [Environment]::NewLine + "scenarios"),
+        ("Shared CUDA" + [Environment]::NewLine + "tensors"),
+        ("PPO and" + [Environment]::NewLine + "Fixed Rotation"),
+        ("Paired" + [Environment]::NewLine + "evidence"),
+        ("Desktop" + [Environment]::NewLine + "replay")
+    )
     for ($index = 0; $index -lt $nodeCenters.Count; $index++) {
         $fill = if ($index -in @(2, 4)) { $script:Teal } else { $script:Slate }
-        Add-Box $slide ($nodeCenters[$index] - 65) 184 130 92 $fill "" 5 | Out-Null
-        Add-Text $slide $nodeLabels[$index] ($nodeCenters[$index] - 57) 203 114 66 18 $script:OffWhite $true 2 | Out-Null
+        Add-Box $slide ($nodeCenters[$index] - 62) 184 124 92 $fill "" 5 | Out-Null
+        Add-Text $slide $nodeLabels[$index] ($nodeCenters[$index] - 55) 203 110 64 17 $script:OffWhite $true 2 | Out-Null
     }
-    Add-Text $slide "Controller evidence path" 58 320 280 26 20 $script:Ink $true | Out-Null
+    Add-Text $slide "Controller evidence" 58 320 230 28 20 $script:Ink $true | Out-Null
     Add-Line $slide 58 355 900 355 $script:Grid 1 | Out-Null
     Add-Text $slide "Demand projection" 58 380 190 28 18 $script:Ink $true | Out-Null
-    Add-Text $slide "Display only - never enters PPO, dispatch, reward, or benchmark evidence" 250 380 650 34 18 "60727D" | Out-Null
-    Add-Text $slide "Offline after installation  |  hash-bound artifacts  |  fail-closed startup" 58 446 820 24 18 $script:Teal $true | Out-Null
-    Add-Notes $slide ("Walk left to right. The controller path and display-only forecast are deliberately separated so a presentation feature cannot silently change the claim.`r`n`r`n[Sources]`r`n- docs/IMPLEMENTATION.md (System overview; Display-only forecast)`r`n- docs/decisions/ADR-001-gpu-runtime.md`r`n[/Sources]")
+    Add-Text $slide "Display only - never enters PPO, dispatch, training objective, or benchmark evidence" 250 380 660 50 18 "60727D" | Out-Null
+    Add-Text $slide "Offline after installation  |  hash-bound artifacts  |  fail-closed startup" 58 448 820 24 18 $script:Teal $true | Out-Null
+    Add-Notes $slide (New-Notes "The controller path and display-only forecast remain separate so presentation context cannot silently change the evidence." @(
+            "docs/IMPLEMENTATION.md",
+            "docs/decisions/ADR-001-gpu-runtime.md"
+        ))
 
-    # Slide 4 - matched design
+    # 4 - matched method
     $slide = $presentation.Slides.Add(4, 12)
     Set-SlideBackground $slide $script:Navy
     Add-Chrome $slide 4
-    Add-SlideTitle $slide "PPO and Fixed Rotation receive exactly the same scenario"
-    Add-Text $slide ([string]$independentBaseDrawCount) 68 150 150 62 48 $script:Gold $true 2 | Out-Null
-    Add-Text $slide "independent`nbase draws" 68 214 150 46 18 $script:OffWhite $true 2 | Out-Null
-    Add-Text $slide "x $shortageVariantCount" 232 169 100 40 31 $script:Muted $true 2 | Out-Null
-    Add-Text $slide ([string]$matchedScenarioCount) 344 150 160 62 48 $script:Teal $true 2 | Out-Null
-    Add-Text $slide "matched scenario`nconditions" 344 214 160 46 18 $script:OffWhite $true 2 | Out-Null
-    Add-Text $slide "x $controllerCount" 518 169 100 40 31 $script:Muted $true 2 | Out-Null
-    Add-Text $slide ([string]$controllerEvaluationCount) 630 150 170 62 48 $script:Gold $true 2 | Out-Null
-    Add-Text $slide "controller-scenario`nevaluations" 630 214 190 46 18 $script:OffWhite $true 2 | Out-Null
-    Add-Line $slide 70 305 890 305 $script:Grid 1 | Out-Null
-    Add-Text $slide "PPO" 78 340 170 30 24 $script:Teal $true | Out-Null
-    Add-Text $slide "32-value causal observation`nLearned 7-locality joint action" 78 378 280 55 18 $script:OffWhite | Out-Null
-    Add-Text $slide "Fixed Rotation" 508 340 230 30 24 $script:Gold $true | Out-Null
-    Add-Text $slide "Three-hour schedule blocks`nNo demand or fairness observation" 508 378 330 55 18 $script:OffWhite | Out-Null
+    Add-SlideTitle $slide "PPO and Fixed Rotation receive the same scenario"
+    Add-StatCard $slide 62 156 236 126 "$baseDrawCount independent base draws" "10 untouched seeds x 32 episodes" $script:Slate
+    Add-Text $slide "x 3" 310 192 80 42 30 $script:Gold $true 2 | Out-Null
+    Add-StatCard $slide 400 156 218 126 "$matchedScenarioCount matched" "mild, moderate, severe shortage" $script:Teal $script:Navy
+    Add-Text $slide "x 2" 630 192 80 42 30 $script:Gold $true 2 | Out-Null
+    Add-StatCard $slide 720 156 178 126 "$controllerEvaluationCount" "controller-scenario evaluations" $script:Slate
+    Add-Line $slide 62 318 898 318 $script:Grid 1 | Out-Null
+    Add-Text $slide "PPO" 70 350 175 30 24 $script:Teal $true | Out-Null
+    Add-Text $slide ("32-value observation" + [Environment]::NewLine + "7-locality joint action") 70 386 290 54 18 $script:OffWhite | Out-Null
+    Add-Text $slide "Fixed Rotation" 515 350 230 30 24 $script:Gold $true | Out-Null
+    Add-Text $slide ("Three-hour schedule blocks" + [Environment]::NewLine + "No demand or fairness observation") 515 386 330 54 18 $script:OffWhite | Out-Null
     Add-Text $slide "Every stored delta is PPO - Fixed Rotation" 250 458 460 26 19 $script:Teal $true 2 | Out-Null
-    Add-Notes $slide ("Stress the pairing: both controllers receive the same immutable Scenario object. The $matchedScenarioCount conditions are severity variants of $independentBaseDrawCount independent base draws, not $matchedScenarioCount independent draws; together they produce $controllerEvaluationCount controller-scenario evaluations.`r`n`r`n[Sources]`r`n- docs/METHODOLOGY.md (Controller decisions; Matched evaluation design)`r`n- data/evidence/paired-benchmark.json, SHA-256 $expectedEvidenceSha256`r`n[/Sources]")
+    Add-Notes $slide (New-Notes "The 960 conditions are severity variants of 320 independent base draws. Both controllers receive the same immutable scenario." @(
+            "docs/METHODOLOGY.md",
+            "data/evidence/robustness-supplement.json, SHA-256 $expectedRobustnessSha256"
+        ))
 
-    # Slide 5 - GPU
+    # 5 - training record
     $slide = $presentation.Slides.Add(5, 12)
     Set-SlideBackground $slide $script:OffWhite
     Add-Chrome $slide 5 $true
-    Add-SlideTitle $slide "GPU-first simulation, PPO inference, and paired bootstrap" $true
-    Add-Line $slide 180 236 370 236 $script:Gold 2.5 $true | Out-Null
-    Add-Line $slide 505 236 695 236 $script:Gold 2.5 $true | Out-Null
-    Add-Box $slide 70 178 180 116 $script:Slate "" 5 | Out-Null
-    Add-Text $slide "PyTorch" 86 198 148 30 24 $script:OffWhite $true 2 | Out-Null
-    Add-Text $slide "scenarios`nsimulation`nPPO inference" 86 232 148 60 16 $script:Muted $false 2 | Out-Null
-    Add-Box $slide 390 157 140 158 $script:Teal "" 5 | Out-Null
-    Add-Text $slide "cuda:0" 402 199 116 44 31 $script:Navy $true 2 | Out-Null
-    Add-Text $slide "no CPU fallback" 398 250 124 24 16 $script:Navy $true 2 | Out-Null
-    Add-Box $slide 715 178 180 116 $script:Slate "" 5 | Out-Null
-    Add-Text $slide "CuPy" 731 198 148 30 24 $script:OffWhite $true 2 | Out-Null
-    Add-Text $slide "cluster bootstrap`nCUDA sort`nlinear percentiles" 731 232 148 60 16 $script:Muted $false 2 | Out-Null
-    Add-Text $slide "Validated presentation runtime" 70 350 330 28 20 $script:Ink $true | Out-Null
+    Add-SlideTitle $slide "The PPO checkpoint has a historical training record" $true
+    Add-Box $slide 58 148 844 78 "E4F4F0" $script:Teal 5 | Out-Null
+    Add-Text $slide "Network" 76 163 110 22 16 "60727D" $true | Out-Null
+    Add-Text $slide ([string]$trainingSummary.network) 76 188 250 28 21 $script:Ink $true | Out-Null
+    Add-Text $slide "Selected checkpoint" 354 163 190 22 16 "60727D" $true | Out-Null
+    Add-Text $slide ("iteration {0}  |  seed {1}" -f $trainingSummary.selection.selected_iteration, $trainingSummary.selection.selected_seed) 354 188 260 28 21 $script:Ink $true | Out-Null
+    Add-Text $slide "Validation seeds" 658 163 150 22 16 "60727D" $true | Out-Null
+    Add-Text $slide (($trainingSummary.selection.validation_seeds -join ", ")) 658 188 220 28 20 $script:Ink $true | Out-Null
+    Add-Text $slide "Historical initialization" 64 258 300 28 21 $script:Teal $true | Out-Null
     Add-BulletList $slide @(
-        "RTX 5060 Laptop GPU  |  PyTorch 2.8.0+cu128",
-        "CUDA 12.8  |  CuPy 14.1.1  |  DLPack coherence",
-        "Startup blocks on GPU, model, evidence, or provenance failure"
-    ) 70 390 820 17 $script:Ink 33 $script:Teal | Out-Null
-    Add-Notes $slide ("The performance-critical scenario, simulation, PPO, metric, and bootstrap paths run on CUDA. One explicit final host transfer supports canonical evidence assembly and validation; it is not a controller fallback. The release gate validates Torch, CuPy, CUDA, DLPack sharing, the PPO artifact, and evidence before launch.`r`n`r`n[Sources]`r`n- docs/IMPLEMENTATION.md (GPU-first execution; Verification strategy)`r`n- docs/decisions/ADR-001-gpu-runtime.md`r`n[/Sources]")
+        "$($trainingSummary.behavior_cloning_initialization.epochs) epochs  |  $($trainingSummary.behavior_cloning_initialization.teacher_samples) teacher samples",
+        "$($trainingSummary.behavior_cloning_initialization.optimizer_updates) initialization optimizer updates",
+        "$($trainingSummary.ppo.iterations) PPO iterations  |  $($trainingSummary.ppo.total_episodes) episodes",
+        "$($trainingSummary.ppo.total_transitions) transitions  |  learning rate $($trainingSummary.ppo.learning_rate)"
+    ) 64 298 420 16 $script:Ink 40 $script:Teal | Out-Null
+    Add-Text $slide "Training-objective score (diagnostic)" 536 258 350 28 20 $script:Gold $true | Out-Null
+    Add-Text $slide (Format-TwoDecimals ([double]$trainingSummary.convergence.selected_iteration_510)) 536 302 170 58 38 $script:Teal $true | Out-Null
+    Add-Text $slide "selected iteration 510" 536 358 210 24 16 "60727D" | Out-Null
+    Add-Text $slide (Format-TwoDecimals ([double]$trainingSummary.convergence.untrained)) 748 302 140 58 38 "60727D" $true | Out-Null
+    Add-Text $slide "untrained" 748 358 140 24 16 "60727D" | Out-Null
+    Add-Text $slide "Model selection used validation seeds; untouched evaluation seeds were not used for training or selection." 536 404 350 68 17 $script:Ink $true | Out-Null
+    Add-Notes $slide (New-Notes "The historical teacher-guided initialization precedes PPO training; the deployed controller remains PPO." @(
+            "data/model/training-provenance.yaml, SHA-256 $expectedTrainingSha256",
+            "data/model/manifest.json"
+        ))
 
-    # Slide 6 - live UI
+    # 6 - GPU execution
     $slide = $presentation.Slides.Add(6, 12)
     Set-SlideBackground $slide $script:Navy
     Add-Chrome $slide 6
-    Add-SlideTitle $slide "The desktop replays one audited GPU scenario"
-    Add-Box $slide 63 123 834 355 $script:Slate $script:Grid 5 | Out-Null
-    Add-Picture $slide $liveImage 70 130 820 346 "Live Scenario page showing a shared GPU run, interactive administrative map, and locality detail" | Out-Null
-    Add-Text $slide "Switch controller  |  scrub 24 hours  |  inspect locality  |  forecast is DISPLAY ONLY" 78 480 804 24 16 $script:Teal $true 2 | Out-Null
-    Add-Notes $slide ("Demo this after the slide: choose a shortage and seed, run once, then change controller and hour without changing the scenario. Point out demand, served MW, critical ratio, sector service, and the display-only next-hour projection.`r`n`r`n[Sources]`r`n- docs/IMPLEMENTATION.md (Desktop presentation)`r`n- docs/assets/screenshots/live.png`r`n[/Sources]")
+    Add-SlideTitle $slide "GPU-first simulation, PPO inference, and paired bootstrap"
+    Add-Line $slide 200 237 365 237 $script:Gold 2.5 $true | Out-Null
+    Add-Line $slide 535 237 700 237 $script:Gold 2.5 $true | Out-Null
+    Add-Box $slide 70 172 190 128 $script:Slate "" 5 | Out-Null
+    Add-Text $slide "PyTorch" 85 193 160 32 25 $script:OffWhite $true 2 | Out-Null
+    Add-Text $slide ("scenario tensors" + [Environment]::NewLine + "simulation" + [Environment]::NewLine + "PPO inference") 85 231 160 64 16 $script:Muted $false 2 | Out-Null
+    Add-Box $slide 385 155 166 164 $script:Teal "" 5 | Out-Null
+    Add-Text $slide "cuda:0" 402 198 132 44 31 $script:Navy $true 2 | Out-Null
+    Add-Text $slide ("validated" + [Environment]::NewLine + "NVIDIA GPU") 401 251 134 48 16 $script:Navy $true 2 | Out-Null
+    Add-Box $slide 690 172 200 128 $script:Slate "" 5 | Out-Null
+    Add-Text $slide "CuPy" 708 193 164 32 25 $script:OffWhite $true 2 | Out-Null
+    Add-Text $slide ("cluster bootstrap" + [Environment]::NewLine + "CUDA sort" + [Environment]::NewLine + "linear percentiles") 708 231 164 64 16 $script:Muted $false 2 | Out-Null
+    Add-BulletList $slide @(
+        "PyTorch 2.8 + CUDA 12.8  |  DLPack sharing with CuPy",
+        "10,000 deterministic seed-stratified bootstrap replicates",
+        "One final host transfer assembles evidence; it is not a controller fallback"
+    ) 70 365 820 17 $script:OffWhite 37 $script:Teal | Out-Null
+    Add-Notes $slide (New-Notes "Simulation, PPO inference, metrics, and bootstrap stay GPU-first. One final host transfer supports portable artifact assembly." @(
+            "docs/IMPLEMENTATION.md",
+            "docs/decisions/ADR-001-gpu-runtime.md"
+        ))
 
-    # Slide 7 - critical result
+    # 7 - live desktop
     $slide = $presentation.Slides.Add(7, 12)
     Set-SlideBackground $slide $script:OffWhite
     Add-Chrome $slide 7 $true
-    Add-SlideTitle $slide "PPO protects nearly all modeled critical demand" $true
-    Add-Text $slide $criticalPpoLabel 68 145 330 82 54 $script:Teal $true | Out-Null
-    Add-Text $slide "PPO critical-service ratio" 70 226 310 28 19 $script:Ink $true | Out-Null
-    Add-Text $slide $criticalFixedLabel 540 145 330 82 54 "60727D" $true | Out-Null
-    Add-Text $slide "Fixed Rotation" 542 226 310 28 19 $script:Ink $true | Out-Null
-    Add-ComparisonBar $slide "Critical service" 286 ([double]$fixed.critical_service_ratio) ([double]$ppo.critical_service_ratio) $criticalFixedLabel $criticalPpoLabel $true
-    Add-Line $slide 70 378 890 378 "CFD8DC" 1 | Out-Null
-    Add-Text $slide $criticalDeltaLabel 70 405 430 42 28 $script:Gold $true | Out-Null
-    Add-Text $slide "Critical-outage locality-hours`n$fixedOutageLabel  ->  $ppoOutageLabel" 560 400 300 54 22 $script:Ink $true 2 | Out-Null
-    Add-Notes $slide ("This is the strongest proposal-facing result. The critical-service ratio is modeled critical energy served divided by critical demand. Critical-outage locality-hours use the locked 99% threshold and are diagnostic, not a bootstrap endpoint.`r`n`r`n[Sources]`r`n- docs/RESULTS.md (Reproduced paired aggregate comparison)`r`n- data/evidence/paired-benchmark.json`r`n[/Sources]")
+    Add-SlideTitle $slide "The desktop replays one audited GPU scenario" $true
+    Add-Box $slide 62 126 836 352 "D7E0E4" $script:Grid 5 | Out-Null
+    Add-Picture $slide $liveImage 69 133 822 338 "Live Scenario page showing one shared GPU scenario and locality detail" | Out-Null
+    Add-Text $slide "Frozen evidence stays separate from Live Scenario replay  |  forecast is DISPLAY ONLY" 75 478 810 24 16 $script:Teal $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "Run once, then change controller and hour without changing the scenario. Live values never replace frozen evidence." @(
+            "docs/IMPLEMENTATION.md",
+            "docs/assets/screenshots/live.png"
+        ))
 
-    # Slide 8 - efficiency
+    # 8 - untouched outcomes
     $slide = $presentation.Slides.Add(8, 12)
-    Set-SlideBackground $slide $script:Navy
-    Add-Chrome $slide 8
-    Add-SlideTitle $slide "PPO serves $servedDeltaMagnitudeLabel more and uses supply more effectively"
-    Add-ComparisonBar $slide "Served energy" 154 ([double]$fixed.served_mwh / [double]$fixed.available_mwh) ([double]$ppo.served_mwh / [double]$ppo.available_mwh) $fixedServedLabel $ppoServedLabel
-    Add-ComparisonBar $slide "Utilization" 243 ([double]$fixed.utilization) ([double]$ppo.utilization) $fixedUtilizationLabel $ppoUtilizationLabel
-    Add-ComparisonBar $slide "Curtailed energy" 332 1.0 ([double]$ppo.curtailed_mwh / [double]$fixed.curtailed_mwh) "Fixed $fixedCurtailedLabel" "PPO $ppoCurtailedLabel"
-    Add-Text $slide "$servedDeltaLabel served" 70 424 270 34 24 $script:Teal $true | Out-Null
-    Add-Text $slide "$utilizationDeltaLabel utilization" 357 424 270 34 24 $script:Gold $true | Out-Null
-    Add-Text $slide "$curtailedDeltaLabel curtailed" 648 424 250 34 24 $script:Teal $true | Out-Null
-    Add-Notes $slide ("Served and curtailed energy are complementary under the energy identity, so present them as two views of the same allocation change rather than independent endpoints.`r`n`r`n[Sources]`r`n- docs/RESULTS.md (Reproduced paired aggregate comparison)`r`n- data/evidence/paired-benchmark.json`r`n[/Sources]")
+    Set-SlideBackground $slide $script:OffWhite
+    Add-Chrome $slide 8 $true
+    Add-SlideTitle $slide "Untouched confirmatory evidence reports three primary outcomes" $true
+    Add-Text $slide "Outcome" 64 145 226 24 16 "60727D" $true | Out-Null
+    Add-Text $slide "Fixed Rotation" 300 145 126 24 16 "60727D" $true | Out-Null
+    Add-Text $slide "PPO" 434 145 126 24 16 "60727D" $true | Out-Null
+    Add-Text $slide "Delta" 568 145 112 24 16 "60727D" $true | Out-Null
+    Add-Text $slide "Paired 95% interval" 688 145 204 24 16 "60727D" $true | Out-Null
+    Add-OutcomeRow $slide 183 "Critical-outage locality-hours" ((Format-OneDecimal ([double]$fixed.critical_outage_locality_hours)) + " locality-hours") ((Format-OneDecimal ([double]$ppo.critical_outage_locality_hours)) + " locality-hours") $outageDelta $outageInterval $true
+    Add-OutcomeRow $slide 246 "Jain fairness" (Format-Percent ([double]$fixed.fairness)) (Format-Percent ([double]$ppo.fairness)) $fairnessDelta $fairnessInterval
+    Add-OutcomeRow $slide 309 "Utilization" (Format-Percent ([double]$fixed.utilization)) (Format-Percent ([double]$ppo.utilization)) $utilizationDelta $utilizationInterval $true
+    Add-Line $slide 62 377 898 377 "CFD8DC" 1 | Out-Null
+    Add-Text $slide "Safety check" 64 397 150 24 17 $script:Ink $true | Out-Null
+    Add-Text $slide "$powerBalanceLabel power-balance violation rate in both controllers" 220 397 540 24 18 $script:Teal $true | Out-Null
+    Add-Box $slide 64 443 828 38 "E4F4F0" $script:Teal 5 | Out-Null
+    Add-Text $slide "Observed as-is  |  no favorable/adverse release gate" 80 452 796 22 17 $script:Ink $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "These are the only three headline outcomes. They use 10 untouched seeds and were reported as observed; result direction was not a release condition." @(
+            "data/evidence/robustness-supplement.json, SHA-256 $expectedRobustnessSha256",
+            "docs/RESULTS.md"
+        ))
 
-    # Slide 9 - intervals
+    # 9 - sensitivity
     $slide = $presentation.Slides.Add(9, 12)
-    Set-SlideBackground $slide $script:OffWhite
-    Add-Chrome $slide 9 $true
-    Add-SlideTitle $slide "All seven paired intervals favor PPO" $true
-    Add-Text $slide "Outcome" 64 132 230 24 17 "60727D" $true | Out-Null
-    Add-Text $slide "PPO - Fixed" 332 132 175 24 17 "60727D" $true | Out-Null
-    Add-Text $slide "Cluster-bootstrap 95% interval" 540 132 350 24 17 "60727D" $true | Out-Null
-    for ($index = 0; $index -lt $intervalRows.Count; $index++) {
-        $top = 171 + ($index * 43)
-        if ($index % 2 -eq 0) {
-            Add-Box $slide 54 ($top - 6) 850 38 "E7ECEE" "" 1 | Out-Null
-        }
-        Add-Text $slide $intervalRows[$index][0] 64 $top 240 24 17 $script:Ink $(if ($index -lt 6) { $true } else { $false }) | Out-Null
-        Add-Text $slide $intervalRows[$index][1] 332 $top 180 24 18 $script:Teal $true | Out-Null
-        Add-Text $slide $intervalRows[$index][2] 540 $top 330 24 17 $script:Ink | Out-Null
-    }
-    Add-Text $slide "$($bootstrapReplicates.ToString('N0', [Globalization.CultureInfo]::InvariantCulture)) deterministic seed-stratified paired cluster replicates" 64 476 820 24 16 "60727D" | Out-Null
-    Add-Notes $slide ("Positive favors PPO for higher-is-better outcomes; negative favors PPO for lower-is-better outcomes. The bootstrap resamples $independentBaseDrawCount base-draw clusters inside seed strata and keeps all $shortageVariantCount shortage variants together.`r`n`r`n[Sources]`r`n- docs/METHODOLOGY.md (Paired uncertainty calculation)`r`n- docs/RESULTS.md (Paired differences and 95% intervals)`r`n- data/evidence/paired-benchmark.json, SHA-256 $expectedEvidenceSha256`r`n[/Sources]")
-
-    # Slide 10 - consistency
-    $slide = $presentation.Slides.Add(10, 12)
     Set-SlideBackground $slide $script:Navy
-    Add-Chrome $slide 10
-    Add-SlideTitle $slide "The advantage is consistent, not driven by one seed"
-    Add-Text $slide "$cellCount / $cellCount" 64 132 270 78 55 $script:Gold $true | Out-Null
-    Add-Text $slide "shortage-by-seed cells favor PPO`nfor every primary outcome" 68 215 320 55 20 $script:OffWhite $true | Out-Null
-    for ($index = 0; $index -lt $primaryMetricLabels.Count; $index++) {
-        $top = 299 + ($index * 31)
-        Add-Text $slide $primaryMetricLabels[$index] 70 $top 190 22 16 $script:OffWhite | Out-Null
-        Add-Line $slide 238 ($top + 11) 405 ($top + 11) $script:Teal 5 | Out-Null
-        Add-Text $slide "$($primaryFavorableCounts[$index])/$cellCount" 417 ($top - 2) 58 24 16 $script:Teal $true | Out-Null
-    }
-    Add-Line $slide 500 132 500 460 $script:Grid 1 | Out-Null
-    Add-Text $slide "Safety and diagnostics" 548 145 330 32 24 $script:Teal $true | Out-Null
-    Add-Text $slide $powerBalanceLabel 548 205 165 62 42 $script:OffWhite $true | Out-Null
-    Add-Text $slide "power-balance violation rate`nin both controllers" 720 210 178 58 17 $script:OffWhite | Out-Null
-    Add-Text $slide $switchingDeltaLabel 548 300 150 40 29 $script:Gold $true | Out-Null
-    Add-Text $slide "aggregate switching rate" 708 307 190 26 17 $script:OffWhite | Out-Null
-    Add-Text $slide "Oversubscription stays diagnostic:`ndirection was mixed across cells" 548 379 330 50 18 $script:Muted | Out-Null
-    Add-Notes $slide ("All $($primaryMetricKeys.Count) primary outcomes favor PPO in all $cellCount cells. Switching favors PPO overall but in $switchingFavorableCount of $cellCount cells. Oversubscription is lower in aggregate for PPO but mixed by cell, so it is not presented as a consistent primary advantage.`r`n`r`n[Sources]`r`n- docs/RESULTS.md (Consistency across the nine evaluation cells)`r`n- data/evidence/paired-benchmark.json, SHA-256 $expectedEvidenceSha256`r`n[/Sources]")
+    Add-Chrome $slide 9
+    Add-SlideTitle $slide "24 demand-allocation variants preserve PPO's direction"
+    Add-Text $slide "$sensitivityParameterizationCount parameterizations" 64 145 330 42 29 $script:Gold $true | Out-Null
+    Add-Text $slide "1 locked base + 24 one-at-a-time variants" 64 190 390 28 18 $script:OffWhite | Out-Null
+    Add-StatCard $slide 64 246 246 126 "$($sensitivityFavorable.critical_outage_locality_hours)/24" "critical-outage locality-hours favorable" $script:Slate
+    Add-StatCard $slide 357 246 246 126 "$($sensitivityFavorable.fairness)/24" "Jain fairness favorable" $script:Slate
+    Add-StatCard $slide 650 246 246 126 "$($sensitivityFavorable.utilization)/24" "utilization favorable" $script:Slate
+    Add-Text $slide "Effect-size shift versus base" 64 400 260 24 17 $script:Teal $true | Out-Null
+    Add-Text $slide "Outage: $outageDidAdverse adverse  |  $outageDidFavorable favorable  |  $outageDidAmbiguous ambiguous" 330 400 560 24 17 $script:OffWhite $true | Out-Null
+    Add-Text $slide "Direction persists, but effect size is not invariant. Classifications are evidence, not a release gate." 64 446 826 40 17 $script:Muted | Out-Null
+    Add-Notes $slide (New-Notes "All 24 variants retain favorable paired direction for each primary outcome. Difference-in-differences is mixed and no result-direction gate filtered the artifact." @(
+            "data/evidence/robustness-supplement.json, sensitivity",
+            "docs/RESULTS.md"
+        ))
 
-    # Slide 11 - boundaries
-    $slide = $presentation.Slides.Add(11, 12)
+    # 10 - forecast
+    $slide = $presentation.Slides.Add(10, 12)
     Set-SlideBackground $slide $script:OffWhite
-    Add-Chrome $slide 11 $true
-    Add-SlideTitle $slide "The evidence answers the proposal - within a strict boundary" $true
-    Add-Text $slide "What this establishes" 64 137 360 30 24 $script:Teal $true | Out-Null
+    Add-Chrome $slide 10 $true
+    Add-SlideTitle $slide "One-hour persistence outperformed the three-hour trailing mean" $true
+    Add-Text $slide "Pooled error metric" 64 144 285 24 16 "60727D" $true | Out-Null
+    Add-Text $slide "One-hour persistence" 394 144 220 24 16 $script:Teal $true | Out-Null
+    Add-Text $slide "Three-hour trailing mean" 655 144 235 24 16 "60727D" $true | Out-Null
+    $forecastRows = @(
+        @("Locality-sector MAE", $persistence.locality_sector.mae, $trailingMean.locality_sector.mae),
+        @("Locality-sector RMSE", $persistence.locality_sector.rmse, $trailingMean.locality_sector.rmse),
+        @("System-total MAE", $persistence.system_total.mae, $trailingMean.system_total.mae),
+        @("System-total RMSE", $persistence.system_total.rmse, $trailingMean.system_total.rmse)
+    )
+    for ($index = 0; $index -lt $forecastRows.Count; $index++) {
+        $top = 184 + ($index * 54)
+        if ($index % 2 -eq 0) {
+            Add-Box $slide 54 ($top - 7) 852 44 "E7ECEE" "" 1 | Out-Null
+        }
+        Add-Text $slide $forecastRows[$index][0] 64 $top 285 28 18 $script:Ink $true | Out-Null
+        Add-Text $slide (Format-TwoDecimals ([double]$forecastRows[$index][1])) 394 $top 220 28 19 $script:Teal $true | Out-Null
+        Add-Text $slide (Format-TwoDecimals ([double]$forecastRows[$index][2])) 655 $top 220 28 19 "60727D" $true | Out-Null
+    }
+    Add-Box $slide 64 418 828 62 "E4F4F0" $script:Teal 5 | Out-Null
+    Add-Text $slide "$($forecast.trace_count) traces  |  $(@($forecast.target_hours).Count) target hours  |  $($forecast.locality_sector_prediction_count) locality-sector predictions  |  $($forecast.system_total_prediction_count) system totals" 82 431 792 20 16 $script:Ink $true 2 | Out-Null
+    Add-Text $slide "Synthetic display-only comparison; no operational calibration claim" 82 455 792 20 16 "60727D" $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "Lower error for one-hour persistence is a bounded synthetic display comparison, not operational calibration." @(
+            "data/evidence/robustness-supplement.json, forecast_evaluation",
+            "docs/METHODOLOGY.md"
+        ))
+
+    # 11 - accepted reproduction
+    $slide = $presentation.Slides.Add(11, 12)
+    Set-SlideBackground $slide $script:Navy
+    Add-Chrome $slide 11
+    Add-SlideTitle $slide "The accepted reproduction preserves history, not independence"
+    Add-Text $slide "Accepted reproduction context" 64 145 360 30 23 $script:Teal $true | Out-Null
     Add-BulletList $slide @(
-        "PPO beats Fixed Rotation in the locked simulator",
-        "Critical-service protection and fairness improve",
-        "The result is reproducible from pinned artifacts",
-        "The desktop demonstrates one shared scenario honestly"
-    ) 64 184 390 17 $script:Ink 48 $script:Teal | Out-Null
-    Add-Text $slide "What this does not establish" 522 137 370 30 24 "A15E40" $true | Out-Null
+        "Seeds 50001-50003  |  96 base draws",
+        "288 matched conditions  |  576 evaluations",
+        "Reproduced from the frozen PPO checkpoint",
+        "Not untouched: promotion and acceptance used this layer"
+    ) 64 190 410 17 $script:OffWhite 47 $script:Teal | Out-Null
+    Add-Line $slide 500 142 500 457 $script:Grid 1 | Out-Null
+    Add-Text $slide "Accepted three-primary context" 538 145 345 30 22 $script:Gold $true | Out-Null
+    Add-Text $slide "Critical outage" 538 199 175 24 16 $script:Muted $true | Out-Null
+    Add-Text $slide ("{0} -> {1} locality-hours" -f (Format-OneDecimal ([double]$acceptedFixed.critical_outage_locality_hours)), (Format-OneDecimal ([double]$acceptedPpo.critical_outage_locality_hours))) 538 225 330 28 19 $script:OffWhite $true | Out-Null
+    Add-Text $slide "Jain fairness" 538 273 175 24 16 $script:Muted $true | Out-Null
+    Add-Text $slide ("{0} -> {1}" -f (Format-Percent ([double]$acceptedFixed.fairness)), (Format-Percent ([double]$acceptedPpo.fairness))) 538 299 330 28 19 $script:OffWhite $true | Out-Null
+    Add-Text $slide "Utilization" 538 347 175 24 16 $script:Muted $true | Out-Null
+    Add-Text $slide ("{0} -> {1}" -f (Format-Percent ([double]$acceptedFixed.utilization)), (Format-Percent ([double]$acceptedPpo.utilization))) 538 373 330 28 19 $script:OffWhite $true | Out-Null
+    Add-Box $slide 538 418 330 55 $script:SoftSlate $script:Grid 5 | Out-Null
+    Add-Text $slide "Untouched seeds 81001-81010 remain separate" 552 427 302 40 16 $script:Teal $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "The accepted artifact preserves provenance, but acceptance used its seeds. Confirmatory claims use the separate untouched seed layer." @(
+            "data/evidence/paired-benchmark.json, SHA-256 $expectedPairedSha256",
+            "data/evidence/robustness-supplement.json, seed_separation"
+        ))
+
+    # 12 - limitations
+    $slide = $presentation.Slides.Add(12, 12)
+    Set-SlideBackground $slide $script:OffWhite
+    Add-Chrome $slide 12 $true
+    Add-SlideTitle $slide "The evidence remains bounded by a shortage-only synthetic model" $true
+    Add-Text $slide "What the evidence supports" 64 145 360 30 23 $script:Teal $true | Out-Null
+    Add-BulletList $slide @(
+        "PPO versus Fixed Rotation in the locked simulator",
+        "Matched shortage scenarios across seven localities",
+        "Reproducible artifacts with explicit seed roles",
+        "Offline decision-support demonstration"
+    ) 64 192 410 17 $script:Ink 50 $script:Teal | Out-Null
+    Add-Text $slide "What it does not support" 522 145 370 30 23 $script:Risk $true | Out-Null
     Add-BulletList $slide @(
         "Field performance on Sudan's electrical grid",
-        "Network stability, voltage, or protection behavior",
-        "Superiority over every possible controller",
-        "Forecast accuracy from real operational data"
-    ) 522 184 390 17 $script:Ink 48 "A15E40" | Out-Null
-    Add-Box $slide 64 401 828 66 "E4F4F0" $script:Teal 5 | Out-Null
-    Add-Text $slide "Historical evidence stored 18 batch-cell summaries. Episode rows and intervals were regenerated from the audited simulator and frozen PPO checkpoint." 82 417 790 38 17 $script:Ink $true 2 | Out-Null
-    Add-Notes $slide ("This boundary is part of the result, not a weakness to hide. The accepted historical artifact did not contain episode rows, so the paired rows and intervals are a reviewed regeneration, not reconstructed historical observations.`r`n`r`n[Sources]`r`n- docs/RESULTS.md (Two evidence layers; Limitations)`r`n- docs/METHODOLOGY.md (Limitations and threats to validity)`r`n[/Sources]")
+        "Voltage, frequency, protection, or network stability",
+        "Real-data forecast calibration",
+        "Automatic operational dispatch"
+    ) 522 192 390 17 $script:Ink 50 $script:Risk | Out-Null
+    Add-Box $slide 64 424 828 52 "F6E8E3" $script:Risk 5 | Out-Null
+    Add-Text $slide "Synthetic demand and administrative geography are abstractions, not geographic measurements or electrical topology." 82 431 790 40 16 $script:Ink $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "The experiment models shortage allocation, not a power-flow network, and the data are synthetic." @(
+            "docs/METHODOLOGY.md",
+            "docs/RESULTS.md"
+        ))
 
-    # Slide 12 - close
-    $slide = $presentation.Slides.Add(12, 12)
+    # 13 - conclusion
+    $slide = $presentation.Slides.Add(13, 12)
     Set-SlideBackground $slide $script:Navy
-    Add-Chrome $slide 12
+    Add-Chrome $slide 13
     Add-Text $slide "THE ANSWER" 60 72 240 24 16 $script:Teal $true | Out-Null
-    Add-Text $slide "PPO > Fixed Rotation" 60 128 820 70 49 $script:OffWhite $true | Out-Null
-    Add-Text $slide "under the locked synthetic evaluation protocol" 62 205 660 34 24 $script:Gold | Out-Null
+    Add-Text $slide "PPO outperformed Fixed Rotation" 60 128 820 70 46 $script:OffWhite $true | Out-Null
+    Add-Text $slide "under the locked synthetic evaluation protocol" 62 205 700 34 24 $script:Gold | Out-Null
     Add-Line $slide 62 271 898 271 $script:Grid 1 | Out-Null
     Add-BulletList $slide @(
-        "Verified - pinned model, evidence, provenance, and release gate",
-        "Interactive - one shared GPU scenario with locality-level replay",
-        "Honest - synthetic scope, historical boundary, and limitations visible"
-    ) 62 306 810 20 $script:OffWhite 49 | Out-Null
+        "Three untouched primary outcomes - reported without a favorable-result gate",
+        "Matched scenarios, explicit seed roles, and hash-bound evidence",
+        "GPU-first offline desktop with Frozen and Live views kept separate"
+    ) 62 306 820 18 $script:OffWhite 49 | Out-Null
     Add-Box $slide 62 452 836 42 $script:Teal "" 5 | Out-Null
-    Add-Text $slide "Next: validate with representative operational data and electrical-network constraints" 78 463 804 22 17 $script:Navy $true 2 | Out-Null
-    Add-Notes $slide ("Close by answering the original question, then transition to the live demonstration. The next scientific step is operational-data and network-constraint validation before any field-facing use.`r`n`r`n[Sources]`r`n- docs/RESULTS.md (Result statement; Interpretation)`r`n- docs/REPORT.md`r`n[/Sources]")
+    Add-Text $slide "Next: representative operational data and electrical-network constraints" 78 463 804 22 17 $script:Navy $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "PPO outperformed Fixed Rotation under this locked synthetic protocol. Operational-data and network validation must precede field use." @(
+            "docs/RESULTS.md",
+            "docs/REPORT.md"
+        ))
 
+    Assert-PresentationLayout $presentation
     $presentation.SaveAs($OutputPath, 24)
-
-    Get-ChildItem -LiteralPath $renderDirectory -Filter "slide-*.png" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+    Get-ChildItem -LiteralPath $renderDirectory -Filter "slide-*.png" -File -ErrorAction SilentlyContinue |
+        Remove-Item -Force
     for ($index = 1; $index -le $presentation.Slides.Count; $index++) {
         $renderPath = Join-Path $renderDirectory ("slide-{0:D2}.png" -f $index)
         $presentation.Slides.Item($index).Export($renderPath, "PNG", 1600, 900)
     }
-
     Write-Output "Presentation written: $OutputPath"
     Write-Output "Rendered slides: $renderDirectory"
 }
