@@ -5,7 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
-from gridguard.ui.components import CardFrame, ControllerCard, page_intro
+from gridguard.ui.components import CardFrame, ClaimBoundaryNote, ControllerCard, page_intro
 from gridguard.ui.map_asset import MapAsset
 from gridguard.ui.map_view import LocalityMapView
 from gridguard.ui.presentation_model import PresentationSnapshot
@@ -36,6 +36,8 @@ class OverviewPage(QWidget):
         )
         layout.addWidget(title)
         layout.addWidget(description)
+        self.scope_note = ClaimBoundaryNote(include_holdout_custody=True)
+        layout.addWidget(self.scope_note)
 
         body = QHBoxLayout()
         body.setSpacing(12)

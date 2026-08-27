@@ -13,6 +13,7 @@ from gridguard.domain import ServiceTier
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 CAPTURE_TOOL = REPOSITORY_ROOT / "tools" / "capture_screenshots.py"
+COMMITTED_SCREENSHOT_DIR = REPOSITORY_ROOT / "docs" / "assets" / "screenshots"
 
 
 def _region_digest(image: QImage, region: QRect) -> str:
@@ -115,6 +116,7 @@ def test_capture_writes_four_distinct_1366_by_768_pngs(
         digests.add(hashlib.sha256(path.read_bytes()).hexdigest())
         rail_header_digests.add(_region_digest(image, QRect(0, 0, 176, 125)))
         trust_strip_digests.add(_region_digest(image, QRect(0, 727, 1366, 41)))
+        assert path.read_bytes() == (COMMITTED_SCREENSHOT_DIR / path.name).read_bytes()
     assert len(digests) == 4
     assert len(rail_header_digests) == 1
     assert len(trust_strip_digests) == 1

@@ -268,6 +268,14 @@ QLabel[kicker="true"] {{
 QLabel[compact="true"] {{
     font-size: 12px;
 }}
+QLabel[claim="boundary"] {{
+    color: {PALETTE.text_muted};
+    background: #F3EDE2;
+    border: 1px solid #C99D79;
+    border-radius: 3px;
+    padding: 4px 7px;
+    font-size: 11px;
+}}
 QLabel[heading="page"] {{
     color: {PALETTE.text};
     font-family: "{DISPLAY_FONT_FAMILY}", "Georgia", "Times New Roman";

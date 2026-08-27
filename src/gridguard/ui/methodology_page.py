@@ -13,8 +13,67 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from gridguard.claim_contract import (
+    HOLDOUT_CUSTODY_LIMITATION,
+    PPO_ATTRIBUTION_LIMITATION,
+    SENSITIVITY_INTERVAL_LIMITATION,
+)
 from gridguard.ui.components import CardFrame, page_intro
-from gridguard.ui.presentation_model import PresentationSnapshot
+from gridguard.ui.presentation_model import HistoricalTrainingRecord, PresentationSnapshot
+
+
+class HistoricalTrainingRecordCard(CardFrame):
+    """Compact renderer for the immutable reviewer-facing training projection."""
+
+    def __init__(self, record: HistoricalTrainingRecord, parent=None) -> None:
+        super().__init__(
+            accessible_name="Verified historical PPO training record",
+            variant="quiet",
+            parent=parent,
+        )
+        self.setAccessibleDescription(record.accessible_summary)
+
+        header = QHBoxLayout()
+        title = QLabel("Historical PPO training record")
+        title.setProperty("heading", "section")
+        badge = QLabel("VERIFIED PRESENTATION SUMMARY")
+        badge.setProperty("badge", "locked")
+        badge.setProperty("compact", True)
+        header.addWidget(title)
+        header.addStretch(1)
+        header.addWidget(badge)
+        self.content.addLayout(header)
+
+        source = QLabel(f"CANONICAL YAML · {record.provenance_path}")
+        source.setProperty("kicker", True)
+        source.setWordWrap(True)
+        source.setAccessibleName(f"Canonical PPO training parameter file: {record.provenance_path}")
+        self.content.addWidget(source)
+
+        rows = QGridLayout()
+        rows.setHorizontalSpacing(14)
+        rows.setVerticalSpacing(6)
+        rows.setColumnStretch(0, 1)
+        rows.setColumnStretch(1, 1)
+        self.record_labels: list[QLabel] = []
+        for index, row in enumerate(record.reviewer_rows):
+            label = QLabel(row.text)
+            label.setWordWrap(True)
+            label.setProperty("muted", True)
+            label.setAccessibleName(row.text)
+            self.record_labels.append(label)
+            rows.addWidget(label, index // 2, index % 2)
+        self.content.addLayout(rows)
+
+        limitation = QLabel(
+            "Historical record, not an executable retraining configuration. The canonical "
+            "YAML contains the full optimizer, initialization, generator, convergence, and "
+            "lineage details."
+        )
+        limitation.setWordWrap(True)
+        limitation.setProperty("muted", True)
+        limitation.setAccessibleName(limitation.text())
+        self.content.addWidget(limitation)
 
 
 class MethodologyPage(QWidget):
@@ -25,7 +84,8 @@ class MethodologyPage(QWidget):
         self.setAccessibleName("Methodology page")
         self.setAccessibleDescription(
             "Scrollable methodology covering synthetic inputs, controllers, the diagnostic "
-            "training objective, untouched evaluation, provenance, and limitations."
+            "training objective, documented-seed-disjoint evaluation, provenance, and "
+            "limitations."
         )
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -53,7 +113,8 @@ class MethodologyPage(QWidget):
         title, description = page_intro(
             "How the comparison was produced",
             "A transparent path from synthetic shortage conditions to identical-controller "
-            "inputs, CUDA execution, untouched paired inference, and a deliberately narrow claim.",
+            "inputs, CUDA execution, documented-seed-disjoint paired inference, and a "
+            "deliberately narrow claim.",
         )
         layout.addWidget(title)
         layout.addWidget(description)
@@ -86,6 +147,10 @@ class MethodologyPage(QWidget):
         protocol.setAccessibleDescription(protocol_text.text())
         layout.addWidget(protocol)
 
+        self.training_record_card = HistoricalTrainingRecordCard(snapshot.training_record)
+        self.training_record_labels = self.training_record_card.record_labels
+        layout.addWidget(self.training_record_card)
+
         sections = (
             (
                 "01",
@@ -113,7 +178,8 @@ class MethodologyPage(QWidget):
                 "PPO",
                 "The frozen learned controller observes the current hour, supply-to-demand "
                 "context, locality demand, critical share, service history, and prior tier. "
-                "Deterministic argmax inference selects one joint seven-locality action.",
+                "Deterministic argmax inference selects one joint seven-locality action. "
+                f"{PPO_ATTRIBUTION_LIMITATION}",
             ),
             (
                 "05",
@@ -126,13 +192,14 @@ class MethodologyPage(QWidget):
             ),
             (
                 "06",
-                "Untouched confirmatory evidence",
-                f"Matched evaluation gives PPO and Fixed Rotation the same immutable scenario in "
-                f"every pair. The "
+                "Documented-seed-disjoint holdout",
+                f"Matched evaluation gives PPO and Fixed Rotation the same validated scenario in "
+                f"every pair and rejects detected tensor mutation. The "
                 f"{snapshot.matched_scenario_count} paired conditions are clustered into "
-                f"{snapshot.independent_base_draw_count} untouched independent base draws across "
+                f"{snapshot.independent_base_draw_count} independent base draws across "
                 f"{snapshot.shortage_level_count} linked shortage variants. Results are reported "
-                "as observed; there is no favorable/adverse release gate.",
+                f"as observed; there is no favorable/adverse release gate. "
+                f"{HOLDOUT_CUSTODY_LIMITATION}",
             ),
             (
                 "07",
@@ -141,7 +208,8 @@ class MethodologyPage(QWidget):
                 "and utilization. Every stored difference is PPO minus Fixed Rotation; lower is "
                 "beneficial for outage exposure and higher for fairness and utilization. The 95% "
                 "intervals keep each base draw's shortage variants together during clustered "
-                "paired bootstrap. Power balance is shown separately as a safety result.",
+                "paired bootstrap. Power balance is shown separately as a safety result. "
+                f"{SENSITIVITY_INTERVAL_LIMITATION}",
             ),
             (
                 "08",

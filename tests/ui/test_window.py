@@ -3,12 +3,14 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+import pytest
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QFont, QFontDatabase, QFontMetrics, QRawFont
 from PySide6.QtWidgets import QLabel
 
+from gridguard.claim_contract import HOLDOUT_CUSTODY_LIMITATION, RESULTS_SCOPE_LIMITATION
 from gridguard.domain import ServiceTier
-from gridguard.ui import theme
+from gridguard.ui import presentation_model, theme
 from gridguard.ui.live_models import (
     LiveEpisodeSummary,
     LiveScenarioComparison,
@@ -129,7 +131,7 @@ def _snapshot() -> PresentationSnapshot:
             "sensitivity": {},
             "forecast_evaluation": {},
             "limitations": [
-                "Synthetic demand traces do not establish real-world forecast accuracy.",
+                "Forecast-only limitation must not define the comparator scope note.",
                 "Observed interval direction is descriptive and is not a release gate.",
             ],
         }
@@ -159,6 +161,7 @@ def test_live_controls_emit_selected_shortage_and_seed(qtbot) -> None:
     qtbot.addWidget(window)
     window.live_page.shortage_combo.setCurrentText("Severe")
     window.live_page.seed_input.setValue(50003)
+    assert "No live scenario has been run" in window.live_page.state_label.text()
 
     with qtbot.waitSignal(window.scenario_run_requested, timeout=1000) as emitted:
         qtbot.mouseClick(window.live_page.run_button, Qt.MouseButton.LeftButton)
@@ -173,6 +176,12 @@ def test_results_table_displays_values_from_injected_evidence(qtbot) -> None:
 
     table = window.results_page.results_table
     assert table.rowCount() == 3
+    assert [table.horizontalHeaderItem(column).text() for column in range(4)] == [
+        "Metric",
+        "PPO",
+        "Fixed Rotation",
+        "PPO − Fixed Rotation",
+    ]
     assert [table.item(row, 0).text() for row in range(3)] == [
         "Critical-outage locality-hours",
         "Jain fairness",
@@ -228,19 +237,63 @@ def test_results_controller_cards_do_not_clip_headlines_at_1366_by_768(qtbot, qa
 def test_results_page_keeps_safety_and_scope_limits_visible(qtbot) -> None:
     window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
     qtbot.addWidget(window)
+    window.resize(1366, 768)
+    window.show()
+    window.tabs.setCurrentIndex(2)
+    qtbot.waitUntil(window.results_page.scope_note.isVisible, timeout=1000)
 
     safety = window.results_page.safety_note.text().casefold()
-    scope = window.results_page.scope_note.text().casefold()
+    scope_note = window.results_page.scope_note
+    expected_scope = (
+        "Comparator boundary: Fixed Rotation is supply-blind, limited to Off and Full Service, and "
+        "cannot select Critical Only. Synthetic decision support only, not field evidence. No "
+        "behavior-cloning-only ablation was run, so this comparison cannot isolate the "
+        "incremental effect of PPO fine-tuning."
+    )
+    scope = scope_note.text().casefold()
     page_text = " ".join(
         label.text() for label in window.results_page.findChildren(QLabel)
     ).casefold()
+    evidence_role_text = window.results_page.evidence_role_note.text().casefold()
+    evidence_role_accessible = window.results_page.evidence_role_note.accessibleName().casefold()
+    table_description = window.results_page.results_table.accessibleDescription().casefold()
     assert "maximum power-balance violation rate 0.00%" in safety
     assert "across both controllers" in safety
-    assert "synthetic demand traces" in scope
-    assert "decision support only" in scope
-    assert "not field or operational evidence" in scope
-    assert "untouched confirmatory evidence" in page_text
-    assert "no favorable/adverse release gate" in page_text
+    assert expected_scope == presentation_model.RESULTS_SCOPE_LIMITATION
+    assert scope_note.text() == expected_scope
+    assert "forecast-only limitation" not in scope
+    assert scope_note.wordWrap()
+    assert expected_scope in scope_note.accessibleName()
+    assert expected_scope in window.results_page.accessibleDescription()
+    assert scope_note.geometry().bottom() <= window.results_page.contentsRect().bottom()
+    assert "documented-seed-disjoint holdout" in page_text
+    assert "not preregistered or independently custodied" in page_text
+    assert "cannot rule out undocumented activity" in page_text
+    assert "sensitivity: pointwise 95%" in evidence_role_text
+    assert "no multiplicity adjustment or result gate" in evidence_role_text
+    assert "base paired 95% confidence intervals below" in evidence_role_accessible
+    assert "sensitivity supplement (not shown here)" in evidence_role_accessible
+    assert "unadjusted for multiple comparisons" in evidence_role_accessible
+    assert "sensitivity supplement is not shown in this table" in table_description
+    assert "untouched confirmatory" not in page_text
+    assert "no favorable/adverse release gate" in evidence_role_accessible
+
+
+def test_results_inference_banner_is_fully_visible_at_presentation_width(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.resize(1366, 768)
+    window.show()
+    window.tabs.setCurrentIndex(2)
+    qtbot.waitUntil(window.results_page.evidence_role_note.isVisible, timeout=1000)
+
+    banner = window.results_page.evidence_role_note
+    assert banner.fontMetrics().horizontalAdvance(banner.text()) <= banner.contentsRect().width()
+    accessible = banner.accessibleName().casefold()
+    assert "base paired 95% confidence intervals below" in accessible
+    assert "sensitivity supplement (not shown here)" in accessible
+    assert "unadjusted for multiple comparisons" in accessible
+    assert "no favorable/adverse release gate" in accessible
 
 
 def test_window_keeps_meaningful_state_before_live_integration(qtbot) -> None:
@@ -441,6 +494,35 @@ def test_overview_visibly_attributes_verified_map_sources(qtbot) -> None:
     assert "Natural Earth 5.0" in attribution.accessibleName()
 
 
+def test_overview_keeps_claim_boundaries_visible_beside_results(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.resize(1366, 768)
+    window.show()
+    window.tabs.setCurrentIndex(0)
+    qtbot.waitUntil(window.overview_page.scope_note.isVisible, timeout=1000)
+
+    note = window.overview_page.scope_note
+    visible = note.text().casefold()
+    accessible = note.accessibleName()
+    for phrase in (
+        "not preregistered or independently custodied",
+        "undocumented activity cannot be ruled out",
+        "supply-blind",
+        "uses only off and full service",
+        "cannot select critical only",
+        "behavior-cloning-only ablation",
+        "ppo fine-tuning",
+    ):
+        assert phrase in visible
+    assert HOLDOUT_CUSTODY_LIMITATION in accessible
+    assert RESULTS_SCOPE_LIMITATION in accessible
+    assert note.wordWrap()
+    assert note.height() >= note.heightForWidth(note.width())
+    bottom = note.mapTo(window.overview_page, QPoint(0, note.height())).y()
+    assert bottom <= window.overview_page.contentsRect().bottom()
+
+
 def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None:
     snapshot = _snapshot()
     window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
@@ -457,7 +539,10 @@ def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None
         "ppo",
         "training-objective score (diagnostic)",
         "matched evaluation",
-        "untouched confirmatory evidence",
+        "documented-seed-disjoint holdout",
+        "not preregistered or independently custodied",
+        "unadjusted for multiple comparisons",
+        "behavior-cloning-only ablation",
         "no favorable/adverse release gate",
         "limitations",
         "keyboard",
@@ -465,6 +550,48 @@ def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None
         assert topic in page_text
     assert str(snapshot.independent_base_draw_count) in page_text
     assert str(snapshot.matched_scenario_count) in page_text
+
+
+def test_methodology_shows_verified_historical_training_record_at_presentation_size(qtbot) -> None:
+    snapshot = _snapshot()
+    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.resize(1366, 768)
+    window.show()
+    window.tabs.setCurrentIndex(3)
+    qtbot.waitUntil(window.methodology_page.isVisible, timeout=1000)
+
+    page = window.methodology_page
+    card = page.training_record_card
+    card_text = " ".join(label.text() for label in card.findChildren(QLabel))
+
+    assert card.accessibleName() == "Verified historical PPO training record"
+    assert card.accessibleDescription() == snapshot.training_record.accessible_summary
+    assert "Historical PPO training record" in card_text
+    assert "VERIFIED PRESENTATION SUMMARY" in card_text
+    assert "CANONICAL YAML · data/model/training-provenance.yaml" in card_text
+    assert "Actor topology · 32 -> 512 -> 512 -> 2,187 logits" in card_text
+    assert (
+        "Behavior cloning · 32,768 teacher samples · rollout batch 128 · "
+        "minibatch 2,048 · 100 epochs · 1,600 optimizer updates"
+    ) in card_text
+    assert (
+        "Selected seed-43 run · 600 iterations · 153,600 complete episodes · 3,686,400 transitions"
+    ) in card_text
+    assert (
+        "Three-seed candidate experiment · 1,800 iterations · 460,800 complete episodes · "
+        "11,059,200 transitions"
+    ) in card_text
+    assert "PPO batching · 256 episodes/iteration · minibatch 2,048 · 4 epochs/iteration" in (
+        card_text
+    )
+    assert "Learning · LR 0.0001 · gamma 0.99 · GAE lambda 0.95 · clip epsilon 0.20" in (card_text)
+    assert (
+        "Seeds and selection · training 43 · candidates 42, 43, 44 · validation "
+        "70000, 70001, 70002 · selected seed 43 at iteration 510"
+    ) in card_text
+    assert "historical record, not an executable retraining configuration" in card_text.casefold()
+    assert page.scroll_area.horizontalScrollBar().maximum() == 0
 
 
 def _live_comparison() -> LiveScenarioComparison:
@@ -572,3 +699,118 @@ def test_live_worker_error_is_shown_without_fabricated_frames(qtbot) -> None:
 
     assert not window.live_page.timeline.isEnabled()
     assert "test failure" in window.live_page.state_label.text()
+
+
+def _assert_live_output_is_unavailable(window: PresentationWindow) -> None:
+    page = window.live_page
+    unavailable_hour = page.hour_label.text().casefold()
+    assert "hour" in unavailable_hour
+    assert "demand unavailable" in unavailable_hour
+    assert "supply unavailable" in unavailable_hour
+    assert page.controller_combo.currentText() == "PPO"
+    assert not page.controller_combo.isEnabled()
+    assert page.timeline.value() == 0
+    assert not page.timeline.isEnabled()
+    assert all(
+        map_item.status_text.casefold().endswith("not run")
+        for map_item in page.map_view.locality_items.values()
+    )
+    assert all(
+        map_item.brush().color().name().upper() == PALETTE.surface_raised
+        for map_item in page.map_view.locality_items.values()
+    )
+    assert all(
+        page.locality_list.item(row).text().casefold().endswith("not run")
+        for row in range(page.locality_list.count())
+    )
+    assert page.locality_context.text() == "No controller output \N{MIDDLE DOT} Hour \N{EM DASH}"
+    assert page.locality_status.text() == "Status: not run"
+    assert page.locality_demand.text() == "\N{EM DASH}"
+    assert page.locality_served.text() == "\N{EM DASH}"
+    assert page.locality_critical.text() == "\N{EM DASH}"
+    assert "Next hour: \N{EM DASH}" in page.locality_projection.text()
+    assert all(label.text() == "\N{EM DASH}" for label in page.sector_service_labels.values())
+    assert "no verified live demonstration metrics" in (
+        page.comparison_table.accessibleDescription().casefold()
+    )
+    assert all(
+        page.comparison_table.item(row, column).text() == "\N{EM DASH}"
+        for row in range(page.comparison_table.rowCount())
+        for column in range(1, page.comparison_table.columnCount())
+    )
+
+
+def test_starting_a_new_live_request_clears_the_previous_scientific_output(qtbot) -> None:
+    release_runner = threading.Event()
+
+    def runner(_shortage_level: str, _seed: int) -> LiveScenarioComparison:
+        release_runner.wait(timeout=3)
+        return _live_comparison()
+
+    window = PresentationWindow(
+        _snapshot(),
+        runtime_label="Test CUDA runtime",
+        live_runner=runner,
+    )
+    qtbot.addWidget(window)
+    page = window.live_page
+    page.set_comparison(_live_comparison())
+    page.timeline.setValue(7)
+    page.controller_combo.setCurrentText("Fixed Rotation")
+
+    qtbot.mouseClick(page.run_button, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: window.live_run_active, timeout=1000)
+
+    try:
+        _assert_live_output_is_unavailable(window)
+        assert page.state_label.property("state") == "loading"
+    finally:
+        release_runner.set()
+        qtbot.waitUntil(lambda: not window.live_run_active, timeout=3000)
+
+
+def test_live_run_error_clears_the_previous_scientific_output(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    page = window.live_page
+    page.set_comparison(_live_comparison())
+    page.timeline.setValue(7)
+    page.controller_combo.setCurrentText("Fixed Rotation")
+
+    page.show_run_error("test integration failure")
+
+    _assert_live_output_is_unavailable(window)
+    assert page.state_label.property("state") == "error"
+    assert "test integration failure" in page.state_label.text()
+
+
+@pytest.mark.parametrize(
+    ("input_name", "changed_value"),
+    (
+        ("shortage_combo", "Moderate"),
+        ("seed_input", 50004),
+    ),
+    ids=("shortage-level", "seed"),
+)
+def test_changing_live_inputs_invalidates_completed_scientific_output(
+    qtbot,
+    input_name: str,
+    changed_value: str | int,
+) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    page = window.live_page
+    page.set_comparison(_live_comparison())
+    page.timeline.setValue(7)
+    page.controller_combo.setCurrentText("Fixed Rotation")
+
+    control = getattr(page, input_name)
+    if input_name == "shortage_combo":
+        control.setCurrentText(changed_value)
+    else:
+        control.setValue(changed_value)
+
+    _assert_live_output_is_unavailable(window)
+    assert page.state_label.property("state") == "empty"
+    assert "inputs changed" in page.state_label.text().casefold()
+    assert "run required" in page.state_label.text().casefold()

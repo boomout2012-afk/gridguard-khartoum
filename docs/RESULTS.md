@@ -2,7 +2,7 @@
 
 ## Result statement
 
-The reviewer-facing result is the untouched confirmatory comparison on seeds 81001-81010. It
+The reviewer-facing result is the documented-seed-disjoint holdout on seeds 81001-81010. It
 contains 320 independent base draws crossed with Mild, Moderate, and Severe shortage-only
 conditions: 960 matched scenario conditions and 1,920 controller-scenario evaluations. Under this
 synthetic protocol, PPO has lower critical-outage locality-hours, higher Jain fairness, and higher
@@ -14,16 +14,21 @@ sign-neutral and would accept a well-formed favorable, adverse, or ambiguous res
 applies to one frozen PPO actor, one supply-blind Fixed Rotation baseline, and the stated synthetic
 generator. It is decision-support evidence, not a real-grid operational claim.
 
+The seeds are disjoint only from every documented training, validation, and model-selection seed in
+`data/model/training-provenance.yaml`. The holdout was not preregistered or independently custodied
+and cannot rule out undocumented activity. No behavior-cloning-only ablation was run,
+so this comparison cannot isolate the incremental effect of PPO fine-tuning.
+
 ## Results provenance and evidence roles
 
-The project keeps historical parity, untouched confirmation, and training lineage distinct.
+The project keeps historical parity, documented seed disjointness, and training lineage distinct.
 
 | Evidence role | File and SHA-256 | Permitted interpretation |
 |---|---|---|
 | Accepted aggregate source | `data/evidence/frozen-benchmark.json` - `3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15` | Preserve the accepted 18 batch-cell summaries; it contains no historical episode rows or intervals |
-| Accepted reproduction evidence | `data/evidence/paired-benchmark.json` - `6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677` | Reproduce 96 independent base draws, 288 matched scenario conditions, 576 controller evaluations, paired rows, and frozen parity; seeds `50001-50003` participated in model selection, so this is not an untouched final test |
-| Untouched confirmatory evidence | `data/evidence/robustness-supplement.json` - `c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b` | Report the 320-draw primary comparison, 24 sensitivity variants, safety invariant, and synthetic forecast evaluation on seeds disjoint from documented training, validation, selection, and prior evaluation |
-| Historical PPO training record | `data/model/training-provenance.yaml` - `2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a` | Explain architecture, behavior-cloning initialization, PPO parameters, workload, seeds, selection, hardware, convergence, and source lineage; it is not a bitwise-retraining bundle |
+| Accepted reproduction evidence | `data/evidence/paired-benchmark.json` - `7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5` | Reproduce 96 independent base draws, 288 matched scenario conditions, 576 controller evaluations, paired rows, and frozen parity; seeds `50001-50003` participated in model selection, so this is not an independently custodied final test |
+| Documented-seed-disjoint holdout | `data/evidence/robustness-supplement.json` - `fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1` | Report the 320-draw primary comparison, 24 sensitivity variants, safety invariant, and synthetic forecast evaluation; disjointness covers documented activity only and does not imply preregistration or independent custody |
+| Historical PPO training record | `data/model/training-provenance.yaml` - `d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8` | Distinguish the selected seed-43 run from the three-seed candidate experiment; scope hardware/convergence to the selected run; expose promotion checks, provenance categories, unavailable historical facts, and source lineage; this is not a bitwise-retraining bundle and historical gates are not independent headline evidence |
 
 `validate_paired_benchmark_payload` reconstructs closed schema, pairing, physical bounds, and
 arithmetic. `assert_paired_benchmark_integrity` adds locked provenance and direct frozen-cell
@@ -43,7 +48,7 @@ linework is pinned at
 context only and not electrical-network topology. The map does not enter scenario generation,
 controller input, dispatch, metrics, or evidence.
 
-## Untouched primary outcomes
+## Documented-seed-disjoint primary outcomes
 
 Every difference is `PPO - Fixed Rotation`. Percentage-point differences are shown for ratio
 outcomes. Values are rounded only for presentation.
@@ -92,15 +97,18 @@ under the episode energy identity and are not two independent endpoints.
 
 The accepted cell summaries still match the frozen aggregate artifact within every locked
 tolerance. That parity proves source-compatible reproduction; it does not make the three reused
-seeds untouched.
+seeds independently custodied.
 
 ## Sensitivity across illustrative demand allocation
 
 The one-factor-at-a-time analysis changes each of seven locality weights and five sector shares by
 -25% and +25%, renormalizing the affected vector. The 24 variants plus the unchanged base give 25
 parameterizations. Each variant reuses the same 320 base draws across all three shortage levels
-and both controllers, producing 24,000 matched sensitivity scenarios and 48,000 controller-scenario
-evaluations when the base is included.
+and both controllers while holding the base available-supply trace exactly fixed, producing 24,000
+matched sensitivity scenarios and 48,000 controller-scenario evaluations when the base is included.
+
+All 144 sensitivity intervals are descriptive, pointwise 95% intervals and are unadjusted for
+multiple comparisons. They do not establish family-wide statistical significance.
 
 For every one of the 24 variants, the paired interval remains favorable for PPO on all three
 primary outcomes. Difference-in-differences asks a different question: whether the perturbed
@@ -108,9 +116,9 @@ paired effect is larger or smaller than the base paired effect. Those classifica
 
 | Difference-in-differences outcome | Favorable | Ambiguous | Adverse |
 |---|---:|---:|---:|
-| Critical-outage locality-hours | 3 | 2 | 19 |
+| Critical-outage locality-hours | 4 | 1 | 19 |
 | Jain fairness | 6 | 9 | 9 |
-| Utilization | 7 | 4 | 13 |
+| Utilization | 6 | 5 | 13 |
 
 Thus, the direction of the controller comparison persists in this local +/-25% neighborhood, but
 many perturbations reduce the size of the base advantage. The study supports bounded local
@@ -119,7 +127,7 @@ Khartoum.
 
 ## Synthetic forecast comparison
 
-Both display methods are evaluated on the same 320 untouched synthetic demand traces and common
+Both display methods are evaluated on the same 320 documented-seed-disjoint synthetic demand traces and common
 target hours 3-23. The three-hour trailing mean uses only hours `t-3` through `t-1`; the one-hour
 persistence baseline uses `t-1`. Each method has 235,200 locality-sector predictions and 6,720
 system-total predictions. Errors are in MW at each one-hour target; locality-sector statistics pool
@@ -144,14 +152,14 @@ PPO input. No real-world forecast-accuracy claim follows.
 
 Fixed Rotation serves three consecutive localities at Full Service for each three-hour block and
 turns the other four Off. It does not observe supply, demand, critical need, or accumulated
-fairness; it never selects Critical Only. In the accepted reproduction its critical-service ratios
+fairness; it cannot select Critical Only. In the accepted reproduction its critical-service ratios
 are 43.27%, 43.27%, and 41.35%, while utilization rises from 54.26% to 68.68% to 90.73% across
 Mild, Moderate, and Severe shortages. The utilization rise is a denominator effect as usable
 supply falls, not evidence that the schedule adapts.
 
 Mean unused available energy is 2,158.7 MWh for Fixed Rotation versus 150.2 MWh for PPO. Part of
-the utilization difference is therefore attributable to the baseline's supply-blind Off/Full
-design. The evidence supports comparison with this proposal baseline only. It does not establish
+the utilization difference is therefore attributable to the supply-blind baseline design, which
+uses only Off and Full Service. The evidence supports comparison with this proposal baseline only. It does not establish
 PPO superiority over a supply-aware critical-preserving heuristic or every rule-based controller.
 
 ## Interpretation against the proposal questions
@@ -175,7 +183,7 @@ PPO superiority over a supply-aware critical-preserving heuristic or every rule-
 
 - The scenarios are synthetic, Khartoum-inspired, and uncalibrated. Supply is constructed partly
   from synthetic demand, so matched scenarios do not remove shared generator misspecification.
-- Fixed Rotation is supply-blind and limited to Off/Full Service. A stronger supply-aware baseline
+- Fixed Rotation is supply-blind and limited to Off and Full Service. A stronger supply-aware baseline
   is outside the accepted scope but necessary future work.
 - Performance relative to the global optimum is unknown; no valid upper-bound comparator is
   included.
@@ -186,7 +194,12 @@ PPO superiority over a supply-aware critical-preserving heuristic or every rule-
 - The operating domain is shortage-only: Mild, Moderate, and Severe. Surplus, normal operation,
   recovery, and restoration transients are not evaluated.
 - Bootstrap intervals are conditional on the fixed synthetic seed strata and shortage design.
-  Ten untouched seeds improve separation and coverage but do not represent all future conditions.
+  Ten documented-seed-disjoint seeds improve separation and coverage but were not preregistered or
+  independently custodied and do not represent all future conditions.
+- Sensitivity intervals are pointwise and unadjusted for multiple comparisons; no family-wide
+  significance claim is supported.
+- No behavior-cloning-only ablation was run, so the incremental contribution of PPO fine-tuning
+  beyond the initialization is not isolated.
 - The +/-25% one-factor sensitivity excludes interactions and cannot replace calibration data.
 - Forecast errors use synthetic traces only. Persistence's lower error does not establish a
   real-world forecasting conclusion.

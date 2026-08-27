@@ -5,6 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QVBoxLayout
 
+from gridguard.claim_contract import HOLDOUT_CUSTODY_LIMITATION, RESULTS_SCOPE_LIMITATION
 from gridguard.ui.presentation_model import MetricComparison, PresentationSnapshot
 from gridguard.ui.theme import PALETTE, STATUS_COLORS, STATUS_TEXT
 
@@ -39,6 +40,34 @@ def page_intro(title: str, description: str) -> tuple[QLabel, QLabel]:
     body.setWordWrap(True)
     body.setAccessibleName(f"Page summary: {description}")
     return heading, body
+
+
+class ClaimBoundaryNote(QLabel):
+    """Compact visible claim boundary with the full canonical text for assistive access."""
+
+    def __init__(self, *, include_holdout_custody: bool = False, parent=None) -> None:
+        visible_parts = []
+        canonical_parts = []
+        if include_holdout_custody:
+            visible_parts.append(
+                "Holdout not preregistered or independently custodied; undocumented activity "
+                "cannot be ruled out."
+            )
+            canonical_parts.append(HOLDOUT_CUSTODY_LIMITATION)
+        visible_parts.append(
+            "Synthetic decision support only. Fixed Rotation is supply-blind (uses only Off and "
+            "Full Service; "
+            "cannot select Critical Only). No behavior-cloning-only ablation isolates PPO "
+            "fine-tuning."
+        )
+        canonical_parts.append(RESULTS_SCOPE_LIMITATION)
+        canonical_text = " ".join(canonical_parts)
+
+        super().__init__(" ".join(visible_parts), parent)
+        self.setProperty("claim", "boundary")
+        self.setWordWrap(True)
+        self.setAccessibleName(f"Scientific claim boundary: {canonical_text}")
+        self.setToolTip(canonical_text)
 
 
 class ControllerCard(CardFrame):

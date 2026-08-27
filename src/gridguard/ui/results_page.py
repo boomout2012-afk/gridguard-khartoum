@@ -1,4 +1,4 @@
-"""Evidence-backed untouched confirmatory comparison page."""
+"""Evidence-backed documented-seed-disjoint comparison page."""
 
 from __future__ import annotations
 
@@ -15,43 +15,58 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from gridguard.claim_contract import (
+    HOLDOUT_CUSTODY_LIMITATION,
+    RESULTS_SCOPE_LIMITATION,
+    SENSITIVITY_INTERVAL_LIMITATION,
+)
 from gridguard.ui.components import CardFrame, ControllerCard, format_metric_value, page_intro
 from gridguard.ui.presentation_model import PresentationSnapshot
 from gridguard.ui.theme import MONO_FONT_FAMILY
 
 
 class ResultsPage(QWidget):
-    """Three primary outcomes from untouched confirmatory evidence."""
+    """Three primary outcomes from the documented-seed-disjoint holdout."""
 
     def __init__(self, snapshot: PresentationSnapshot, parent=None) -> None:
         super().__init__(parent)
         self.setAccessibleName("Results page")
         self.setAccessibleDescription(
-            f"Frozen untouched confirmatory comparison from evidence {snapshot.artifact_id}."
+            f"Frozen documented-seed-disjoint holdout from evidence {snapshot.artifact_id}. "
+            f"{HOLDOUT_CUSTODY_LIMITATION} {SENSITIVITY_INTERVAL_LIMITATION} "
+            f"{RESULTS_SCOPE_LIMITATION}"
         )
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(26, 18, 26, 16)
-        layout.setSpacing(9)
+        layout.setContentsMargins(26, 14, 26, 12)
+        layout.setSpacing(7)
 
-        kicker = QLabel("RESULTS  /  UNTOUCHED CONFIRMATORY")
+        kicker = QLabel("RESULTS  /  DOCUMENTED-SEED-DISJOINT HOLDOUT")
         kicker.setProperty("kicker", True)
-        kicker.setAccessibleName("Results, untouched confirmatory evidence")
+        kicker.setAccessibleName("Results, documented-seed-disjoint holdout")
         layout.addWidget(kicker)
         title, description = page_intro(
             "PPO compared with Fixed Rotation",
             "Three proposal-aligned outcomes and paired 95% confidence intervals come directly "
-            "from committed untouched confirmatory evidence. Live demonstrations cannot replace "
-            "these frozen results.",
+            "from the committed documented-seed-disjoint holdout. It was not preregistered or "
+            "independently custodied and cannot rule out undocumented activity. Live "
+            "demonstrations cannot replace these frozen results.",
         )
         layout.addWidget(title)
         layout.addWidget(description)
 
+        inference_disclosure = (
+            "Documented-seed-disjoint holdout; base paired 95% confidence intervals below; "
+            "sensitivity supplement (not shown here): descriptive, pointwise 95%, unadjusted "
+            "for multiple comparisons; no favorable/adverse release gate."
+        )
         self.evidence_role_note = QLabel(
-            "Untouched confirmatory evidence · no favorable/adverse release gate."
+            "Paired 95% CIs · Sensitivity: pointwise 95%; "
+            "no multiplicity adjustment or result gate."
         )
         self.evidence_role_note.setProperty("badge", "locked")
         self.evidence_role_note.setProperty("compact", True)
-        self.evidence_role_note.setAccessibleName(self.evidence_role_note.text())
+        self.evidence_role_note.setAccessibleName(inference_disclosure)
+        self.evidence_role_note.setToolTip(inference_disclosure)
         layout.addWidget(self.evidence_role_note)
 
         self.provenance_card = CardFrame(
@@ -170,10 +185,11 @@ class ResultsPage(QWidget):
         self.results_table.setAccessibleDescription(
             f"{len(snapshot.metrics)} primary-outcome rows from {snapshot.artifact_id} compare "
             "PPO with Fixed Rotation. Delta is PPO minus Fixed Rotation and includes a paired "
-            "95 percent confidence interval."
+            "95 percent confidence interval. The sensitivity supplement is not shown in this "
+            "table; its intervals are descriptive and pointwise, with no multiplicity adjustment."
         )
         self.results_table.setHorizontalHeaderLabels(
-            ["Metric", "PPO", "Fixed Rotation", "PPO − Fixed (95% CI)"]
+            ["Metric", "PPO", "Fixed Rotation", "PPO − Fixed Rotation"]
         )
         self.results_table.verticalHeader().setVisible(False)
         self.results_table.setAlternatingRowColors(True)
@@ -229,16 +245,8 @@ class ResultsPage(QWidget):
                 self.results_table.setItem(row, column, item)
         layout.addWidget(self.results_table, 1)
 
-        limitation = (
-            snapshot.limitations[0].rstrip(".")
-            if snapshot.limitations
-            else "No limitation text was supplied by the verified snapshot"
-        )
-        self.scope_note = QLabel(
-            f"Scope: {limitation}. Decision support only; not field or operational evidence."
-        )
+        self.scope_note = QLabel(RESULTS_SCOPE_LIMITATION)
         self.scope_note.setAccessibleName(f"Results scope limitation: {self.scope_note.text()}")
-        self.scope_note.setProperty("muted", True)
         self.scope_note.setProperty("compact", True)
         self.scope_note.setWordWrap(True)
         layout.addWidget(self.scope_note)

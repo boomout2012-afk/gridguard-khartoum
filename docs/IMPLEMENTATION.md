@@ -28,27 +28,27 @@ recalculating the headline claim.
 | Path | Responsibility |
 |---|---|
 | `src/gridguard/domain.py` | Locality, sector, shortage, service-tier, controller, scenario, result, and metric contracts |
+| `src/gridguard/claim_contract.py` | Canonical labels and bounded limitations for reviewer-facing scientific claims |
 | `src/gridguard/scenarios.py` | Severity-neutral stochastic base draws and pure shortage-level scenario transformations |
 | `src/gridguard/controllers.py` | Shared controller protocol, Fixed Rotation rule, and PPO adapter |
 | `src/gridguard/simulation.py` | Causal 32-value observation, tier dispatch, reward, and immutable result traces |
 | `src/gridguard/metrics.py` | Per-episode proposal outcomes on the source tensor device |
 | `src/gridguard/policy.py` | Strict PPO actor schema, artifact verification, CUDA load, and deterministic inference |
 | `src/gridguard/statistics.py` | CuPy stratified paired bootstrap through DLPack |
-| `src/gridguard/evaluation.py` | Exact scenario pairing, per-episode evidence, frozen parity, canonical serialization, and semantic verification |
+| `src/gridguard/evaluation.py`; `src/gridguard/paired_inference.py` | Exact pairing, evidence serialization/verification, frozen parity, and independent CUDA endpoint reconstruction |
+| `src/gridguard/robustness.py`; `src/gridguard/robustness_inference.py`; `src/gridguard/robustness_provenance.py` | Holdout/sensitivity/forecast evaluation, reconstructable inference inputs, strict artifact verification, and non-circular trust anchors |
 | `src/gridguard/forecast.py` | Causal trailing-window demand projection for display only |
 | `src/gridguard/gpu.py` | Fail-closed CUDA, PyTorch, CuPy, driver, and DLPack preflight |
 | `src/gridguard/provenance.py` | Pinned source-manifest and artifact verification |
 | `src/gridguard/resources.py` | Safe source-checkout or installed-bundle resource resolution |
 | `src/gridguard/ui/map_asset.py` | Provenance verification, closed GeoJSON validation, WGS84 projection, and locality keyboard graph |
 | `src/gridguard/ui/app.py` | Desktop entry point and fail-closed startup sequence |
-| `src/gridguard/ui/window.py` | 1366 x 768 shell, page navigation, and presentation shortcuts |
-| `src/gridguard/ui/presentation_model.py` | Strict projection of the untouched robustness supplement into presentation data |
+| `src/gridguard/ui/window.py`; `src/gridguard/ui/window_components.py` | 1366 x 768 shell, accessible page stack/navigation, shortcuts, and persistent trust status |
+| `src/gridguard/ui/presentation_model.py` | Strict projection of the documented-seed-disjoint robustness supplement into presentation data |
 | `src/gridguard/ui/map_view.py` and `src/gridguard/ui/map_items.py` | Interactive `QGraphicsView` map and redundant service-state rendering |
-| `src/gridguard/ui/live_models.py` | Immutable, validated host-side contracts for two 24-hour controller timelines |
-| `src/gridguard/ui/live_runner.py` | Shared-scenario CUDA execution and one explicit display transfer |
-| `src/gridguard/ui/live_worker.py` | Qt worker signals that keep CUDA execution off the GUI thread |
+| `src/gridguard/ui/live_models.py`; `src/gridguard/ui/live_runner.py`; `src/gridguard/ui/live_worker.py` | Validated timeline contracts, shared-scenario CUDA execution, one display transfer, and off-GUI-thread worker signals |
+| `src/gridguard/ui/live_components.py`; `src/gridguard/ui/live_controls.py`; `src/gridguard/ui/live_visualization.py`; `src/gridguard/ui/live_page.py` | Stable focused widgets for controls, aggregate results, synchronized map/timeline replay, and locality details |
 | `src/gridguard/ui/overview_page.py` | Scope, protocol, and locality overview |
-| `src/gridguard/ui/live_page.py` | Shortage/seed controls, 24-hour replay timeline, and locality detail surface |
 | `src/gridguard/ui/results_page.py` | Artifact-derived controller comparison and paired intervals |
 | `src/gridguard/ui/methodology_page.py` | In-application method and limitation summary |
 | `src/gridguard/ui/components.py` and `src/gridguard/ui/theme.py` | Reusable accessible cards, metric formatting, and visual theme |
@@ -93,8 +93,8 @@ runs the bootstrap sampling and percentiles. The large arrays remain on the GPU.
   updated values through a CuPy DLPack view.
 
 Any failed check stops launch or evaluation with an actionable error. Small unit tests can
-inject a CPU device for local logic checks, but the release gate runs the unfiltered GPU and
-source-provenance tests on the presentation laptop.
+inject a CPU device for local logic checks, but the mandatory presentation-GPU gate runs the
+complete source/runtime suite on the target laptop and fails closed when CUDA is unavailable.
 
 ## PPO artifact and inference
 
@@ -118,12 +118,17 @@ externally pinned SHA-256, file size, schema, architecture metadata, tensor set,
 finiteness, and exact training-record hash. The loaded actor is moved to `cuda:0`, frozen, placed
 in evaluation mode, and restricted to deterministic argmax actions.
 
-The strict YAML record exposes the complete historical configuration reviewers asked for: the
-32 -> 512 -> 512 -> 2,187 network; behavior-cloning initialization; 600 PPO iterations, 153,600
-episodes, and 3,686,400 transitions; Adam/AdamW settings; validation and selection seeds; selected
-iteration 510; hardware; full convergence series; and six source bindings. It intentionally omits
-optimizer state and raw runs and makes no bitwise-retraining claim. Adam was the historical
-parameter optimizer; CUDA is the computation platform, not an online dispatch optimizer.
+The strict YAML record exposes the historical configuration reviewers asked for: the
+32 -> 512 -> 512 -> 2,187 network; behavior-cloning initialization; Adam/AdamW settings; validation
+and selection seeds; selected iteration 510; selected-run hardware and convergence; six code-source
+bindings; and three run/metric/experiment record bindings. The selected seed-43 run used 600 PPO
+iterations, 153,600 episodes, and 3,686,400 transitions. The three-seed candidate experiment totaled
+1,800 iterations, 460,800 episodes, and 11,059,200 transitions. Its historical promotion gates are
+selection facts, not independent headline evidence. A strict field map distinguishes directly
+recorded, source-reconstructed, arithmetic-derived, and unavailable historical environment facts.
+The record intentionally omits optimizer state and raw runs and makes no bitwise-retraining claim.
+Adam was the historical parameter optimizer; CUDA is the computation platform, not an online
+dispatch optimizer.
 
 ## Scenario, dispatch, and metrics pipeline
 
@@ -157,7 +162,7 @@ The canonical aliases on `EpisodeMetrics` make aggregation semantics reviewable 
 `episode_pooled_critical_service_ratio`, `mean_hourly_supply_utilization_ratio`, and
 `mean_hourly_cumulative_locality_jain_fairness`. Controller aggregates are equally weighted
 arithmetic means of episode metrics. The accepted reproduction has 288 episodes and nine cells;
-the untouched robustness supplement has 960 episodes and 30 shortage-by-seed cells. Every cell
+the documented-seed-disjoint robustness supplement has 960 episodes and 30 shortage-by-seed cells. Every cell
 contains 32 episodes.
 
 ## Accepted reproduction evaluation and statistics
@@ -212,9 +217,14 @@ outputs can still be validated honestly.
 passing parity, and a direct reload and cross-check of all 18 controller cell summaries from the
 hash-pinned frozen artifact. It does not inspect interval direction. `verify_paired_benchmark()`
 always verifies the external file hash and canonical bytes; supplying the frozen benchmark path
-activates this stronger sign-neutral integrity check.
+activates this stronger sign-neutral integrity check. Both functions remain host-only so the
+documented portable gate can verify immutable structure, arithmetic, physics, provenance, and
+claims with CUDA hidden. `verify_paired_inference_on_cuda()` is the separate mandatory `cuda:0`
+reconstruction of every persisted cluster-bootstrap endpoint. Desktop preflight,
+`gridguard-evaluate --verify-evidence`, and paired reproduction invoke the host verifier and then
+that CUDA reconstruction; the portable verifier is not represented as release certification.
 
-## Untouched robustness pipeline
+## Documented-seed-disjoint robustness pipeline
 
 `run_full_robustness_evaluation()` evaluates seeds 81001-81010, 32 base draws per seed, and all
 three shortage levels. That is 320 independent base draws, 960 matched scenario conditions, and
@@ -224,7 +234,8 @@ primary-outcome structure and uses 10,000 replicates with seed `20260826`.
 `ScenarioDemandParameters` provides a validated, immutable perturbation seam while preserving the
 default generator byte-for-byte. The robustness evaluator changes each of seven locality weights
 and five sector shares separately by -25% and +25%, renormalizes the affected vector, and replays
-the same base draws. The 24 one-factor-at-a-time variants plus the base give 25 parameterizations,
+the same base draws while reusing the base available-supply tensor exactly. The 24
+one-factor-at-a-time variants plus the base give 25 parameterizations,
 24,000 matched sensitivity scenarios, and 48,000 controller-scenario evaluations. The artifact
 stores paired effects and difference-in-differences for critical-outage locality-hours, fairness,
 and utilization.
@@ -233,12 +244,19 @@ Forecast statistics compare the three-hour trailing mean with one-hour persisten
 targets 3-23. Counts, absolute-error sums, squared-error sums, pooled MAE/RMSE, and cross-aggregation
 identities are recomputed by the strict verifier. Simulation, inference, bootstrap, sensitivity,
 and forecast statistics remain on `cuda:0`; validity flags and all numeric evidence are packed into
-one final full-array `.cpu().numpy()` transfer. Existing boundary validators may synchronize scalar
-invariant flags, but no scientific array computation moves to CPU. Canonical host assembly then writes
+one final full-array `.cpu().numpy()` transfer. The Scenario shortage preflight and each controller
+action range check may synchronize one-element invariant flags so invalid inputs fail before dispatch;
+no scientific array computation moves to CPU. Canonical host assembly then writes
 `data/evidence/robustness-supplement.json`. Verification requires exact provenance bindings,
 protocol counts, controller-minus-baseline means, difference-in-differences arithmetic, forecast
 identities, result classifications, canonical bytes, and the external SHA-256. It never requires
 a favorable sign.
+
+The holdout label proves only disjointness from every documented training, validation, and
+model-selection seed in `data/model/training-provenance.yaml`; it does not prove preregistration,
+independent custody, or the absence of undocumented activity. Sensitivity intervals are descriptive,
+pointwise 95%, and unadjusted for multiple comparisons. No behavior-cloning-only ablation was run,
+so this comparison cannot isolate the incremental effect of PPO fine-tuning.
 
 ## Evidence provenance and fail-closed behavior
 
@@ -247,6 +265,16 @@ for eight local artifacts (proposal, frozen benchmark, PPO actor, PPO manifest, 
 accepted reproduction, robustness supplement, and the robustness trust-anchor source module) and
 15 source-lineage files. Verification rejects a rewritten manifest even if its internal entries
 are self-consistent.
+
+The exact bundled scientific source set verified by the current robustness artifact and copied
+into wheel/PyInstaller reviewer assets comprises `src/gridguard/controllers.py`,
+`src/gridguard/claim_contract.py`, `src/gridguard/domain.py`, `src/gridguard/evaluation.py`,
+`src/gridguard/forecast.py`, `src/gridguard/metrics.py`, `src/gridguard/paired_inference.py`,
+`src/gridguard/policy.py`, `src/gridguard/robustness.py`, `src/gridguard/robustness_inference.py`,
+`src/gridguard/scenarios.py`, `src/gridguard/simulation.py`, and `src/gridguard/statistics.py`.
+
+`src/gridguard/robustness_provenance.py` is the separately bundled, non-circular trust anchor for
+that set; packaging derives its inputs from those declarations, not a duplicated handwritten list.
 
 Additional safeguards include:
 
@@ -258,8 +286,8 @@ Additional safeguards include:
 - sign-neutral integrity validation is independent of whether an interval favors PPO;
 - frozen parity cannot rely only on a self-declared status;
 - the paired file must match SHA-256
-  `6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677`;
-- the robustness supplement must match SHA-256 `c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b`; and
+  `7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5`;
+- the robustness supplement must match SHA-256 `fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1`; and
 - the evaluator refuses devices other than `cuda:0`, bootstrap counts other than 10,000, or a
   protocol-specific bootstrap seed.
 
@@ -294,9 +322,9 @@ dissolved locality mask, and writing deterministic GeoJSON. `map-provenance.json
 derived hashes to the source selectors and EPSG:3857 scene transform. Attribution and licensing
 are bundled in `src/gridguard/assets/map/THIRD_PARTY_DATA.md`.
 
-At startup, the standard-library loader verifies provenance before parsing either GeoJSON file.
-It rejects duplicate or unknown fields, non-finite coordinates, unsupported geometry, missing or
-duplicate source identities, incorrect P-codes, invalid keyboard order or neighbors, and geometry
+At startup, a standard-library loader verifies provenance before parsing either GeoJSON file and
+rejects duplicate or unknown fields, non-finite coordinates, unsupported geometry, missing or
+duplicate identities, incorrect P-codes, invalid keyboard/neighborhood order, or coordinates
 outside the closed geographic contract. One fixed formula projects WGS84 to EPSG:3857, aspect-fits
 all boundaries, holes, anchors, and rivers into the 1000 by 720 scene, and gives Qt only projected
 coordinates. No GIS library or network request is required at runtime. Keeping scenario and
@@ -307,7 +335,7 @@ input.
 
 `gridguard-desktop` starts the PySide6 application through `ui/app.py`. Before it creates the
 main window, startup runs the complete project preflight: GPU and DLPack checks, the pinned source
-manifest, accepted paired-evidence semantics and frozen parity, untouched robustness semantics and
+manifest, accepted paired-evidence semantics and frozen parity, seed-disjoint robustness semantics and
 implementation-source bindings, PPO artifact verification, and a golden CUDA inference action. It
 then loads the pinned robustness supplement for the Results view and the bundled map. A GPU,
 evidence, model, resource, or map failure blocks the presentation instead of opening a partly
@@ -353,9 +381,9 @@ state; it never fabricates replay data. Runtime errors clear the frames and aggr
 disable replay controls, and remain visible to the presenter.
 
 The Results page renders only the three primary values and paired intervals present in the
-untouched robustness supplement. It shows power balance separately as safety and does not
+documented-seed-disjoint robustness supplement. It shows power balance separately as safety and does not
 calculate replacement headline values. The Methodology page summarizes the accepted reproduction,
-untouched confirmation, historical training record, locked design, and evidence limitations for
+documented seed disjointness, historical training record, locked design, and evidence limitations for
 presentation use.
 
 ## Runtime resources and packaging
@@ -384,37 +412,45 @@ The tests are organized by the same boundaries as the implementation:
 | Metric tests | Energy identities, proposal definitions, sign conventions, and finite device-resident outputs |
 | Policy tests | Safe artifact parsing, actor architecture, source parity, decoding, and real CUDA inference |
 | Evaluation and statistics tests | Exact pairing, evidence roles, counts, bootstrap stratification, DLPack sharing, canonical evidence, and frozen parity |
-| Robustness tests | Untouched seeds, 24 sensitivities, difference-in-differences, forecast arithmetic, one transfer, and sign neutrality |
+| Robustness tests | Documented-seed-disjoint seeds, 24 sensitivities, difference-in-differences, forecast arithmetic, one transfer, and sign neutrality |
 | Provenance and source tests | Pinned manifest, training YAML, source Git blobs, accepted benchmark migration, and tamper rejection |
 | Forecast tests | Causality, common-target alignment, persistence comparison, shape, dtype, device preservation, and invalid-input rejection |
 | Map and package tests | Source/derived hashes, closed GeoJSON, real compound geometry, river paths, keyboard metadata, wheel inclusion, and isolated install loading |
 | Desktop UI tests | Startup-gate ordering, evidence projection, tabs, shortcuts, map interaction, and asynchronous live success/error states |
 | GPU integration tests | Real PyTorch/CuPy/CUDA preflight on the presentation laptop |
 
-The portable command excludes release-only GPU and source-archive checks:
+The portable command excludes GPU, source-archive, and built-release checks:
 
 ```powershell
-uv run pytest -m "not gpu and not source_archive"
+uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
 ```
 
-The presentation release requires all checks without skips:
+The remaining contract has a mandatory presentation-GPU gate and strict post-build
+`release_artifact` gate:
 
 ```powershell
-$sourceArchive = (Resolve-Path -LiteralPath "..\aipower_rl" -ErrorAction Stop).Path
-$env:GRIDGUARD_SOURCE_REPOSITORY = $sourceArchive
-$env:GRIDGUARD_SOURCE_CHECKPOINT = (
-    Resolve-Path -LiteralPath (
-        Join-Path $sourceArchive "artifacts\checkpoints\best.pt"
-    ) -ErrorAction Stop
-).Path
-uv run gridguard-doctor
-uv run pytest -ra
-uv run gridguard-evaluate --verify-evidence
-uv run ruff check .
+uv run --no-sync gridguard-doctor
+uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
+uv run --no-sync gridguard-evaluate --verify-evidence
+uv run --no-sync ruff check .
+
+# Run only after the Windows package and release manifest are final.
+uv run --no-sync pytest -ra -m "release_artifact"
 ```
 
-Release review requires zero skipped tests. Setting both source paths explicitly prevents the
-source-parity fixtures from treating an absent research archive as an optional environment.
+The optional source-archive parity gate is an explicit lineage audit, not a package dependency. The
+normal package build does not require the sibling research archive. With that read-only archive and
+checkpoint available, run:
+
+```powershell
+.\scripts\build-presentation.ps1 -StrictSourceParity `
+  -SourceRepositoryPath ..\aipower_rl `
+  -SourceCheckpointPath ..\aipower_rl\artifacts\checkpoints\best.pt
+```
+
+Strict mode validates both paths and includes `source_archive` tests. Normal builds clear ambient
+source-path variables, never probe the sibling repository, and require zero skips in both mandatory
+selected suites.
 
 ## Deliberate implementation limits
 
@@ -423,12 +459,15 @@ source-parity fixtures from treating an absent research archive as an optional e
 - The simulator is a decision-support abstraction and has no hardware control interface.
 - The map contains real administrative boundaries and river context but no feeders, substations,
   measured demand, service territories, or other electrical-network topology.
-- NumPy/Python is restricted to artifact parsing and deterministic row/cell/aggregate assembly
-  after the single final full numeric evidence-array transfer; simulation, inference, metrics,
-  forecast, and bootstrap hot paths remain on the GPU. Scalar boundary checks may synchronize
-  invariant flags.
-- Fixed Rotation is supply-blind and limited to Off/Full Service; the comparison does not cover a
-  stronger supply-aware heuristic or establish PPO's distance from the global optimum.
+- NumPy/Python is restricted to post-transfer artifact parsing, deterministic assembly, and small
+  host validation; simulation, inference, metrics, forecast, and bootstrap stay on the GPU. Scalar
+  invariant checks may synchronize.
+- `evaluation.py` and the robustness orchestration remain large. Only assurance-critical
+  scenario-identity, persisted-input, reconstruction, and trust-boundary helpers were extracted; a
+  broad late-stage refactor was deliberately deferred to avoid scientific regression.
+- Fixed Rotation is supply-blind, uses only Off and Full Service, and cannot select Critical Only. The
+  comparison neither covers a stronger supply-aware heuristic nor locates PPO relative to a global
+  optimum.
 - The result claim is fixed to the two named controllers, three shortage-only levels, and one
   frozen PPO actor. Surplus, recovery, normal operation, and restoration transients are excluded.
 - The `3^N` joint-action output has 2,187 logits at seven localities and is not presented as a

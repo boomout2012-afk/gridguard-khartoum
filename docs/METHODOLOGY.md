@@ -11,9 +11,10 @@ the evidence supports a comparison inside the stated synthetic scenario design o
 The controller comparison is PPO versus Fixed Rotation. Evidence has two roles. Seeds
 `50001-50003` reproduce the accepted historical comparison but participated in checkpoint
 promotion and model selection, so that artifact is labeled **accepted reproduction**, not an
-untouched final test. Seeds `81001-81010` are disjoint from every documented training, validation,
-selection, and earlier evaluation seed and provide the bounded **untouched confirmatory**
-comparison. The proposal permits prediction, rule-based logic,
+independently custodied final test. Seeds `81001-81010` form the bounded
+**documented-seed-disjoint holdout**: they are disjoint from every documented training, validation,
+and model-selection seed in `data/model/training-provenance.yaml`. The holdout was not preregistered
+or independently custodied and cannot rule out undocumented activity. The proposal permits prediction, rule-based logic,
 optimization, and reinforcement learning where appropriate; it does not require every method to
 be a controller in the final comparison. The presentation includes a small causal demand
 projection as a separate explanatory feature. It is not an input to PPO and does not change
@@ -79,7 +80,7 @@ shortage case.
 | Severe | 0.50 | Subtract 0.15 during simulation hours 16-21 |
 
 The same seed reproduces the same batched demand and supply tensors in the pinned CUDA
-environment. Accepted reproduction uses seeds 50001-50003; the untouched confirmatory protocol
+environment. Accepted reproduction uses seeds 50001-50003; the documented-seed-disjoint protocol
 uses the separate seeds 81001-81010.
 
 The simulator parameters are reproducible, but reproducibility is not calibration. Their
@@ -130,7 +131,7 @@ Fixed Rotation divides the day into three-hour blocks. In each block, three cons
 localities receive Full Service and the remaining localities are Off. The starting locality
 advances by three positions at each block and wraps around the seven-locality order. The rule
 does not observe current demand, supply, critical-service need, or cumulative fairness.
-It is supply-blind, uses only Off and Full Service, and never selects Critical Only. This makes it
+It is supply-blind, limited to Off and Full Service, and cannot select Critical Only. This makes it
 transparent and proposal-aligned but weaker than a supply-aware critical-preserving heuristic;
 the comparison must not be generalized to every reasonable rule-based policy.
 
@@ -164,19 +165,30 @@ outputs, so the architecture does not scale gracefully to a much larger locality
 ### Historical PPO training record
 
 The strict, model-manifest-bound record is `data/model/training-provenance.yaml`, SHA-256
-`2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`. It records the 32-value
+`d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8`. It records the 32-value
 input, two 512-unit tanh layers, separate actor/critic encoders, 2,187 action logits, optimizer
-settings, workload, seeds, validation, selection, hardware, convergence, and six archive source
-bindings. Behavior-cloning initialization supplied the starting PPO actor from 32,768 teacher
-samples; it is initialization, not a third controller.
+settings, workload, seeds, validation, selection, selected-run hardware and convergence, six archive
+code-source bindings, and three run/metric/experiment record bindings. Its field map distinguishes
+directly recorded facts, source-reconstructed values (including named PyTorch defaults),
+arithmetic-derived values, and unavailable historical environment facts. Behavior-cloning
+initialization supplied the starting PPO actor from 32,768 teacher samples; it is initialization,
+not a third controller.
 
-PPO then ran 600 iterations with 256 complete 24-hour episodes per iteration: 153,600 episodes
-and 3,686,400 transitions. Each iteration used four epochs, 2,048-sample minibatches, 12 optimizer
-updates, `gamma=0.99`, `GAE lambda=0.95`, learning rate `0.0001`, clip epsilon `0.2`, value
-coefficient `0.5`, normalized entropy coefficient `0.001`, and separate actor/critic maximum
-gradient norms of `0.5`. Adam optimized historical PPO parameters; the selected seed-43 checkpoint
-was iteration 510 after 6,120 updates. CUDA accelerated computation. No separate online
-mathematical dispatch optimizer runs in the desktop or confirmatory comparison.
+No behavior-cloning-only ablation was run, so this comparison cannot isolate the incremental effect
+of PPO fine-tuning; the initialization is checkpoint lineage, not an independently evaluated comparator.
+
+For the selected seed-43 run, PPO ran 600 iterations with 256 complete 24-hour episodes per
+iteration: 153,600 episodes and 3,686,400 transitions. Each iteration used four epochs,
+2,048-sample minibatches, 12 optimizer updates, `gamma=0.99`, `GAE lambda=0.95`, learning rate
+`0.0001`, clip epsilon `0.2`, value coefficient `0.5`, normalized entropy coefficient `0.001`, and
+separate actor/critic maximum gradient norms of `0.5`. The three-seed candidate experiment totaled
+1,800 iterations, 460,800 episodes, and 11,059,200 transitions. Its historical promotion gates
+required all runs to be safe and finite, reward and seed-win margins, bounded worst-seed regression,
+and acceptable throughput. Those gates are historical selection facts, not independent headline
+evidence. Adam optimized historical PPO parameters; the selected checkpoint was iteration 510 after
+6,120 updates. The recorded runtime, hardware, and convergence series apply only to selected seed
+43. CUDA accelerated computation. No separate online mathematical dispatch optimizer runs in the
+desktop or documented-seed-disjoint comparison.
 
 ## Reward
 
@@ -248,7 +260,7 @@ Every public metric has one calculation level and one aggregation rule:
 
 For each controller in the accepted reproduction, the aggregate is the equally weighted arithmetic
 mean of the 288 episode values. Equivalently, it is the equally weighted mean of the nine cell means
-because every cell contains 32 episodes. The untouched confirmatory aggregate is the same canonical
+because every cell contains 32 episodes. The documented-seed-disjoint aggregate is the same canonical
 calculation over 960 episodes: 10 seeds x 32 base draws x 3 shortage variants. Paired inference
 always uses within-scenario `PPO - Fixed Rotation` episode differences while keeping the three
 shortage variants of each base draw in the same resampled cluster.
@@ -293,7 +305,7 @@ scenario family.
 
 The `50001-50003` seeds were not used for PPO gradient updates or periodic validation, but the
 archived promotion workflow reused them during model selection. Consequently, this design supports
-historical parity and accepted reproduction only. It is not described as an untouched final test.
+historical parity and accepted reproduction only. It is not described as an independently custodied final test.
 
 ## Paired uncertainty calculation
 
@@ -321,9 +333,9 @@ evaluator performs one final packed full numeric evidence-array transfer for can
 serialization. Boundary validators may synchronize scalar invariant flags; they do not move the
 simulation, metric, forecast, or bootstrap arrays or calculations to CPU.
 
-These intervals quantify resampling variability of the 96 base-draw clusters conditional on the
-nine synthetic cells. They are not p-values, do not estimate a field causal effect, and do not
-establish performance on a real Sudanese electricity network.
+These intervals describe resampling variability of 96 base-draw clusters conditional on nine
+synthetic cells. They are neither p-values nor field-causal estimates and do not establish
+performance on Sudan's real grid.
 
 The reproduced critical-service estimand first calculates a ratio for each episode and then
 averages those episode ratios. The accepted cell summaries used pooled critical energy. Their
@@ -331,12 +343,13 @@ maximum cell difference is `0.0000012684613466262817`, which is below the locked
 tolerance. The new rows should therefore be understood as a source-compatible episode-level
 reproduction, not reconstructed historical episode data.
 
-## Untouched robustness, sensitivity, and forecast design
+## Documented-seed-disjoint robustness, sensitivity, and forecast design
 
-The confirmatory supplement uses seeds 81001-81010 with 32 base draws per seed. Crossing these
+The holdout supplement uses seeds 81001-81010 with 32 base draws per seed. Crossing these
 320 independent base draws with all three shortage levels gives 960 matched scenario conditions
-and 1,920 controller-scenario evaluations. The two controllers reuse the exact same immutable
-scenario within every pair. The deterministic seed-stratified paired cluster bootstrap uses 10,000
+and 1,920 controller-scenario evaluations. The two controllers reuse the exact same validated
+scenario within every pair, and device-side mutation guards reject detected writes to demand or
+supply. The deterministic seed-stratified paired cluster bootstrap uses 10,000
 replicates and seed `20260826`; it resamples 32 base-draw indices within each of 10 seed strata and
 keeps all three shortage variants together. Result classification is descriptive: sign-neutral
 integrity accepts favorable, adverse, or ambiguous intervals.
@@ -349,7 +362,11 @@ For each primary outcome the supplement stores the variant paired effect and the
 difference-in-differences relative to the base paired effect. This is a bounded local sensitivity
 study, not a proof of global robustness.
 
-On the 320 untouched synthetic demand traces, forecast evaluation aligns both methods to target
+All 144 paired and difference-in-differences intervals are descriptive, pointwise 95%, and
+unadjusted for multiple comparisons; no family-wide significance claim follows. Every intervention
+holds the base available-supply trace fixed and changes only its named demand-allocation vector.
+
+On the 320 documented-seed-disjoint synthetic demand traces, forecast evaluation aligns both methods to target
 hours 3-23. The three-hour trailing mean uses only hours `t-3` through `t-1`; one-hour persistence
 uses hour `t-1`. The supplement stores per-seed sufficient statistics and recomputable pooled MAE
 and RMSE for 235,200 locality-sector predictions and 6,720 system-total predictions per method.
@@ -377,7 +394,7 @@ the robustness supplement; no real-world forecast-accuracy claim is made.
 ## Reproducibility and provenance
 
 The proposal, accepted source benchmark, source checkpoint, clean inference artifact, historical
-training record, accepted reproduction, and untouched robustness supplement are bound by SHA-256
+training record, accepted reproduction, and documented-seed-disjoint robustness supplement are bound by SHA-256
 manifests. The key final evidence hashes are:
 
 | Artifact | SHA-256 |
@@ -385,37 +402,41 @@ manifests. The key final evidence hashes are:
 | Accepted proposal PDF | `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48` |
 | Frozen aggregate benchmark | `3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15` |
 | PPO inference artifact | `3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5` |
-| Accepted paired reproduction | `6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677` |
-| Untouched robustness supplement | `c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b` |
-| PPO training provenance YAML | `2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a` |
-| Project source manifest | `7f0a865686de7ff4f7264ff9211fb60ad226abad9445573ab72615172b963fa4` |
+| Accepted paired reproduction | `7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5` |
+| Documented-seed-disjoint robustness supplement | `fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1` |
+| PPO training provenance YAML | `d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8` |
+| Project source manifest | `a8377ee96b8c7742f0794776b5752a9553abd0f766b78e457565428d612463e6` |
 
-Run the release checks from the repository root on the presentation laptop:
+The reviewer contract has four gates: portable development/CPU CI; the mandatory presentation-GPU
+gate for source/runtime/evidence; the strict post-build `release_artifact` gate; and the optional
+source-archive parity gate. The normal package build does not require the sibling research archive.
 
-```powershell
-uv sync --frozen --extra dev --extra docs
-$sourceArchive = (Resolve-Path -LiteralPath "..\aipower_rl" -ErrorAction Stop).Path
-$env:GRIDGUARD_SOURCE_REPOSITORY = $sourceArchive
-$env:GRIDGUARD_SOURCE_CHECKPOINT = (
-    Resolve-Path -LiteralPath (
-        Join-Path $sourceArchive "artifacts\checkpoints\best.pt"
-    ) -ErrorAction Stop
-).Path
-uv run gridguard-doctor
-uv run pytest -ra
-uv run gridguard-evaluate --verify-evidence
-uv run ruff check .
-```
-
-The explicit archive variables turn a missing source archive or checkpoint into a test failure
-instead of an optional skip. Release review must confirm that pytest reports zero skipped tests.
-The full test command is deliberately unfiltered: release verification requires the NVIDIA GPU,
-the CUDA PyTorch/CuPy stack, and the trusted source archive. The CPU-safe development subset is
-useful feedback but is not a release certificate:
+Run the gates from the repository root after installing the locked environment:
 
 ```powershell
-uv run pytest -m "not gpu and not source_archive"
+uv sync --locked --extra dev --extra docs --offline
+
+# Portable development/CI gate
+uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
+
+# Mandatory presentation-GPU gate
+uv run --no-sync gridguard-doctor
+uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
+uv run --no-sync gridguard-evaluate --verify-evidence
+uv run --no-sync ruff check .
+
+# Build first, then inspect the final release tree with zero skips.
+.\scripts\build-presentation.ps1
+uv run --no-sync pytest -ra -m "release_artifact"
+
+# Optional source-archive parity gate
+.\scripts\build-presentation.ps1 -StrictSourceParity `
+  -SourceRepositoryPath ..\aipower_rl `
+  -SourceCheckpointPath ..\aipower_rl\artifacts\checkpoints\best.pt
 ```
+
+Both mandatory selected suites require zero skips. Strict source parity validates the two explicit
+paths and runs the `source_archive` tests; it is not a runtime or normal-build dependency.
 
 The paired artifact can be independently regenerated to a temporary file without overwriting
 the committed evidence. The command refuses to target the trusted artifact and accepts the
@@ -427,9 +448,9 @@ uv run gridguard-evaluate --reproduce-paired --output $reproduction
 ```
 
 The required output digest is
-`6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677`.
+`7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5`.
 
-The untouched supplement has the same overwrite protection and byte-reproduction requirement:
+The documented-seed-disjoint supplement has the same overwrite protection and byte-reproduction requirement:
 
 ```powershell
 $robustness = Join-Path $env:TEMP "gridguard-robustness-supplement.json"
@@ -456,7 +477,7 @@ identities, and result classifications. No favorable-result release gate exists.
 - Proportional dispatch scales critical and non-critical requests together when total requests
   exceed supply; it does not model feeder-level within-hour critical restoration priority.
 - The one-hour resolution cannot represent sub-hour switching or transient grid behavior.
-- Fixed Rotation is supply-blind and limited to Off/Full Service. The study does not establish
+- Fixed Rotation is supply-blind and limited to Off and Full Service. The study does not establish
   superiority over a supply-aware critical-preserving heuristic, every optimization method, or
   every learned controller.
 - Performance relative to the global optimum is unknown; no episode-level optimization or valid
@@ -464,7 +485,7 @@ identities, and result classifications. No favorable-result release gate exists.
 - The PPO joint-action head has `3^N` scaling (`3^7 = 2,187` here), limiting architectural
   scalability beyond the accepted seven-locality scope.
 - Both designs remain conditional on fixed synthetic seed strata and shortage construction, even
-  though the untouched supplement expands coverage to ten seeds and adds local sensitivity.
+  though the documented-seed-disjoint supplement expands coverage to ten seeds and adds local sensitivity.
 - Power-balance compliance is an invariant of this simulator, not evidence of real-grid
   stability or operational safety.
 - The 99% critical-outage threshold and reward weights are explicit research assumptions.

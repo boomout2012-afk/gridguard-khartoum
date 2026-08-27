@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import html
+import json
 import re
 import tomllib
 import zipfile
@@ -9,11 +10,15 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+from gridguard.claim_contract import HOLDOUT_CUSTODY_LIMITATION
+from gridguard.robustness import ROBUSTNESS_SEED_SEPARATION_CLAIM
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 PAIRED_PATH = REPOSITORY_ROOT / "data" / "evidence" / "paired-benchmark.json"
 ROBUSTNESS_PATH = REPOSITORY_ROOT / "data" / "evidence" / "robustness-supplement.json"
 TRAINING_PATH = REPOSITORY_ROOT / "data" / "model" / "training-provenance.yaml"
 AUDIT_PATH = REPOSITORY_ROOT / "docs" / "DEVILS_ADVOCATE_AUDIT.md"
+RESULTS_PATH = REPOSITORY_ROOT / "docs" / "RESULTS.md"
 REPORT_PATH = REPOSITORY_ROOT / "output" / "pdf" / "gridguard-khartoum-final-report.pdf"
 DECK_PATH = REPOSITORY_ROOT / "output" / "presentation" / "gridguard-khartoum-defense.pptx"
 TEXT_PATHS = (
@@ -25,6 +30,11 @@ TEXT_PATHS = (
     REPOSITORY_ROOT / "docs" / "RESULTS.md",
     REPOSITORY_ROOT / "docs" / "PROPOSAL_TRACEABILITY.md",
     REPOSITORY_ROOT / "docs" / "PRESENTATION_CHECKLIST.md",
+)
+CURRENT_CLAIM_SOURCE_PATHS = (
+    *TEXT_PATHS,
+    REPOSITORY_ROOT / "docs" / "REPORT.md",
+    REPOSITORY_ROOT / "src" / "gridguard" / "ui" / "presentation_model.py",
 )
 
 
@@ -67,6 +77,38 @@ def test_primary_documents_use_only_the_approved_controller_vocabulary() -> None
     )
 
 
+def test_baseline_tier_names_and_capitalization_are_exact_in_reviewer_surfaces() -> None:
+    vocabulary_paths = (
+        *CURRENT_CLAIM_SOURCE_PATHS,
+        AUDIT_PATH,
+        REPOSITORY_ROOT / "docs" / "REVIEW_REMEDIATION.md",
+        REPOSITORY_ROOT / "tasks" / "plan.md",
+        REPOSITORY_ROOT / "tasks" / "todo.md",
+        REPOSITORY_ROOT / "src" / "gridguard" / "claim_contract.py",
+        REPOSITORY_ROOT / "src" / "gridguard" / "ui" / "components.py",
+        REPOSITORY_ROOT / "tools" / "build_presentation.ps1",
+    )
+    tier_disclosures = "\n".join(
+        (REPOSITORY_ROOT / relative_path).read_text(encoding="utf-8")
+        for relative_path in (
+            "docs/REPORT.md",
+            "docs/PROPOSAL_TRACEABILITY.md",
+            "docs/PRESENTATION_CHECKLIST.md",
+            "tools/build_presentation.ps1",
+        )
+    )
+
+    vocabulary_corpus = "\n".join(path.read_text(encoding="utf-8") for path in vocabulary_paths)
+
+    assert "fixed rotation" not in vocabulary_corpus
+    assert "Fixed rotation" not in vocabulary_corpus
+    assert "Off and Full Service" in tier_disclosures
+    assert "Off/Full" not in vocabulary_corpus
+    assert "Off-and-Full-Service-only" not in vocabulary_corpus
+    assert "no-Critical-Only" not in vocabulary_corpus
+    assert "Mild/Moderate/Severe" not in vocabulary_corpus
+
+
 def test_evidence_claims_keep_roles_counts_hashes_and_scope_together() -> None:
     source_text = _normalized("\n".join(path.read_text(encoding="utf-8") for path in TEXT_PATHS))
     report_text = _normalized(
@@ -82,12 +124,27 @@ def test_evidence_claims_keep_roles_counts_hashes_and_scope_together() -> None:
         assert "960 matched" in corpus
         assert "1,920 controller" in corpus
         assert "25 parameterizations" in corpus
-        assert "untouched" in corpus.casefold()
+        assert "documented-seed-disjoint holdout" in corpus.casefold()
+        assert "untouched confirmatory" not in corpus.casefold()
         assert _sha256(PAIRED_PATH) in corpus
         assert _sha256(ROBUSTNESS_PATH) in corpus
         assert _sha256(TRAINING_PATH) in corpus
         assert "synthetic" in corpus.casefold()
         assert "decision-support" in corpus.casefold()
+
+
+def test_current_claim_sources_do_not_use_the_legacy_untouched_label() -> None:
+    for path in CURRENT_CLAIM_SOURCE_PATHS:
+        assert "untouched" not in path.read_text(encoding="utf-8").casefold(), path
+
+
+def test_current_assurance_surfaces_do_not_claim_a_confirmatory_comparison() -> None:
+    assurance_paths = (
+        *CURRENT_CLAIM_SOURCE_PATHS,
+        REPOSITORY_ROOT / "docs" / "REVIEW_REMEDIATION.md",
+    )
+    for path in assurance_paths:
+        assert "confirmatory comparison" not in path.read_text(encoding="utf-8").casefold(), path
 
 
 def test_report_references_are_cited_and_extract_without_broken_glyphs() -> None:
@@ -117,6 +174,14 @@ def test_documented_setup_and_artifact_paths_match_the_release() -> None:
     assert "output/presentation/" in spec
 
 
+def test_spec_describes_the_guarded_matched_scenario_without_overclaiming_immutability() -> None:
+    spec = (REPOSITORY_ROOT / "SPEC.md").read_text(encoding="utf-8")
+
+    assert "same guarded scenario" in spec
+    assert "detected demand/supply mutation fails closed" in spec
+    assert "same immutable scenario" not in spec
+
+
 def test_phase_6_audit_ledger_is_complete_and_honest_about_open_work() -> None:
     audit = AUDIT_PATH.read_text(encoding="utf-8")
     rows = [
@@ -137,33 +202,61 @@ def test_phase_6_audit_ledger_is_complete_and_honest_about_open_work() -> None:
             "Optional signing hardening",
         }, finding
         assert re.search(r"\b6\.\d+\b", owner), finding
-        assert status in {"Open", "Closed"}, finding
+        assert status in {
+            "Open",
+            "Closed",
+            "Post-freeze attestation",
+            "Post-freeze handoff",
+        }, finding
         assert evidence, finding
         if status == "Open":
             assert evidence.startswith("Pending"), finding
 
+    rows_by_finding = {row[0]: row for row in rows}
+    assert rows_by_finding["A01"][5] == "Post-freeze handoff"
+    assert rows_by_finding["A02"][5] == "Post-freeze attestation"
+    assert rows_by_finding["A21"][5] == "Post-freeze handoff"
+
+    normalized_audit = _normalized(audit)
     assert (
         "The ledger is a work register, not proof that an open finding is closed."
-        in _normalized(audit)
+        in normalized_audit
     )
+    for required_protocol in (
+        "pre-freeze technical closure register",
+        "docs/release-visual-review.json must already be frozen",
+        "only RELEASE_MANIFEST.json and docs/release-machine-validation.json may change",
+        "final handoff response records the exact local HEAD SHA",
+        "remote branch SHA",
+        "embedding that equality in a new commit would advance HEAD",
+        "do not create docs/release-publication-attestation.json",
+        "git rev-parse HEAD",
+        "git ls-remote --heads",
+        "final handoff response is the only A01 publication-evidence record",
+        "clean worktree",
+    ):
+        assert required_protocol.casefold() in normalized_audit.casefold()
 
 
-def test_1_2_0_is_the_consistent_unreleased_target_without_rewriting_1_1_0() -> None:
+def test_1_2_0_is_the_consistent_release_without_rewriting_1_1_0() -> None:
     readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
     spec = (REPOSITORY_ROOT / "SPEC.md").read_text(encoding="utf-8")
     changelog = (REPOSITORY_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    citation = (REPOSITORY_ROOT / "CITATION.cff").read_text(encoding="utf-8")
     pyproject = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
     assert pyproject["project"]["version"] == "1.2.0"
-    assert "Current development target: **1.2.0 (unreleased)**" in readme
-    assert "Target release: 1.2.0 (unreleased)" in spec
+    assert "Current release: **1.2.0 (2026-08-27)**" in readme
+    assert "Release: 1.2.0 (2026-08-27)" in spec
     assert "Released baseline: 1.1.0 (2026-08-26)" in spec
-    assert "## 1.2.0 - Unreleased" in changelog
-    assert "not completed release evidence" in _normalized(changelog)
+    assert "## 1.2.0 - 2026-08-27" in changelog
+    assert "### In progress" not in changelog.split("## 1.1.0", maxsplit=1)[0]
     assert "## 1.1.0 - 2026-08-26" in changelog
+    assert re.search(r"^version: 1\.2\.0$", citation, flags=re.MULTILINE)
+    assert re.search(r"^date-released: 2026-08-27$", citation, flags=re.MULTILINE)
 
 
-def test_documents_keep_accepted_and_untouched_evidence_roles_distinct() -> None:
+def test_documents_keep_accepted_and_documented_holdout_roles_distinct() -> None:
     readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
     spec = (REPOSITORY_ROOT / "SPEC.md").read_text(encoding="utf-8")
     implementation = (REPOSITORY_ROOT / "docs" / "IMPLEMENTATION.md").read_text(encoding="utf-8")
@@ -171,11 +264,35 @@ def test_documents_keep_accepted_and_untouched_evidence_roles_distinct() -> None
         encoding="utf-8"
     )
 
-    assert "separately verified\n   untouched robustness supplement" in readme
+    assert "separately verified\n   documented-seed-disjoint holdout" in readme
     assert "Reproduce and verify the frozen benchmark" not in spec
     assert "Frozen benchmark reconstruction matches committed headline values" not in spec
-    assert "untouched robustness supplement into presentation data" in implementation
+    assert "documented-seed-disjoint robustness supplement into presentation data" in implementation
     assert "accepted reproduction projection" in traceability
+
+
+def test_documents_state_holdout_sensitivity_baseline_and_attribution_limits() -> None:
+    corpus = _normalized("\n".join(path.read_text(encoding="utf-8") for path in TEXT_PATHS))
+
+    for phrase in (
+        "not preregistered or independently custodied",
+        "cannot rule out undocumented activity",
+        "descriptive, pointwise 95%",
+        "unadjusted for multiple comparisons",
+        "No behavior-cloning-only ablation",
+        "cannot isolate the incremental effect of PPO fine-tuning",
+        "supply-blind",
+        "cannot select Critical Only",
+        "a broad late-stage refactor was deliberately deferred",
+    ):
+        assert phrase.casefold() in corpus.casefold()
+
+
+def test_holdout_custody_language_matches_the_verified_seed_separation_scope() -> None:
+    assert "training, validation, and model-selection" in HOLDOUT_CUSTODY_LIMITATION
+    assert "accepted-evaluation" not in HOLDOUT_CUSTODY_LIMITATION
+    assert "robustness sets" not in HOLDOUT_CUSTODY_LIMITATION
+    assert "training, validation, and model-selection" in ROBUSTNESS_SEED_SEPARATION_CLAIM
 
 
 def test_traceability_exposes_the_complete_training_lineage_and_forecast_horizon() -> None:
@@ -196,7 +313,10 @@ def test_traceability_exposes_the_complete_training_lineage_and_forecast_horizon
     assert "one-hour-ahead forecast comparison using a three-hour trailing window" in _normalized(
         traceability
     )
-    assert "Revision: 2026-08-26 (target release 1.2.0 audit contract)" in spec
+    assert "selected seed-43 run" in _normalized(traceability).casefold()
+    assert "three-seed candidate experiment" in _normalized(traceability).casefold()
+    assert "11,059,200 transitions" in traceability
+    assert "Revision: 2026-08-27 (release 1.2.0)" in spec
 
 
 def test_report_summary_uses_canonical_outage_and_percentage_point_units() -> None:
@@ -206,3 +326,97 @@ def test_report_summary_uses_canonical_outage_and_percentage_point_units() -> No
     assert "20.2 locality-hours" in report_text
     assert "+9.15 pp" in report_text
     assert "+26.39 pp" in report_text
+
+
+def test_results_sensitivity_classification_counts_match_the_bound_artifact() -> None:
+    payload = json.loads(ROBUSTNESS_PATH.read_text(encoding="utf-8"))
+    variants = payload["sensitivity"]["variants"]
+    results = RESULTS_PATH.read_text(encoding="utf-8")
+
+    for metric, label in (
+        ("critical_outage_locality_hours", "Critical-outage locality-hours"),
+        ("fairness", "Jain fairness"),
+        ("utilization", "Utilization"),
+    ):
+        counts = {
+            classification: sum(
+                variant["difference_in_differences"][metric]["result_classification"]
+                == classification
+                for variant in variants
+            )
+            for classification in ("favorable", "ambiguous", "adverse")
+        }
+        expected_row = (
+            f"| {label} | {counts['favorable']} | {counts['ambiguous']} | {counts['adverse']} |"
+        )
+        assert expected_row in results
+
+
+def test_release_readme_discloses_the_unsigned_authenticity_boundary() -> None:
+    readme = _normalized((REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8"))
+
+    for phrase in (
+        "unsigned release manifest",
+        "coherent rewrite",
+        "private Git branch",
+        "exact commit SHA",
+        "signing remains optional",
+    ):
+        assert phrase.casefold() in readme.casefold()
+
+
+def test_release_documents_keep_source_archive_parity_optional() -> None:
+    paths = (
+        REPOSITORY_ROOT / "README.md",
+        REPOSITORY_ROOT / "SPEC.md",
+        REPOSITORY_ROOT / "docs" / "IMPLEMENTATION.md",
+        REPOSITORY_ROOT / "docs" / "PRESENTATION_CHECKLIST.md",
+    )
+    corpus = _normalized("\n".join(path.read_text(encoding="utf-8") for path in paths))
+
+    assert "-StrictSourceParity" in corpus
+    assert "source-archive parity" in corpus.casefold()
+    assert "normal package build" in corpus.casefold()
+    assert "Keep the trusted source archive beside this repository" not in corpus
+    assert "mandatory release gate runs on the presentation laptop with the trusted source" not in (
+        corpus
+    )
+
+
+def test_reviewer_documents_separate_the_four_release_test_gates() -> None:
+    paths = (
+        REPOSITORY_ROOT / "README.md",
+        REPOSITORY_ROOT / "SPEC.md",
+        REPOSITORY_ROOT / "docs" / "METHODOLOGY.md",
+        REPOSITORY_ROOT / "docs" / "IMPLEMENTATION.md",
+        REPOSITORY_ROOT / "docs" / "decisions" / "ADR-001-gpu-runtime.md",
+    )
+    portable_command = (
+        'uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"'
+    )
+
+    for path in paths:
+        document = path.read_text(encoding="utf-8")
+        normalized = _normalized(document).casefold()
+        portable_lines = [
+            line.strip() for line in document.splitlines() if "pytest" in line and "not gpu" in line
+        ]
+
+        assert portable_lines == [portable_command], path
+        assert "mandatory presentation-gpu gate" in normalized, path
+        assert "strict post-build `release_artifact` gate" in normalized, path
+        assert "optional source-archive parity gate" in normalized, path
+        assert "normal package build does not require the sibling research archive" in normalized, (
+            path
+        )
+
+
+def test_presentation_checklist_points_to_the_durable_source_test_record() -> None:
+    checklist = _normalized(
+        (REPOSITORY_ROOT / "docs" / "PRESENTATION_CHECKLIST.md").read_text(encoding="utf-8")
+    )
+
+    assert "docs/release-machine-validation.json" in checklist
+    assert "tmp/release-validation/release-tests.xml" in checklist
+    assert "tmp/release-validation/source-tests.xml" not in checklist
+    assert "build/release-tests.xml" not in checklist

@@ -18,13 +18,17 @@ Developing Countries
 GridGuard Khartoum is an offline, GPU-first research simulation for proposal-aligned load
 shedding across seven Khartoum State localities. It compares a frozen PPO controller with Fixed
 Rotation on identical synthetic 24-hour shortage scenarios. The release separates an accepted
-reproduction whose seeds participated in model selection from untouched confirmatory evidence on
+reproduction whose seeds participated in model selection from a documented-seed-disjoint holdout on
 seeds 81001-81010: 320 independent base draws, 960 matched scenario conditions, and 1,920
 controller evaluations. Critical-outage locality-hours, fairness, and utilization are the three
 primary outcomes; the accepted reward is a Training-objective score (diagnostic), and power
 balance is reported separately as safety. A strict `data/model/training-provenance.yaml` exposes
-the historical network, behavior-cloning initialization, 600 PPO iterations, 153,600 episodes,
-3,686,400 transitions, seeds, selection, hardware, convergence, and source hashes. The robustness
+the historical network, behavior-cloning initialization, optimizer settings, seeds, selection,
+source hashes, and evidence category of each recovered field. The selected seed-43 run used 600
+PPO iterations, 153,600 episodes, and 3,686,400 transitions; the three-seed candidate experiment
+totaled 1,800 iterations, 460,800 episodes, and 11,059,200 transitions. Hardware and convergence
+are explicitly selected-run facts, and historical promotion gates are not independent headline
+evidence. The robustness
 supplement also covers 25 parameterizations and compares the display forecast with one-hour
 persistence. All traces are synthetic, the operating domain is shortage-only, and the work is
 decision-support research rather than a deployed controller or field-performance claim.
@@ -41,7 +45,7 @@ schedule on identical synthetic scenarios.
 
 The project has two deliverables that must not be confused. The scientific package produces and
 verifies matched controller evidence. The desktop application explains that evidence and can run
-a separate live scenario for demonstration. Live values never replace the verified untouched
+a separate live scenario for demonstration. Live values never replace the verified documented-seed-disjoint
 robustness supplement used by the Results page. The
 system also shows real locality boundaries and the White Nile, Blue Nile, and Nile for geographic
 orientation, but those layers contribute no demand, topology, controller input, or metric value.
@@ -50,13 +54,14 @@ orientation, but those layers contribute no demand, topology, controller input, 
 
 The detailed Related Work chapter positions the project against planned load rationing and Sudan's
 energy context [9], fairness-aware load shedding [10, 11], critical-load restoration [12], deep
-reinforcement learning for energy systems [13], reproducible RL evaluation [14], and short-term
-load forecasting [15]. That literature supports the evaluation questions and exposes limitations;
+reinforcement learning for energy systems [13], a survey of reinforcement learning for
+electric-power control [14], and short-term load forecasting [15]. That literature supports the
+evaluation questions and exposes limitations;
 it does not calibrate the illustrative generator or establish novelty or field readiness.
 
 ## Background
 
-Fixed rotation is a useful academic baseline because its schedule is deterministic and easy to
+Fixed Rotation is a useful academic baseline because its schedule is deterministic and easy to
 audit, yet it does not observe current shortage conditions, critical demand, or accumulated
 service fairness. PPO represents the contrasting learned strategy: it maps a causal observation
 of current supply, demand, previous tiers, and service history to one joint action across seven
@@ -73,8 +78,10 @@ verified independently of scientific evidence.
 
 ## Discussion
 
-The untouched confirmatory layer is the reviewer-facing result because its ten seeds are disjoint
-from every documented training, validation, promotion, and earlier evaluation seed. The accepted
+The documented-seed-disjoint holdout is the reviewer-facing result because its ten seeds are
+disjoint from every documented training, validation, and model-selection seed in
+`data/model/training-provenance.yaml`. This does not establish preregistration or independent
+custody and cannot rule out undocumented activity. The accepted
 96-draw artifact remains valuable for frozen parity, but it is labeled accepted reproduction
 evidence because its seeds participated in model selection. Both layers use matched controller
 pairs and sign-neutral verification; no favorable interval is a release condition.
@@ -86,7 +93,7 @@ and utilization captures use of available energy. The reward is a Training-objec
 complementary, and power-balance violation is separate safety. This framing does not erase the
 accepted numbers; it limits what each number is allowed to prove.
 
-Fixed Rotation is transparent but supply-blind, selects only Off or Full Service, and cannot use
+Fixed Rotation is transparent but supply-blind, is limited to Off and Full Service, and cannot select
 Critical Only. Its rising utilization as shortage worsens is a denominator effect, not adaptive
 behavior. Mean unused supply in the accepted reproduction is 2,158.7 MWh for Fixed Rotation versus
 150.2 MWh for PPO, so part of the utilization contrast reflects baseline design. A supply-aware
@@ -102,7 +109,9 @@ Matched scenarios isolate controllers but cannot repair a misspecified generator
 
 The sensitivity study perturbs 12 allocation components in both directions, giving 24
 one-factor-at-a-time variants and 25 parameterizations including the base. It measures local
-dependence on those assumptions, not all plausible parameter interactions. Forecast MAE and RMSE
+dependence on those assumptions, not all plausible parameter interactions. Its intervals are
+descriptive, pointwise 95%, and unadjusted for multiple comparisons; no family-wide significance
+claim follows. Forecast MAE and RMSE
 compare the three-hour trailing mean with one-hour persistence on synthetic targets; they do not
 establish real-world forecast accuracy. The evaluated operating domain is shortage-only and says
 nothing about surplus, recovery, normal operation, or restoration transients. The PPO actor also
@@ -127,11 +136,14 @@ operational superiority on a real grid, over all rule-based methods, or relative
 
 The release also improves how that conclusion can be inspected. Sign-neutral evidence validation
 tests schema, arithmetic, physical identities, pairing, source bindings, and frozen parity without
-assuming a favorable result. The strict training YAML makes every recovered parameter and
-selection caveat discoverable. The live view exposes matched episode metrics without altering the
+assuming a favorable result. The strict training YAML makes each recovered parameter, provenance
+category, scope, historical unknown, and selection caveat discoverable. The live view exposes matched episode metrics without altering the
 benchmark, and the source-pinned administrative map gives geographic orientation without entering
 the scientific pipeline. These separations make the project easier to explain and harder to
 misrepresent.
+
+The training record also makes the attribution boundary explicit. No behavior-cloning-only
+ablation was run, so this comparison cannot isolate the incremental effect of PPO fine-tuning.
 
 Future work should begin with representative operational data and an engineering network model,
 followed by independent validation of constraints, reward choices, uncertainty, robustness, and

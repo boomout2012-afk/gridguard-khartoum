@@ -9,12 +9,18 @@ from pathlib import Path
 from typing import Any, Self
 
 from gridguard import __version__
+from gridguard.claim_contract import (
+    RESULTS_SCOPE_LIMITATION as RESULTS_SCOPE_LIMITATION,
+)
 from gridguard.domain import HORIZON_HOURS
 from gridguard.resources import runtime_root
 from gridguard.robustness import (
     PRIMARY_METRICS,
     ROBUSTNESS_ARTIFACT_ID,
     ROBUSTNESS_EVIDENCE_ROLE,
+    ROBUSTNESS_LEGACY_ARTIFACT_ID,
+    ROBUSTNESS_LEGACY_EVIDENCE_ROLE,
+    ROBUSTNESS_LEGACY_SCHEMA_VERSION,
     ROBUSTNESS_SCHEMA_NAME,
     ROBUSTNESS_SCHEMA_VERSION,
     ROBUSTNESS_SUPPLEMENT_SHA256,
@@ -49,7 +55,7 @@ class PresentationDataError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class MetricComparison:
-    """One untouched aggregate metric and its paired PPO-minus-baseline inference."""
+    """One documented-seed-disjoint metric and its paired PPO-minus-baseline inference."""
 
     key: str
     label: str
@@ -66,8 +72,317 @@ class MetricComparison:
 
 
 @dataclass(frozen=True, slots=True)
+class TrainingRecordRow:
+    """One preformatted reviewer row; Qt renders it without deriving training values."""
+
+    label: str
+    value: str
+
+    @property
+    def text(self) -> str:
+        return f"{self.label} · {self.value}"
+
+
+@dataclass(frozen=True, slots=True)
+class HistoricalTrainingRecord:
+    """Immutable presentation projection of the strictly validated PPO training record."""
+
+    provenance_path: str
+    observation_dim: int
+    hidden_layers: tuple[int, ...]
+    actor_output_logits: int
+    activation: str
+    action_encoding: str
+    behavior_cloning_teacher_samples: int
+    behavior_cloning_rollout_batch_size: int
+    behavior_cloning_minibatch_size: int
+    behavior_cloning_epochs: int
+    behavior_cloning_optimizer_updates: int
+    ppo_iterations: int
+    ppo_episodes_per_iteration: int
+    ppo_transitions_per_iteration: int
+    ppo_total_episodes: int
+    ppo_total_transitions: int
+    candidate_experiment_iterations: int
+    candidate_experiment_episodes: int
+    candidate_experiment_transitions: int
+    ppo_minibatch_size: int
+    ppo_epochs_per_iteration: int
+    learning_rate: float
+    gamma: float
+    gae_lambda: float
+    clip_epsilon: float
+    training_seed: int
+    candidate_training_seeds: tuple[int, ...]
+    validation_seeds: tuple[int, ...]
+    selected_seed: int
+    selected_iteration: int
+    selected_checkpoint_optimizer_updates: int
+
+    @classmethod
+    def from_validated_payload(
+        cls,
+        payload: Mapping[str, object],
+        *,
+        model_manifest: Mapping[str, object],
+        provenance_path: str,
+    ) -> Self:
+        """Project an already strict-validated YAML payload and verified model manifest."""
+
+        canonical_path = _text(provenance_path, field="training provenance path")
+        if canonical_path != "data/model/training-provenance.yaml":
+            raise PresentationDataError(
+                "training provenance path must be data/model/training-provenance.yaml"
+            )
+
+        model = _mapping(payload.get("model"), field="training model")
+        network = _mapping(model.get("network"), field="training model.network")
+        cloning = _mapping(
+            payload.get("behavior_cloning_initialization"),
+            field="behavior_cloning_initialization",
+        )
+        ppo = _mapping(payload.get("ppo"), field="ppo")
+        selection = _mapping(
+            payload.get("validation_and_selection"),
+            field="validation_and_selection",
+        )
+        experiment_scope = _mapping(payload.get("experiment_scope"), field="experiment_scope")
+        candidate_experiment = _mapping(
+            experiment_scope.get("candidate_experiment"),
+            field="experiment_scope.candidate_experiment",
+        )
+        aggregate_workload = _mapping(
+            candidate_experiment.get("aggregate_workload"),
+            field="experiment_scope.candidate_experiment.aggregate_workload",
+        )
+        architecture = _mapping(
+            model_manifest.get("architecture"),
+            field="model manifest architecture",
+        )
+
+        observation_dim = _positive_int(
+            network.get("observation_dim"), field="model.network.observation_dim"
+        )
+        hidden_layers = _integer_sequence(
+            network.get("hidden_layers"), field="model.network.hidden_layers"
+        )
+        actor_output_logits = _positive_int(
+            network.get("actor_output_logits"), field="model.network.actor_output_logits"
+        )
+        manifest_observation_dim = _positive_int(
+            architecture.get("observation_dim"),
+            field="model manifest architecture.observation_dim",
+        )
+        manifest_hidden_size = _positive_int(
+            architecture.get("hidden_size"), field="model manifest architecture.hidden_size"
+        )
+        manifest_action_count = _positive_int(
+            architecture.get("action_count"), field="model manifest architecture.action_count"
+        )
+        activation = _text(network.get("activation"), field="model.network.activation")
+        action_encoding = _text(
+            network.get("action_encoding"), field="model.network.action_encoding"
+        )
+        if (
+            observation_dim != manifest_observation_dim
+            or not hidden_layers
+            or any(size != manifest_hidden_size for size in hidden_layers)
+            or actor_output_logits != manifest_action_count
+            or activation
+            != _text(architecture.get("activation"), field="model manifest activation")
+            or action_encoding
+            != _text(
+                architecture.get("action_encoding"),
+                field="model manifest action_encoding",
+            )
+        ):
+            raise PresentationDataError(
+                "training YAML actor topology does not match the verified model manifest"
+            )
+
+        return cls(
+            provenance_path=canonical_path,
+            observation_dim=observation_dim,
+            hidden_layers=hidden_layers,
+            actor_output_logits=actor_output_logits,
+            activation=activation,
+            action_encoding=action_encoding,
+            behavior_cloning_teacher_samples=_positive_int(
+                cloning.get("teacher_samples"),
+                field="behavior_cloning_initialization.teacher_samples",
+            ),
+            behavior_cloning_rollout_batch_size=_positive_int(
+                cloning.get("teacher_rollout_batch_size"),
+                field="behavior_cloning_initialization.teacher_rollout_batch_size",
+            ),
+            behavior_cloning_minibatch_size=_positive_int(
+                cloning.get("minibatch_size"),
+                field="behavior_cloning_initialization.minibatch_size",
+            ),
+            behavior_cloning_epochs=_positive_int(
+                cloning.get("epochs"), field="behavior_cloning_initialization.epochs"
+            ),
+            behavior_cloning_optimizer_updates=_positive_int(
+                cloning.get("optimizer_updates"),
+                field="behavior_cloning_initialization.optimizer_updates",
+            ),
+            ppo_iterations=_positive_int(ppo.get("iterations"), field="ppo.iterations"),
+            ppo_episodes_per_iteration=_positive_int(
+                ppo.get("complete_episodes_per_iteration"),
+                field="ppo.complete_episodes_per_iteration",
+            ),
+            ppo_transitions_per_iteration=_positive_int(
+                ppo.get("transitions_per_iteration"),
+                field="ppo.transitions_per_iteration",
+            ),
+            ppo_total_episodes=_positive_int(ppo.get("total_episodes"), field="ppo.total_episodes"),
+            ppo_total_transitions=_positive_int(
+                ppo.get("total_transitions"), field="ppo.total_transitions"
+            ),
+            candidate_experiment_iterations=_positive_int(
+                aggregate_workload.get("ppo_iterations"),
+                field="experiment_scope.candidate_experiment.aggregate_workload.ppo_iterations",
+            ),
+            candidate_experiment_episodes=_positive_int(
+                aggregate_workload.get("complete_episodes"),
+                field="experiment_scope.candidate_experiment.aggregate_workload.complete_episodes",
+            ),
+            candidate_experiment_transitions=_positive_int(
+                aggregate_workload.get("transitions"),
+                field="experiment_scope.candidate_experiment.aggregate_workload.transitions",
+            ),
+            ppo_minibatch_size=_positive_int(ppo.get("minibatch_size"), field="ppo.minibatch_size"),
+            ppo_epochs_per_iteration=_positive_int(
+                ppo.get("epochs_per_iteration"), field="ppo.epochs_per_iteration"
+            ),
+            learning_rate=_finite_number(ppo.get("learning_rate"), field="ppo.learning_rate"),
+            gamma=_finite_number(ppo.get("gamma"), field="ppo.gamma"),
+            gae_lambda=_finite_number(ppo.get("gae_lambda"), field="ppo.gae_lambda"),
+            clip_epsilon=_finite_number(ppo.get("clip_epsilon"), field="ppo.clip_epsilon"),
+            training_seed=_positive_int(ppo.get("training_seed"), field="ppo.training_seed"),
+            candidate_training_seeds=_integer_sequence(
+                selection.get("candidate_training_seeds"),
+                field="validation_and_selection.candidate_training_seeds",
+            ),
+            validation_seeds=_integer_sequence(
+                selection.get("validation_seeds"),
+                field="validation_and_selection.validation_seeds",
+            ),
+            selected_seed=_positive_int(
+                selection.get("selected_seed"),
+                field="validation_and_selection.selected_seed",
+            ),
+            selected_iteration=_positive_int(
+                selection.get("selected_iteration"),
+                field="validation_and_selection.selected_iteration",
+            ),
+            selected_checkpoint_optimizer_updates=_positive_int(
+                ppo.get("selected_checkpoint_optimizer_updates"),
+                field="ppo.selected_checkpoint_optimizer_updates",
+            ),
+        )
+
+    @property
+    def actor_topology(self) -> str:
+        dimensions = (self.observation_dim, *self.hidden_layers)
+        prefix = " -> ".join(f"{dimension:,}" for dimension in dimensions)
+        return f"{prefix} -> {self.actor_output_logits:,} logits"
+
+    @property
+    def reviewer_rows(self) -> tuple[TrainingRecordRow, ...]:
+        candidates = ", ".join(str(seed) for seed in self.candidate_training_seeds)
+        validation = ", ".join(str(seed) for seed in self.validation_seeds)
+        return (
+            TrainingRecordRow(
+                "Actor topology",
+                f"{self.actor_topology} · {self.activation} · {self.action_encoding}",
+            ),
+            TrainingRecordRow(
+                "Behavior cloning",
+                f"{self.behavior_cloning_teacher_samples:,} teacher samples · "
+                f"rollout batch {self.behavior_cloning_rollout_batch_size:,} · "
+                f"minibatch {self.behavior_cloning_minibatch_size:,} · "
+                f"{self.behavior_cloning_epochs:,} epochs · "
+                f"{self.behavior_cloning_optimizer_updates:,} optimizer updates",
+            ),
+            TrainingRecordRow(
+                f"Selected seed-{self.selected_seed} run",
+                f"{self.ppo_iterations:,} iterations · "
+                f"{self.ppo_total_episodes:,} complete episodes · "
+                f"{self.ppo_total_transitions:,} transitions",
+            ),
+            TrainingRecordRow(
+                "Three-seed candidate experiment",
+                f"{self.candidate_experiment_iterations:,} iterations · "
+                f"{self.candidate_experiment_episodes:,} complete episodes · "
+                f"{self.candidate_experiment_transitions:,} transitions",
+            ),
+            TrainingRecordRow(
+                "PPO batching",
+                f"{self.ppo_episodes_per_iteration:,} episodes/iteration · "
+                f"minibatch {self.ppo_minibatch_size:,} · "
+                f"{self.ppo_epochs_per_iteration:,} epochs/iteration",
+            ),
+            TrainingRecordRow(
+                "Learning",
+                f"LR {self.learning_rate:.4f} · gamma {self.gamma:.2f} · "
+                f"GAE lambda {self.gae_lambda:.2f} · clip epsilon {self.clip_epsilon:.2f}",
+            ),
+            TrainingRecordRow(
+                "Seeds and selection",
+                f"training {self.training_seed} · candidates {candidates} · "
+                f"validation {validation} · selected seed {self.selected_seed} at iteration "
+                f"{self.selected_iteration}",
+            ),
+        )
+
+    @property
+    def accessible_summary(self) -> str:
+        rows = ". ".join(row.text for row in self.reviewer_rows)
+        return (
+            f"Verified presentation summary of canonical YAML {self.provenance_path}. {rows}. "
+            "Historical record, not an executable retraining configuration."
+        )
+
+
+CANONICAL_TRAINING_RECORD = HistoricalTrainingRecord(
+    provenance_path="data/model/training-provenance.yaml",
+    observation_dim=32,
+    hidden_layers=(512, 512),
+    actor_output_logits=2_187,
+    activation="tanh",
+    action_encoding="little-endian-base-3",
+    behavior_cloning_teacher_samples=32_768,
+    behavior_cloning_rollout_batch_size=128,
+    behavior_cloning_minibatch_size=2_048,
+    behavior_cloning_epochs=100,
+    behavior_cloning_optimizer_updates=1_600,
+    ppo_iterations=600,
+    ppo_episodes_per_iteration=256,
+    ppo_transitions_per_iteration=6_144,
+    ppo_total_episodes=153_600,
+    ppo_total_transitions=3_686_400,
+    candidate_experiment_iterations=1_800,
+    candidate_experiment_episodes=460_800,
+    candidate_experiment_transitions=11_059_200,
+    ppo_minibatch_size=2_048,
+    ppo_epochs_per_iteration=4,
+    learning_rate=0.0001,
+    gamma=0.99,
+    gae_lambda=0.95,
+    clip_epsilon=0.2,
+    training_seed=43,
+    candidate_training_seeds=(42, 43, 44),
+    validation_seeds=(70_000, 70_001, 70_002),
+    selected_seed=43,
+    selected_iteration=510,
+    selected_checkpoint_optimizer_updates=6_120,
+)
+
+
+@dataclass(frozen=True, slots=True)
 class PresentationSnapshot:
-    """Untouched confirmatory values approved for display outside Qt widgets."""
+    """Documented-seed-disjoint values approved for display outside Qt widgets."""
 
     artifact_id: str
     evidence_role: str
@@ -83,6 +398,7 @@ class PresentationSnapshot:
     metrics: tuple[MetricComparison, ...]
     maximum_power_balance_violation_rate: float
     limitations: tuple[str, ...]
+    training_record: HistoricalTrainingRecord
 
     @property
     def benchmark_id(self) -> str:
@@ -96,21 +412,38 @@ class PresentationSnapshot:
 
         schema = _mapping(payload.get("schema"), field="schema")
         _exact_fields(schema, frozenset({"name", "version"}), field="schema")
-        if schema != {
-            "name": ROBUSTNESS_SCHEMA_NAME,
-            "version": ROBUSTNESS_SCHEMA_VERSION,
+        schema_version = schema.get("version")
+        if schema.get("name") != ROBUSTNESS_SCHEMA_NAME or schema_version not in {
+            ROBUSTNESS_LEGACY_SCHEMA_VERSION,
+            ROBUSTNESS_SCHEMA_VERSION,
         }:
             raise PresentationDataError(
-                "evidence must identify gridguard robustness supplement version 1"
+                "evidence must identify gridguard robustness supplement version 1 or 2"
             )
 
         evidence_role = _text(payload.get("evidence_role"), field="evidence_role")
-        if evidence_role != ROBUSTNESS_EVIDENCE_ROLE:
-            raise PresentationDataError("evidence_role must be untouched_confirmatory")
+        expected_evidence_role = (
+            ROBUSTNESS_LEGACY_EVIDENCE_ROLE
+            if schema_version == ROBUSTNESS_LEGACY_SCHEMA_VERSION
+            else ROBUSTNESS_EVIDENCE_ROLE
+        )
+        if evidence_role != expected_evidence_role:
+            raise PresentationDataError(
+                f"evidence_role must be {expected_evidence_role} for schema version "
+                f"{schema_version}"
+            )
         provenance = _mapping(payload.get("provenance"), field="provenance")
         artifact_id = _text(provenance.get("artifact_id"), field="provenance.artifact_id")
-        if artifact_id != ROBUSTNESS_ARTIFACT_ID:
-            raise PresentationDataError(f"provenance.artifact_id must be {ROBUSTNESS_ARTIFACT_ID}")
+        expected_artifact_id = (
+            ROBUSTNESS_LEGACY_ARTIFACT_ID
+            if schema_version == ROBUSTNESS_LEGACY_SCHEMA_VERSION
+            else ROBUSTNESS_ARTIFACT_ID
+        )
+        if artifact_id != expected_artifact_id:
+            raise PresentationDataError(
+                f"provenance.artifact_id must be {expected_artifact_id} for schema version "
+                f"{schema_version}"
+            )
 
         protocol = _mapping(payload.get("protocol"), field="protocol")
         _validate_controllers(protocol.get("controllers"))
@@ -202,8 +535,8 @@ class PresentationSnapshot:
             mean = _finite_number(item.get("mean_delta"), field=f"{key}.mean_delta")
             lower = _finite_number(item.get("ci95_lower"), field=f"{key}.ci95_lower")
             upper = _finite_number(item.get("ci95_upper"), field=f"{key}.ci95_upper")
-            if lower > mean or mean > upper:
-                raise PresentationDataError(f"{key} confidence interval must contain mean_delta")
+            if lower > upper:
+                raise PresentationDataError(f"{key}.ci95_lower must not exceed ci95_upper")
             classification = _text(
                 item.get("result_classification"), field=f"{key}.result_classification"
             )
@@ -250,7 +583,7 @@ class PresentationSnapshot:
 
         limitations = _text_sequence(payload.get("limitations"), field="limitations")
         count_statement = (
-            f"{independent_draws} untouched independent base draws × "
+            f"{independent_draws} documented-seed-disjoint independent base draws × "
             f"{len(shortage_levels)} shortage levels = {matched_conditions} matched scenario "
             f"conditions · {controller_evaluations:,} controller evaluations"
         )
@@ -269,6 +602,7 @@ class PresentationSnapshot:
             metrics=tuple(metrics),
             maximum_power_balance_violation_rate=maximum_violation_rate,
             limitations=limitations,
+            training_record=CANONICAL_TRAINING_RECORD,
         )
 
     def metric(self, key: str) -> MetricComparison:
@@ -293,10 +627,7 @@ def load_presentation_snapshot(
         else Path(path)
     )
     try:
-        payload = verifier(
-            evidence_path,
-            expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
-        )
+        payload = verifier(evidence_path)
     except RobustnessArtifactError as error:
         raise PresentationDataError(f"robustness evidence failed verification: {error}") from error
     return PresentationSnapshot.from_mapping(_mapping(payload, field="evidence"))
@@ -327,6 +658,21 @@ def _text_sequence(value: object, *, field: str) -> tuple[str, ...]:
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
         raise PresentationDataError(f"{field} must be a list of strings")
     return tuple(_text(item, field=f"{field} item") for item in value)
+
+
+def _positive_int(value: object, *, field: str) -> int:
+    if type(value) is not int or value <= 0:
+        raise PresentationDataError(f"{field} must be a positive integer")
+    return value
+
+
+def _integer_sequence(value: object, *, field: str) -> tuple[int, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        raise PresentationDataError(f"{field} must be a list of integers")
+    values = tuple(_positive_int(item, field=f"{field} item") for item in value)
+    if not values:
+        raise PresentationDataError(f"{field} must not be empty")
+    return values
 
 
 def _finite_number(value: object, *, field: str) -> float:

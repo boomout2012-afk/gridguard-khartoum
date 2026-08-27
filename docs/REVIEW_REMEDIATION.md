@@ -9,7 +9,7 @@ the snapshot's damaged display encoding.
 The approved remediation keeps the accepted proposal boundary: PPO and Fixed Rotation remain the
 only controllers, the frozen benchmark and exported PPO actor remain immutable, and no dispatch
 rule or PPO architecture is changed. New work is limited to honest reframing, training provenance,
-untouched confirmatory evidence, sensitivity and forecast evaluation, documentation, and packaging.
+documented-seed-disjoint evidence, sensitivity and forecast evaluation, documentation, and packaging.
 
 ## R01 — Structural weakness of Fixed Rotation
 
@@ -27,7 +27,7 @@ PPO. However, utilization is served power divided by available usable power; its
 falls is a mathematical denominator effect, not by itself a simulator defect or evidence that Fixed
 Rotation becomes smarter.
 
-**Action:** Describe Fixed Rotation as supply-blind and limited to Off/Full Service. Attribute part
+**Action:** Describe Fixed Rotation as supply-blind and limited to Off and Full Service. Attribute part
 of the utilization gap to baseline design, keep results descriptive, and retain a stronger
 supply-aware rule as future work rather than adding a new controller to the accepted comparison.
 
@@ -59,7 +59,8 @@ different concepts.
 
 **Action:** State that Adam optimized PPO parameters during historical training, CUDA accelerates
 inference and evaluation, and no separate online mathematical dispatch optimizer is implemented in
-the confirmatory comparison. Mark that proposal item as intentionally outside the accepted scope.
+the documented-seed-disjoint comparison. Mark that proposal item as intentionally outside the
+accepted scope.
 
 **Acceptance evidence:** The proposal traceability row, methodology, discussion, and presentation
 must use this distinction and must not imply that CUDA is an optimization algorithm.
@@ -134,7 +135,7 @@ places for the training-objective score. Reserve scientific notation for parity 
 **Acceptance evidence:** Shared formatting contracts and document/deck tests must reject raw
 machine-precision values in human-facing output while evidence recomputation retains exact values.
 
-## R08 — Too few and not fully untouched evaluation seeds
+## R08 — Too few and not independently custodied evaluation seeds
 
 **Criticism:** Seeds `50001–50003` yield only 96 independent base draws and provide a narrow basis
 for generalization.
@@ -143,9 +144,11 @@ for generalization.
 gradient updates and periodic validation, but the archived promotion process reused them during
 model selection, so they are accepted reproduction evidence rather than an untouched final test.
 
-**Action:** Preserve their artifact for historical parity and add untouched seeds `81001–81010`,
-32 base draws per seed, crossed with all three shortage levels and both controllers. Report the
-result honestly regardless of direction and do not use result favorability as a release gate.
+**Action:** Preserve their artifact for historical parity and add documented-seed-disjoint seeds
+`81001–81010`, 32 base draws per seed, crossed with all three shortage levels and both controllers.
+Report the result honestly regardless of direction and do not use result favorability as a release
+gate. This disjointness covers documented activity only; it is not preregistration or independent
+custody.
 
 **Acceptance evidence:** The training provenance must disclose the old-seed role; the robustness
 artifact must record 320 independent draws, 960 matched scenario conditions, 1,920 controller
@@ -158,9 +161,9 @@ baseline.
 
 **Verdict:** Valid.
 
-**Action:** On untouched synthetic demand traces, compare the three-hour trailing mean with
-one-hour persistence over common target hours 3–23. Report pooled and disaggregated MAE and RMSE,
-alignment rules, and the lower-error method or tie. Keep the projection display-only.
+**Action:** On the documented-seed-disjoint synthetic demand traces, compare the three-hour trailing
+mean with one-hour persistence over common target hours 3–23. Report pooled and disaggregated MAE
+and RMSE, alignment rules, and the lower-error method or tie. Keep the projection display-only.
 
 **Acceptance evidence:** Forecast sufficient statistics and recomputed metrics must be stored in
 the robustness supplement, with tests for causal alignment, common targets, and no real-world

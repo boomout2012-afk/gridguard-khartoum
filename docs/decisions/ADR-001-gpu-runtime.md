@@ -24,10 +24,17 @@ The accepted source implementation is already tensor-oriented and its trained po
   canonical row, cell, aggregate, and manifest assembly plus small host-side validation. This is
   a serialization boundary, not a controller or benchmark-compute fallback.
 - Run a fail-closed launch preflight that verifies CUDA availability, device identity, both libraries, and coherent DLPack sharing. Do not silently switch the presentation or benchmark to CPU.
-- Permit small CPU unit tests through explicit device injection. The portable command is
-  `uv run pytest -m "not gpu and not source_archive"`; the release gate is the unfiltered
-  `uv run pytest` and still requires real GPU integration tests plus the trusted source archive on
-  the presentation laptop.
+- Permit small CPU unit tests through explicit device injection. The portable command is:
+
+  ```powershell
+  uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
+  ```
+
+- Separate release assurance into the mandatory presentation-GPU gate
+  (`uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"`), the strict
+  post-build `release_artifact` gate (`uv run --no-sync pytest -ra -m "release_artifact"`), and the
+  optional source-archive parity gate. The normal package build does not require the sibling
+  research archive.
 
 ## Alternatives considered
 
@@ -62,6 +69,7 @@ The accepted source implementation is already tensor-oriented and its trained po
 - CUDA work is asynchronous, so performance measurements must synchronize with CUDA events or an explicit device synchronization.
 - Tensor ownership and stream behavior must be documented at each DLPack boundary.
 - CI without an NVIDIA runner may execute the explicitly filtered CPU-safe unit tests, but it
-  cannot certify a release. Release verification occurs on the presentation GPU, and no GPU or
-  source-archive test is permitted to skip there.
+  cannot certify a release. Mandatory runtime verification occurs on the presentation GPU with no
+  selected test skips, and the final Windows tree must separately pass every `release_artifact`
+  test. Source-archive parity remains optional and explicit.
 - The application remains fully offline after dependencies and artifacts are installed.

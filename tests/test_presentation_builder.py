@@ -14,6 +14,10 @@ ROBUSTNESS_PATH = REPOSITORY_ROOT / "data" / "evidence" / "robustness-supplement
 PRESENTATION_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
 DRAWING_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
 NS = {"p": PRESENTATION_NS, "a": DRAWING_NS}
+ATTRIBUTION_BOUNDARY = (
+    "No behavior-cloning-only ablation was run, so this comparison cannot isolate the "
+    "incremental effect of PPO fine-tuning."
+)
 
 
 def _sha256(path: Path) -> str:
@@ -29,11 +33,17 @@ def test_presentation_builder_is_evidence_bound_and_uses_native_powerpoint() -> 
     assert "$pairedEvidence.aggregate" in source
     assert "$pairedEvidence.paired_inference" in source
     assert "$robustnessEvidence.base_evaluation" in source
+    assert "$robustnessEvidence.schema.version -ne 2" in source
+    assert "documented_seed_disjoint_holdout" in source
+    assert "gridguard-robustness-supplement-v2" in source
     assert _sha256(PAIRED_PATH) in source
     assert _sha256(ROBUSTNESS_PATH) in source
     assert "training-provenance.yaml" in source
     assert "--summary-json" in source
     assert "GPU-first simulation, PPO inference, and paired bootstrap" in source
+    assert "Off and Full Service" in source
+    assert "Off/Full-only" not in source
+    assert "Off/Full Service" not in source
     assert "$allPrimaryCellsFavorable" not in source
     assert "all-primary-cells-favorable" not in source
     assert "Every release calculation stays on the NVIDIA GPU" not in source
@@ -49,7 +59,52 @@ def test_presentation_builder_is_evidence_bound_and_uses_native_powerpoint() -> 
     assert '"GRADUATION PROJECT DEFENSE" 60 58 420 24 16' in source
     assert "Assert-PresentationLayout" in source
     assert "BoundHeight" in source
+    assert "not preregistered or independently custodied" in source
+    assert "unadjusted for multiple comparisons" in source
+    assert "No behavior-cloning-only ablation" in source
+    assert "cannot select Critical Only" in source
+    assert "same guarded scenario" in source
+    assert "detected demand/supply mutation fails closed" in source
+    assert "same immutable scenario" not in source
     assert source.count("Add-Notes") >= 13  # Function plus one call for every slide.
+
+
+def test_presentation_protocol_and_training_numbers_are_projected_from_verified_inputs() -> None:
+    source = BUILDER_PATH.read_text(encoding="utf-8")
+
+    for projection in (
+        "$holdoutSeedCount = @($robustnessProtocol.seeds).Count",
+        "$episodesPerHoldoutSeed = [int]$robustnessProtocol.episodes_per_seed",
+        "$bootstrapReplicates = [int]$robustnessProtocol.bootstrap.replicates",
+        "$acceptedSeedLabel = Format-SeedRange",
+        "$holdoutSeedLabel = Format-SeedRange",
+        "$selectedIteration = [int]$trainingSummary.selection.selected_iteration",
+        "$selectedTrainingSeed = [int]$trainingSummary.experiment_scope.selected_run.training_seed",
+        "$candidateRunCount = [int]$trainingSummary.experiment_scope."
+        "candidate_experiment.candidate_run_count",
+        "$candidateIterations = [int]$candidateWorkload.ppo_iterations",
+        "$candidateEpisodes = [int]$candidateWorkload.complete_episodes",
+        "$candidateTransitions = [int]$candidateWorkload.transitions",
+        '$selectedConvergenceProperty = "selected_iteration_$selectedIteration"',
+        '"x $shortageCount"',
+        '"x $controllerCount"',
+        '"Seeds $acceptedSeedLabel  |  $acceptedBaseDrawCount base draws"',
+        '"$holdoutSeedCount seeds x $episodesPerHoldoutSeed episodes"',
+        '"Documented-seed-disjoint holdout"',
+        '"$holdoutSeedLabel remains separate"',
+        '"Selected seed $selectedTrainingSeed"',
+        '"Three-seed candidate experiment"',
+    ):
+        assert projection in source
+
+    for independent_literal in (
+        "10 seeds x 32 episodes",
+        "selected iteration 510",
+        "10,000 deterministic seed-stratified bootstrap replicates",
+        "Seeds 50001-50003  |  96 base draws",
+        "81001-81010 remains separate",
+    ):
+        assert independent_literal not in source
 
 
 def test_final_deck_has_thirteen_slides_notes_and_no_forbidden_controller_name() -> None:
@@ -86,6 +141,12 @@ def test_final_deck_has_thirteen_slides_notes_and_no_forbidden_controller_name()
         "one-hour persistence",
         "accepted reproduction",
         "shortage-only",
+        "documented-seed-disjoint holdout",
+        "not preregistered or independently custodied",
+        "pointwise 95%",
+        "unadjusted for multiple comparisons",
+        "No behavior-cloning-only ablation",
+        "cannot select Critical Only",
     ):
         assert phrase.casefold() in xml_text.casefold()
 
@@ -99,7 +160,7 @@ def test_final_deck_follows_the_locked_cumulative_narrative() -> None:
         "historical training record",
         "GPU-first simulation",
         "desktop replays",
-        "untouched confirmatory evidence",
+        "documented-seed-disjoint holdout",
         "24 demand-allocation variants",
         "one-hour persistence",
         "accepted reproduction",
@@ -123,6 +184,24 @@ def test_final_deck_follows_the_locked_cumulative_narrative() -> None:
         assert phrase.casefold() in outcome_xml.casefold()
     for forbidden in ("episode reward", "served energy", "critical service"):
         assert forbidden.casefold() not in outcome_xml.casefold()
+
+
+def test_slide_eight_places_the_attribution_boundary_beside_primary_results() -> None:
+    source = BUILDER_PATH.read_text(encoding="utf-8")
+    slide_eight_source = source.split("# 8 - documented-seed-disjoint outcomes", maxsplit=1)[
+        1
+    ].split("# 9 - sensitivity", maxsplit=1)[0]
+
+    assert slide_eight_source.count(ATTRIBUTION_BOUNDARY) == 2
+
+    with zipfile.ZipFile(DECK_PATH) as archive:
+        outcome_xml = archive.read("ppt/slides/slide8.xml").decode("utf-8", errors="replace")
+        outcome_notes_xml = archive.read("ppt/notesSlides/notesSlide8.xml").decode(
+            "utf-8", errors="replace"
+        )
+
+    assert ATTRIBUTION_BOUNDARY.casefold() in outcome_xml.casefold()
+    assert ATTRIBUTION_BOUNDARY.casefold() in outcome_notes_xml.casefold()
 
 
 def test_final_deck_has_legible_text_closed_placeholders_and_in_bounds_shapes() -> None:

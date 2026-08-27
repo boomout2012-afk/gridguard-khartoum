@@ -30,6 +30,7 @@ def test_report_builder_uses_verified_evidence_and_committed_chapters() -> None:
     assert "PAIRED_BENCHMARK_SHA256" in source
     assert "verify_robustness_supplement" in source
     assert "ROBUSTNESS_SUPPLEMENT_SHA256" in source
+    assert "expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256" not in source
     assert "load_training_provenance" in source
     assert '"REPORT.md"' in source
     assert '"RELATED_WORK.md"' in source
@@ -37,6 +38,8 @@ def test_report_builder_uses_verified_evidence_and_committed_chapters() -> None:
     assert '"IMPLEMENTATION.md"' in source
     assert '"RESULTS.md"' in source
     assert '"REFERENCES.md"' in source
+    assert "Documented-seed-disjoint holdout SHA-256" in source
+    assert "Documented-holdout robustness" not in source
 
 
 def test_report_builder_direct_entrypoint_is_importable() -> None:
@@ -139,6 +142,22 @@ def test_report_print_styles_are_legible_and_expose_font_fallbacks() -> None:
     assert builder.REPORT_FONTS.mono
 
 
+def test_hard_wrapped_numbered_sentence_is_not_misread_as_an_ordered_list() -> None:
+    builder = _load_builder()
+    markdown = (
+        "The recorded runtime and convergence apply only to selected seed\n"
+        "43. CUDA accelerated computation."
+    )
+
+    flowables = builder.markdown_text_flowables(markdown, builder._styles())
+
+    assert len(flowables) == 1
+    assert flowables[0].getPlainText() == (
+        "The recorded runtime and convergence apply only to selected seed "
+        "43. CUDA accelerated computation."
+    )
+
+
 def test_markdown_table_headers_use_embedded_bold_light_text() -> None:
     builder = _load_builder()
     styles = builder._styles()
@@ -214,13 +233,13 @@ def test_final_report_contains_no_blank_interior_pages() -> None:
     reader = PdfReader(REPORT_PATH)
     page_text = [" ".join((page.extract_text() or "").split()) for page in reader.pages]
 
-    assert len(page_text) >= 20
+    assert len(page_text) == 38
     assert all(text for text in page_text)
     assert all(len(text.split()) >= 20 for text in page_text[1:-1])
     assert any("System at a glance" in text for text in page_text)
 
 
-def test_final_report_exposes_review_remediation_and_untouched_evidence() -> None:
+def test_final_report_exposes_review_remediation_and_bounded_holdout_evidence() -> None:
     report_text = " ".join(
         " ".join((page.extract_text() or "").split()) for page in PdfReader(REPORT_PATH).pages
     )
@@ -238,6 +257,12 @@ def test_final_report_exposes_review_remediation_and_untouched_evidence() -> Non
         "supply-blind",
         "global optimum is unknown",
         "shortage-only",
+        "documented-seed-disjoint holdout",
+        "not preregistered or independently custodied",
+        "pointwise 95%",
+        "unadjusted for multiple comparisons",
+        "No behavior-cloning-only ablation",
+        "cannot select Critical Only",
     ):
         assert phrase.casefold() in report_text.casefold()
 

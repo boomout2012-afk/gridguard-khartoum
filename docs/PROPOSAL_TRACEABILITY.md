@@ -57,18 +57,20 @@ selectors, transformation, licenses, and attribution are recorded in
 `src/gridguard/assets/map/THIRD_PARTY_DATA.md` and `map-provenance.json`. The boundaries are
 presentation context only and not electrical-network topology.
 
-## Accepted reproduction and untouched confirmation
+## Accepted reproduction and documented-seed-disjoint holdout
 
 The historical artifact records 32 episodes for each of nine shortage-level/seed cells. It stores
 only cell summaries and does not expose the common base draws reused across shortage levels. The
 clean paired artifact therefore reports all three counts: **96 independent base draws, 288 matched
 scenario conditions, and 576 controller-scenario evaluations**. Its seeds were reused in archived
-model selection, so this is accepted reproduction evidence rather than an untouched final test.
-The separate untouched confirmatory supplement uses seeds 81001-81010: **320 independent base
+model selection, so this is accepted reproduction evidence rather than an independently custodied final test.
+The separate documented-seed-disjoint holdout uses seeds 81001-81010: **320 independent base
 draws, 960 matched scenario conditions, and 1,920 controller-scenario evaluations**.
+Disjointness is established only against documented activity; this holdout was not preregistered
+or independently custodied and cannot rule out undocumented activity.
 
 The following table is the **accepted reproduction projection** retained for historical parity; it
-is not the untouched reviewer-facing result table.
+is not the documented-seed-disjoint reviewer-facing result table.
 
 | Metric | Fixed Rotation | PPO | Direction |
 |---|---:|---:|---|
@@ -86,7 +88,7 @@ The clean project resolves the historical count ambiguity with
 `data/evidence/paired-benchmark.json`. Its episode rows and confidence intervals were regenerated
 from the audited simulator and frozen PPO checkpoint; they were not present in the historical
 aggregate-only artifact.
-`data/evidence/robustness-supplement.json` adds the untouched seed set, 24 one-factor-at-a-time
+`data/evidence/robustness-supplement.json` adds the documented-seed-disjoint seed set, 24 one-factor-at-a-time
 sensitivity variants (25 parameterizations with the base), and a one-hour-ahead forecast
 comparison using a three-hour trailing window against one-hour persistence. Neither verifier
 requires a favorable result.
@@ -96,7 +98,7 @@ requires a favorable result.
 | Proposal requirement | Source status | Clean-repository acceptance evidence |
 |---|---|---|
 | Simplified shortage simulation | Implemented among broader experimental branches | Small proposal-equivalent simulator, severity-neutral base-draw reuse, parity tests, architecture documentation |
-| Supply, demand, shortage levels, sectors | Implemented | Typed domain contract and deterministic Mild/Moderate/Severe scenarios |
+| Supply, demand, shortage levels, sectors | Implemented | Typed domain contract and deterministic Mild, Moderate, and Severe scenarios |
 | AI decision-support model | Trained PPO checkpoint exists | Inference-only checkpoint, CUDA loader, policy parity tests |
 | Critical infrastructure priorities | Hospitals, water, and bakeries modeled | Per-sector map detail, critical-service invariant tests |
 | Prediction method | Forecast work existed outside the accepted path | Causal one-hour-ahead trailing-window projection for display only, isolated from PPO; synthetic MAE/RMSE compared with one-hour persistence on common targets |
@@ -104,12 +106,12 @@ requires a favorable result.
 | Optimization method | Adam used in historical training | Training YAML records Adam parameter optimization; CUDA accelerates inference/evaluation; no separate online mathematical dispatch optimizer is claimed |
 | Reinforcement learning | PPO policy implemented | Clean inference code and audited PPO methodology |
 | Multiple shortage scenarios | Mild, Moderate, Severe implemented | Matched deterministic CUDA replay and paired evidence across all three levels |
-| Fixed-schedule comparison | Implemented | Accepted 288-row reproduction plus untouched 960-condition supplement, cluster-aware intervals, sign-neutral integrity, and Results view; Fixed Rotation is disclosed as supply-blind Off/Full only |
+| Fixed-schedule comparison | Implemented | Accepted 288-row reproduction plus documented-seed-disjoint 960-condition holdout, cluster-aware intervals, sign-neutral integrity, and Results view; Fixed Rotation is disclosed as supply-blind, limited to Off and Full Service, and unable to select Critical Only |
 | Critical-service downtime | Implemented in evaluation metrics | Frozen table plus per-scenario GUI detail |
 | Fairness between areas | Jain fairness and critical-outage locality-hours implemented | Frozen table, definitions, and tests |
 | Distribution efficiency | Utilization, served MWh, curtailment implemented | Frozen table, definitions, and tests |
 | Data and rules needed for realism (RQ3) | Historical work used illustrative inputs | Parameter-provenance table plus required feeder/locality demand, independent supply/generation, topology, critical-facility, outage/restoration, operating-rule, weather/calendar, and asset-mapping inputs |
-| PPO training traceability | Archive contains manifests, metrics, experiment selection, and source | Strict hash-bound `data/model/training-provenance.yaml`: architecture, behavior-cloning initialization, PPO parameters, 600 iterations, 153,600 episodes, 3,686,400 transitions, seeds, selection, hardware, convergence, and source hashes |
+| PPO training traceability | Archive contains manifests, metrics, experiment selection, and source | Strict hash-bound `data/model/training-provenance.yaml`: architecture, behavior-cloning initialization, PPO parameters, selected seed-43 run (600 iterations, 153,600 episodes, 3,686,400 transitions), three-seed candidate experiment (1,800 iterations, 460,800 episodes, 11,059,200 transitions), seeds, promotion checks, selected-run hardware/convergence, provenance categories, historical unknowns, and source hashes |
 | Final report | Earlier research material was fragmented | Integrated report with methodology, implementation, results, limitations, and references |
 | Academic presentation | Earlier dashboard lacked the approved focused flow | Offline native desktop app, verified administrative map, synchronized accessible locality list, live aggregate table, Windows build, deck, and speaker notes |
 
@@ -128,7 +130,7 @@ requires a favorable result.
    Earth Nile context are verified presentation assets, not electrical-network topology.
 8. Evidence integrity and frozen parity are sign-neutral; validation cannot silently encode a
    favorable research conclusion.
-9. The accepted reproduction is distinguished from the untouched confirmatory seed set.
+9. The accepted reproduction is distinguished from the documented-seed-disjoint holdout.
 10. Reward is a training-objective diagnostic; outage burden, fairness, and utilization are the
     three primary public outcomes, with power balance shown separately as safety.
 

@@ -14,6 +14,7 @@ from gridguard.gpu import GpuPreflightError, GpuRuntimeInfo
 from gridguard.policy import PolicyArtifactError
 from gridguard.provenance import ProvenanceError
 from gridguard.resources import ResourceLocationError
+from gridguard.robustness import RobustnessArtifactError
 from gridguard.ui.live_runner import run_live_scenario
 from gridguard.ui.map_asset import MapAssetValidationError
 from gridguard.ui.presentation_model import (
@@ -76,6 +77,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         PresentationDataError,
         ProvenanceError,
         ResourceLocationError,
+        RobustnessArtifactError,
     ) as error:
         QMessageBox.critical(
             None,

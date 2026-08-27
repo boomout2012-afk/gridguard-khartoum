@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from PySide6.QtCore import QPoint, Qt
 
+from gridguard.claim_contract import RESULTS_SCOPE_LIMITATION
 from gridguard.domain import ControllerName, ServiceTier
 from gridguard.ui.live_models import (
     LiveEpisodeSummary,
@@ -161,6 +162,31 @@ def test_page_labels_matched_aggregate_metrics_as_live_demonstration(qtbot) -> N
     assert page.comparison_table.item(0, 3).text() == "91.0%"
     assert page.comparison_table.item(0, 5).text() == "0.0%"
     assert "live demonstration" in page.comparison_caption.text().casefold()
+
+
+def test_live_comparison_keeps_controller_scope_visible_beside_metrics(qtbot) -> None:
+    page = LiveScenarioPage(load_map_asset())
+    qtbot.addWidget(page)
+    page.resize(1130, 690)
+    page.show()
+    page.set_comparison(_comparison())
+    qtbot.waitUntil(page.scope_note.isVisible, timeout=1000)
+
+    note = page.scope_note
+    visible = note.text().casefold()
+    for phrase in (
+        "synthetic decision support only",
+        "supply-blind",
+        "uses only off and full service",
+        "cannot select critical only",
+        "behavior-cloning-only ablation",
+        "ppo fine-tuning",
+    ):
+        assert phrase in visible
+    assert RESULTS_SCOPE_LIMITATION in note.accessibleName()
+    assert note.wordWrap()
+    assert note.geometry().top() >= page.comparison_table.geometry().bottom()
+    assert note.geometry().bottom() <= page.contentsRect().bottom()
 
 
 def test_visible_locality_list_is_bidirectionally_synchronized_with_map(qtbot) -> None:

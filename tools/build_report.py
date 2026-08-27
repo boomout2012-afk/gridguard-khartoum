@@ -41,8 +41,19 @@ from reportlab.platypus import (
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 
+from gridguard.claim_contract import (
+    HOLDOUT_CUSTODY_LIMITATION,
+    RESULTS_SCOPE_LIMITATION,
+    SENSITIVITY_INTERVAL_LIMITATION,
+)
 from gridguard.evaluation import PAIRED_BENCHMARK_SHA256, verify_paired_benchmark
 from gridguard.robustness import ROBUSTNESS_SUPPLEMENT_SHA256, verify_robustness_supplement
+from tools.report_results_contract import (
+    validate_methodology_training_claims,
+    validate_rendered_report_sources,
+    validate_report_numeric_claims,
+    validate_results_numeric_claims,
+)
 from tools.training_provenance import build_training_summary, load_training_provenance
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -270,6 +281,17 @@ def _styles() -> dict[str, ParagraphStyle]:
             spaceAfter=7,
             splitLongWords=True,
         ),
+        "list_body": ParagraphStyle(
+            "ListBody",
+            parent=samples["BodyText"],
+            fontName=REPORT_FONTS.body,
+            fontSize=10,
+            leading=14.2,
+            textColor=INK,
+            alignment=TA_LEFT,
+            spaceAfter=5,
+            splitLongWords=True,
+        ),
         "small": ParagraphStyle(
             "Small",
             parent=samples["BodyText"],
@@ -425,7 +447,16 @@ def _table_flowable(rows: list[list[str]], styles: dict[str, ParagraphStyle]) ->
 def markdown_flowables(path: Path, styles: dict[str, ParagraphStyle]) -> list[Flowable]:
     """Convert the committed documentation subset used by the report."""
 
-    return _markdown_lines_flowables(path.read_text(encoding="utf-8").splitlines(), styles)
+    return markdown_text_flowables(path.read_text(encoding="utf-8"), styles)
+
+
+def markdown_text_flowables(
+    markdown: str,
+    styles: dict[str, ParagraphStyle],
+) -> list[Flowable]:
+    """Convert already-validated Markdown text into report flowables."""
+
+    return _markdown_lines_flowables(markdown.splitlines(), styles)
 
 
 def markdown_section_flowables(
@@ -435,7 +466,21 @@ def markdown_section_flowables(
 ) -> list[Flowable]:
     """Render one level-two section as a standalone report chapter."""
 
-    section_lines = [f"# {section_title}", *_markdown_section_lines(path, section_title)]
+    return markdown_section_text_flowables(
+        path.read_text(encoding="utf-8"),
+        section_title,
+        styles,
+    )
+
+
+def markdown_section_text_flowables(
+    markdown: str,
+    section_title: str,
+    styles: dict[str, ParagraphStyle],
+) -> list[Flowable]:
+    """Render one section from already-validated Markdown text."""
+
+    section_lines = [f"# {section_title}", *_markdown_section_text_lines(markdown, section_title)]
     return _markdown_lines_flowables(section_lines, styles)
 
 
@@ -446,13 +491,36 @@ def markdown_section_body_flowables(
 ) -> list[Flowable]:
     """Render one level-two section body without adding a duplicate heading."""
 
-    return _markdown_lines_flowables(_markdown_section_lines(path, section_title), styles)
+    return markdown_section_body_text_flowables(
+        path.read_text(encoding="utf-8"),
+        section_title,
+        styles,
+    )
+
+
+def markdown_section_body_text_flowables(
+    markdown: str,
+    section_title: str,
+    styles: dict[str, ParagraphStyle],
+) -> list[Flowable]:
+    """Render a section body from already-validated Markdown text."""
+
+    return _markdown_lines_flowables(
+        _markdown_section_text_lines(markdown, section_title),
+        styles,
+    )
 
 
 def _markdown_section_lines(path: Path, section_title: str) -> list[str]:
     """Extract one level-two section from a committed Markdown source."""
 
-    lines = path.read_text(encoding="utf-8").splitlines()
+    return _markdown_section_text_lines(path.read_text(encoding="utf-8"), section_title)
+
+
+def _markdown_section_text_lines(markdown: str, section_title: str) -> list[str]:
+    """Extract one level-two section from already-validated Markdown text."""
+
+    lines = markdown.splitlines()
     heading = f"## {section_title}"
     try:
         start = lines.index(heading)
@@ -541,7 +609,7 @@ def _markdown_lines_flowables(
                 ):
                     item_text += f" {lines[index].strip()}"
                     index += 1
-                items.append(ListItem(Paragraph(_inline_markup(item_text), styles["body"])))
+                items.append(ListItem(Paragraph(_inline_markup(item_text), styles["list_body"])))
             flowables.append(
                 ListFlowable(
                     items,
@@ -552,7 +620,7 @@ def _markdown_lines_flowables(
                 )
             )
             continue
-        if re.match(r"^\d+\.\s+", line):
+        if not paragraph_lines and re.match(r"^\d+\.\s+", line):
             flush_paragraph()
             items = []
             while index < len(lines) and re.match(r"^\d+\.\s+", lines[index]):
@@ -566,7 +634,7 @@ def _markdown_lines_flowables(
                 ):
                     item_text += f" {lines[index].strip()}"
                     index += 1
-                items.append(ListItem(Paragraph(_inline_markup(item_text), styles["body"])))
+                items.append(ListItem(Paragraph(_inline_markup(item_text), styles["list_body"])))
             flowables.append(
                 ListFlowable(
                     items,
@@ -621,7 +689,7 @@ def _results_chart(evidence: dict) -> Drawing:
         String(
             15,
             145,
-            "Untouched confirmatory comparison",
+            "Documented-seed-disjoint holdout",
             fontName=REPORT_FONTS.body_bold,
             fontSize=11,
             fillColor=NAVY,
@@ -767,7 +835,11 @@ def _cover(styles: dict[str, ParagraphStyle]) -> list[Flowable]:
     ]
 
 
-def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flowable]:
+def _front_matter(
+    styles: dict[str, ParagraphStyle],
+    evidence: dict,
+    report_markdown: str,
+) -> list[Flowable]:
     robustness = evidence["robustness"]["base_evaluation"]
     fixed = robustness["controller_means"]["Fixed Rotation"]
     ppo = robustness["controller_means"]["PPO"]
@@ -831,8 +903,8 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
             textColor=MUTED,
         ),
     ]
-    abstract_flowables = markdown_section_body_flowables(
-        REPORT_SOURCE_PATH,
+    abstract_flowables = markdown_section_body_text_flowables(
+        report_markdown,
         "Abstract",
         styles,
     )
@@ -840,13 +912,19 @@ def _front_matter(styles: dict[str, ParagraphStyle], evidence: dict) -> list[Flo
         Paragraph("Abstract", styles["chapter"]),
         *abstract_flowables,
         Paragraph(
-            "Untouched confirmatory evidence: 320 independent base draws x 3 shortage levels = "
-            "960 matched scenario conditions; 1,920 controller-scenario evaluations.",
+            "Documented-seed-disjoint holdout: 320 independent base draws x 3 shortage "
+            "levels = 960 matched scenario conditions; 1,920 controller-scenario evaluations. "
+            + HOLDOUT_CUSTODY_LIMITATION,
+            styles["callout"],
+        ),
+        Paragraph(
+            SENSITIVITY_INTERVAL_LIMITATION,
             styles["callout"],
         ),
         _results_chart(robustness),
         Spacer(1, 6),
         _table_flowable(summary_data, styles),
+        Paragraph(RESULTS_SCOPE_LIMITATION, styles["callout"]),
         PageBreak(),
         Paragraph("Contents", styles["chapter"]),
         toc,
@@ -906,12 +984,10 @@ def load_verified_evidence() -> dict:
 
     accepted = verify_paired_benchmark(
         PROJECT_ROOT / "data" / "evidence" / "paired-benchmark.json",
-        expected_sha256=PAIRED_BENCHMARK_SHA256,
         frozen_benchmark_path=PROJECT_ROOT / "data" / "evidence" / "frozen-benchmark.json",
     )
     robustness = verify_robustness_supplement(
-        PROJECT_ROOT / "data" / "evidence" / "robustness-supplement.json",
-        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
+        PROJECT_ROOT / "data" / "evidence" / "robustness-supplement.json"
     )
     training = load_training_provenance(
         PROJECT_ROOT / "data" / "model" / "training-provenance.yaml",
@@ -920,10 +996,24 @@ def load_verified_evidence() -> dict:
     return {
         "accepted": accepted,
         "robustness": robustness,
+        "training_record": training,
         "training": build_training_summary(
             training,
             provenance_path="data/model/training-provenance.yaml",
         ),
+    }
+
+
+def load_rendered_markdown_sources() -> dict[str, str]:
+    """Read every Markdown source once for validation and in-memory rendering."""
+
+    return {
+        "docs/REPORT.md": REPORT_SOURCE_PATH.read_text(encoding="utf-8"),
+        "docs/RELATED_WORK.md": RELATED_WORK_PATH.read_text(encoding="utf-8"),
+        "docs/METHODOLOGY.md": CHAPTER_PATHS[0].read_text(encoding="utf-8"),
+        "docs/IMPLEMENTATION.md": CHAPTER_PATHS[1].read_text(encoding="utf-8"),
+        "docs/RESULTS.md": CHAPTER_PATHS[2].read_text(encoding="utf-8"),
+        "docs/REFERENCES.md": REFERENCE_PATH.read_text(encoding="utf-8"),
     }
 
 
@@ -940,30 +1030,66 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
     if not REFERENCE_PATH.is_file():
         raise FileNotFoundError(f"missing report references: {REFERENCE_PATH}")
     evidence = load_verified_evidence()
+    rendered_sources = load_rendered_markdown_sources()
+    validate_results_numeric_claims(
+        rendered_sources["docs/RESULTS.md"],
+        accepted=evidence["accepted"],
+        robustness=evidence["robustness"],
+    )
+    validate_methodology_training_claims(
+        rendered_sources["docs/METHODOLOGY.md"],
+        training=evidence["training_record"],
+        summary=evidence["training"],
+    )
+    validate_report_numeric_claims(
+        rendered_sources["docs/REPORT.md"],
+        accepted=evidence["accepted"],
+        robustness=evidence["robustness"],
+        training=evidence["training_record"],
+    )
+    validate_rendered_report_sources(rendered_sources)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     styles = _styles()
     story: list[Flowable] = []
     story.extend(_cover(styles))
-    story.extend(_front_matter(styles, evidence))
-    story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, "Introduction", styles))
-    story.extend(markdown_flowables(RELATED_WORK_PATH, styles))
-    story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, "Background", styles))
-    for chapter_path in CHAPTER_PATHS[:2]:
-        story.extend(markdown_flowables(chapter_path, styles))
+    story.extend(_front_matter(styles, evidence, rendered_sources["docs/REPORT.md"]))
+    story.extend(
+        markdown_section_text_flowables(
+            rendered_sources["docs/REPORT.md"],
+            "Introduction",
+            styles,
+        )
+    )
+    story.extend(markdown_text_flowables(rendered_sources["docs/RELATED_WORK.md"], styles))
+    story.extend(
+        markdown_section_text_flowables(
+            rendered_sources["docs/REPORT.md"],
+            "Background",
+            styles,
+        )
+    )
+    for source_path in ("docs/METHODOLOGY.md", "docs/IMPLEMENTATION.md"):
+        story.extend(markdown_text_flowables(rendered_sources[source_path], styles))
     story.extend(_screenshots(styles))
-    story.extend(markdown_flowables(CHAPTER_PATHS[2], styles))
+    story.extend(markdown_text_flowables(rendered_sources["docs/RESULTS.md"], styles))
     for section_title in REPORT_SECTION_ORDER[3:]:
-        story.extend(markdown_section_flowables(REPORT_SOURCE_PATH, section_title, styles))
+        story.extend(
+            markdown_section_text_flowables(
+                rendered_sources["docs/REPORT.md"],
+                section_title,
+                styles,
+            )
+        )
     story.append(
         Paragraph(
             "Accepted reproduction SHA-256: "
-            f"{PAIRED_BENCHMARK_SHA256}<br/>Untouched robustness SHA-256: "
+            f"{PAIRED_BENCHMARK_SHA256}<br/>Documented-seed-disjoint holdout SHA-256: "
             f"{ROBUSTNESS_SUPPLEMENT_SHA256}<br/>Training record: "
             "data/model/training-provenance.yaml",
             styles["small"],
         )
     )
-    story.extend(markdown_flowables(REFERENCE_PATH, styles))
+    story.extend(markdown_text_flowables(rendered_sources["docs/REFERENCES.md"], styles))
     document = ReportDocument(
         str(output_path),
         pagesize=A4,

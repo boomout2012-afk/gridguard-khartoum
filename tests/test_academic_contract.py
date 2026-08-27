@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from gridguard.robustness_provenance import ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -50,7 +52,7 @@ def test_methodology_states_base_draw_reuse_and_canonical_metric_aggregation() -
     assert "equally weighted arithmetic mean of the 288 episode values" in methodology
 
 
-def test_evidence_documents_separate_accepted_reproduction_from_untouched_confirmation() -> None:
+def test_evidence_documents_separate_accepted_reproduction_from_documented_holdout() -> None:
     corpus = "\n".join(
         _read(path)
         for path in (
@@ -66,7 +68,8 @@ def test_evidence_documents_separate_accepted_reproduction_from_untouched_confir
     assert "assert_paired_benchmark_integrity" in corpus
     assert "sign-neutral integrity" in corpus
     assert "accepted reproduction" in corpus.casefold()
-    assert "untouched confirmatory" in corpus.casefold()
+    assert "documented-seed-disjoint holdout" in corpus.casefold()
+    assert "untouched confirmatory" not in corpus.casefold()
     assert "no favorable-result release gate exists" in corpus.casefold()
 
 
@@ -104,6 +107,43 @@ def test_report_source_has_complete_academic_structure() -> None:
     assert len(report.split("## Conclusion", maxsplit=1)[1].split()) >= 120
 
 
+def test_report_describes_reference_14_as_a_power_control_survey() -> None:
+    report = " ".join(_read("docs/REPORT.md").split())
+
+    assert "survey of reinforcement learning for electric-power control [14]" in report
+    assert "reproducible RL evaluation [14]" not in report
+
+
+def test_implementation_documents_robustness_modules_and_exact_source_bundle() -> None:
+    implementation = _read("docs/IMPLEMENTATION.md")
+
+    for module_path in (
+        "src/gridguard/robustness.py",
+        "src/gridguard/robustness_inference.py",
+        "src/gridguard/robustness_provenance.py",
+    ):
+        assert module_path in implementation
+    for source_path, _sha256_digest, _size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS:
+        assert f"`{source_path}`" in implementation
+    assert "exact bundled scientific source set" in implementation.casefold()
+
+
+def test_implementation_module_map_documents_extracted_ui_and_claim_modules() -> None:
+    implementation = _read("docs/IMPLEMENTATION.md")
+    module_map = implementation.split("## Module map", maxsplit=1)[1].split(
+        "## Domain and tensor contracts", maxsplit=1
+    )[0]
+
+    for module_path in (
+        "src/gridguard/claim_contract.py",
+        "src/gridguard/ui/window_components.py",
+        "src/gridguard/ui/live_components.py",
+        "src/gridguard/ui/live_controls.py",
+        "src/gridguard/ui/live_visualization.py",
+    ):
+        assert f"`{module_path}`" in module_map
+
+
 def test_results_bind_claims_to_artifacts_and_keep_map_out_of_science() -> None:
     results = " ".join(_read("docs/RESULTS.md").split())
 
@@ -135,10 +175,25 @@ def test_training_and_metric_contract_is_reviewer_discoverable() -> None:
     )
 
     assert "data/model/training-provenance.yaml" in corpus
+    assert "selected seed-43 run" in corpus.casefold()
     assert "600 iterations" in corpus
     assert "153,600 episodes" in corpus
     assert "3,686,400 transitions" in corpus
+    assert "three-seed candidate experiment" in corpus.casefold()
+    assert "1,800 iterations" in corpus
+    assert "460,800 episodes" in corpus
+    assert "11,059,200 transitions" in corpus
+    assert "directly recorded" in corpus.casefold()
+    assert "source-reconstructed" in corpus.casefold()
+    assert "arithmetic-derived" in corpus.casefold()
+    assert "unavailable historical" in corpus.casefold()
+    assert "historical promotion gates" in corpus.casefold()
+    assert "not independent headline evidence" in corpus.casefold()
     assert "behavior-cloning initialization" in corpus.casefold()
+    assert "no behavior-cloning-only ablation was run" in corpus.casefold()
+    assert (
+        "cannot isolate the incremental effect of PPO fine-tuning".casefold() in corpus.casefold()
+    )
     assert "training-objective score (diagnostic)" in corpus.casefold()
     assert "critical-outage locality-hours" in corpus.casefold()
     assert "fairness" in corpus.casefold()
@@ -171,5 +226,10 @@ def test_robustness_scope_and_limitations_are_explicit() -> None:
         "global optimum",
         "shortage-only",
         "supply-blind",
+        "cannot select Critical Only",
+        "not preregistered or independently custodied",
+        "cannot rule out undocumented activity",
+        "pointwise 95%",
+        "unadjusted for multiple comparisons",
     ):
-        assert phrase in corpus
+        assert phrase.casefold() in corpus.casefold()

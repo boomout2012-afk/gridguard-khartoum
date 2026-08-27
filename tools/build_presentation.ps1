@@ -14,9 +14,9 @@ $robustnessEvidencePath = Join-Path $projectRoot "data\evidence\robustness-suppl
 $trainingProvenancePath = Join-Path $projectRoot "data\model\training-provenance.yaml"
 $modelManifestPath = Join-Path $projectRoot "data\model\manifest.json"
 $trainingToolPath = Join-Path $projectRoot "tools\training_provenance.py"
-$expectedPairedSha256 = "6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677"
-$expectedRobustnessSha256 = "c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b"
-$expectedTrainingSha256 = "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a"
+$expectedPairedSha256 = "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5"
+$expectedRobustnessSha256 = "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
+$expectedTrainingSha256 = "d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8"
 
 foreach ($path in @(
         $overviewImage,
@@ -47,14 +47,14 @@ Assert-FileHash $trainingProvenancePath $expectedTrainingSha256 "Training proven
 
 $pairedEvidence = [System.IO.File]::ReadAllText($pairedEvidencePath) | ConvertFrom-Json
 $robustnessEvidence = [System.IO.File]::ReadAllText($robustnessEvidencePath) | ConvertFrom-Json
-if ($pairedEvidence.schema_version -ne 2 -or $pairedEvidence.evidence_role -cne "accepted_reproduction") {
-    throw "Paired evidence must remain schema version 2 accepted reproduction context"
+if ($pairedEvidence.schema_version -ne 3 -or $pairedEvidence.evidence_role -cne "accepted_reproduction") {
+    throw "Paired evidence must remain schema version 3 accepted reproduction context"
 }
 if (
     $robustnessEvidence.schema.name -cne "gridguard.robustness_supplement" -or
-    $robustnessEvidence.schema.version -ne 1 -or
-    $robustnessEvidence.evidence_role -cne "untouched_confirmatory" -or
-    $robustnessEvidence.provenance.artifact_id -cne "gridguard-robustness-supplement-v1"
+    $robustnessEvidence.schema.version -ne 2 -or
+    $robustnessEvidence.evidence_role -cne "documented_seed_disjoint_holdout" -or
+    $robustnessEvidence.provenance.artifact_id -cne "gridguard-robustness-supplement-v2"
 ) {
     throw "Robustness supplement identity does not match the reviewed contract"
 }
@@ -70,7 +70,7 @@ $baseMetricKeys = @(
         Sort-Object
 )
 if (($baseMetricKeys -join "|") -cne (($primaryMetricKeys | Sort-Object) -join "|")) {
-    throw "Untouched evidence must contain exactly the three primary outcomes"
+    throw "The documented-seed-disjoint holdout must contain exactly the three primary outcomes"
 }
 foreach ($metricKey in $primaryMetricKeys) {
     if (
@@ -109,25 +109,67 @@ $shortageCount = @($robustnessProtocol.shortage_levels).Count
 $matchedScenarioCount = [int]$robustnessProtocol.matched_scenario_count
 $controllerEvaluationCount = [int]$robustnessProtocol.controller_evaluation_count
 $controllerCount = @($robustnessProtocol.controllers).Count
+$holdoutSeeds = @($robustnessProtocol.seeds | ForEach-Object { [int]$_ })
+$holdoutSeedCount = @($robustnessProtocol.seeds).Count
+$episodesPerHoldoutSeed = [int]$robustnessProtocol.episodes_per_seed
+$bootstrapReplicates = [int]$robustnessProtocol.bootstrap.replicates
 $sensitivityParameterizationCount = [int]$robustnessProtocol.sensitivity_parameterization_count
 $sensitivityVariants = @($robustnessEvidence.sensitivity.variants)
+$sensitivityVariantCount = $sensitivityVariants.Count
+$acceptedProtocol = $pairedEvidence.protocol
+$acceptedSeeds = @($acceptedProtocol.seeds | ForEach-Object { [int]$_ })
+$acceptedBaseDrawCount = [int]$acceptedProtocol.independent_base_draw_count
+$acceptedMatchedScenarioCount = [int]$acceptedProtocol.matched_scenario_count
+$acceptedControllerEvaluationCount = [int]$acceptedProtocol.controller_evaluation_count
+$acceptedBaseDrawsPerSeed = [int]$acceptedProtocol.episodes_per_cell
+$selectedIteration = [int]$trainingSummary.selection.selected_iteration
+$selectedTrainingSeed = [int]$trainingSummary.experiment_scope.selected_run.training_seed
+$candidateRunCount = [int]$trainingSummary.experiment_scope.candidate_experiment.candidate_run_count
+$candidateWorkload = $trainingSummary.experiment_scope.candidate_experiment.aggregate_workload
+$candidateIterations = [int]$candidateWorkload.ppo_iterations
+$candidateEpisodes = [int]$candidateWorkload.complete_episodes
+$candidateTransitions = [int]$candidateWorkload.transitions
+$selectedConvergenceProperty = "selected_iteration_$selectedIteration"
+if ($null -eq $trainingSummary.convergence.PSObject.Properties[$selectedConvergenceProperty]) {
+    throw "Training summary does not contain convergence for selected iteration $selectedIteration"
+}
+$selectedConvergenceValue = [double]$trainingSummary.convergence.$selectedConvergenceProperty
+if (
+    $candidateRunCount -ne 3 -or
+    $selectedTrainingSeed -ne [int]$trainingSummary.selection.selected_seed -or
+    $candidateIterations -ne ($candidateRunCount * [int]$trainingSummary.ppo.iterations) -or
+    $candidateEpisodes -ne ($candidateRunCount * [int]$trainingSummary.ppo.total_episodes) -or
+    $candidateTransitions -ne ($candidateRunCount * [int]$trainingSummary.ppo.total_transitions)
+) {
+    throw "Training summary no longer preserves selected-run and three-seed experiment scope"
+}
 if (
     $baseDrawCount -ne 320 -or
     $shortageCount -ne 3 -or
     $matchedScenarioCount -ne 960 -or
     $controllerEvaluationCount -ne 1920 -or
+    $holdoutSeedCount -ne 10 -or
+    $episodesPerHoldoutSeed -ne 32 -or
+    $baseDrawCount -ne ($holdoutSeedCount * $episodesPerHoldoutSeed) -or
+    $bootstrapReplicates -ne 10000 -or
     $baseDrawCount * $shortageCount -ne $matchedScenarioCount -or
     $matchedScenarioCount * $controllerCount -ne $controllerEvaluationCount
 ) {
-    throw "Robustness protocol no longer matches the locked 320/960/1920 design"
+    throw "Robustness protocol no longer matches the locked seed/count/bootstrap design"
 }
-if ($sensitivityParameterizationCount -ne 25 -or $sensitivityVariants.Count -ne 24) {
+if ((@($robustnessProtocol.shortage_levels) -join "|") -cne "mild|moderate|severe") {
+    throw "Robustness shortage levels must remain Mild, Moderate, and Severe in canonical order"
+}
+if ($sensitivityParameterizationCount -ne 25 -or $sensitivityVariantCount -ne 24) {
     throw "Sensitivity design must contain one base plus 24 variants"
 }
 if (
-    [int]$pairedEvidence.protocol.independent_base_draw_count -ne 96 -or
-    [int]$pairedEvidence.protocol.matched_scenario_count -ne 288 -or
-    [int]$pairedEvidence.protocol.controller_evaluation_count -ne 576
+    $acceptedBaseDrawCount -ne 96 -or
+    $acceptedMatchedScenarioCount -ne 288 -or
+    $acceptedControllerEvaluationCount -ne 576 -or
+    $acceptedSeeds.Count -ne 3 -or
+    $acceptedBaseDrawsPerSeed -ne 32 -or
+    $acceptedBaseDrawCount -ne ($acceptedSeeds.Count * $acceptedBaseDrawsPerSeed)
 ) {
     throw "Accepted reproduction no longer matches the 96/288/576 context"
 }
@@ -136,7 +178,7 @@ $seedOverlap = @(
         Where-Object { @($robustnessProtocol.seeds) -contains $_ }
 )
 if ($seedOverlap.Count -ne 0) {
-    throw "Accepted and untouched evaluation seeds must remain disjoint"
+    throw "Accepted and documented-seed-disjoint holdout seeds must remain disjoint"
 }
 
 $robustnessBase = $robustnessEvidence.base_evaluation
@@ -415,6 +457,25 @@ function Format-PointsInterval {
     return "[{0}, {1}] pp" -f (Format-TwoDecimals ($Lower * 100)), (Format-TwoDecimals ($Upper * 100))
 }
 
+function Format-SeedRange {
+    param([int[]]$Seeds)
+
+    if ($Seeds.Count -eq 0 -or (@($Seeds | Sort-Object -Unique).Count -ne $Seeds.Count)) {
+        throw "Seed labels require a nonempty unique seed sequence"
+    }
+    $contiguous = $true
+    for ($index = 1; $index -lt $Seeds.Count; $index++) {
+        if ($Seeds[$index] -ne ($Seeds[$index - 1] + 1)) {
+            $contiguous = $false
+            break
+        }
+    }
+    if ($contiguous -and $Seeds.Count -gt 1) {
+        return "$($Seeds[0])-$($Seeds[-1])"
+    }
+    return ($Seeds -join ", ")
+}
+
 function Add-OutcomeRow {
     param(
         $Slide, [double]$Top, [string]$Metric, [string]$FixedValue,
@@ -448,6 +509,32 @@ $outageDelta = (Format-OneDecimal ([double]$inference.critical_outage_locality_h
 $outageInterval = Format-OutageInterval ([double]$inference.critical_outage_locality_hours.ci95_lower) ([double]$inference.critical_outage_locality_hours.ci95_upper)
 $fairnessDelta = Format-Points ([double]$inference.fairness.mean_delta)
 $fairnessInterval = Format-PointsInterval ([double]$inference.fairness.ci95_lower) ([double]$inference.fairness.ci95_upper)
+$acceptedSeedLabel = Format-SeedRange $acceptedSeeds
+$holdoutSeedLabel = Format-SeedRange $holdoutSeeds
+$bootstrapReplicateLabel = $bootstrapReplicates.ToString(
+    "N0", [Globalization.CultureInfo]::InvariantCulture
+)
+$selectedEpisodeLabel = ([int]$trainingSummary.ppo.total_episodes).ToString(
+    "N0", [Globalization.CultureInfo]::InvariantCulture
+)
+$selectedTransitionLabel = ([int]$trainingSummary.ppo.total_transitions).ToString(
+    "N0", [Globalization.CultureInfo]::InvariantCulture
+)
+$candidateIterationLabel = $candidateIterations.ToString(
+    "N0", [Globalization.CultureInfo]::InvariantCulture
+)
+$candidateEpisodeLabel = $candidateEpisodes.ToString(
+    "N0", [Globalization.CultureInfo]::InvariantCulture
+)
+$candidateTransitionLabel = $candidateTransitions.ToString(
+    "N0", [Globalization.CultureInfo]::InvariantCulture
+)
+$shortageLabel = @(
+    $robustnessProtocol.shortage_levels |
+        ForEach-Object {
+            [Globalization.CultureInfo]::InvariantCulture.TextInfo.ToTitleCase([string]$_)
+        }
+) -join ", "
 $utilizationDelta = Format-Points ([double]$inference.utilization.mean_delta)
 $utilizationInterval = Format-PointsInterval ([double]$inference.utilization.ci95_lower) ([double]$inference.utilization.ci95_upper)
 $powerBalanceLabel = Format-Percent $powerBalanceRate
@@ -533,10 +620,11 @@ try {
     Set-SlideBackground $slide $script:Navy
     Add-Chrome $slide 4
     Add-SlideTitle $slide "PPO and Fixed Rotation receive the same scenario"
-    Add-StatCard $slide 62 156 236 126 "$baseDrawCount independent base draws" "10 untouched seeds x 32 episodes" $script:Slate
-    Add-Text $slide "x 3" 310 192 80 42 30 $script:Gold $true 2 | Out-Null
-    Add-StatCard $slide 400 156 218 126 "$matchedScenarioCount matched" "mild, moderate, severe shortage" $script:Teal $script:Navy
-    Add-Text $slide "x 2" 630 192 80 42 30 $script:Gold $true 2 | Out-Null
+    Add-StatCard $slide 62 156 236 126 "$baseDrawCount independent base draws" "$holdoutSeedCount seeds x $episodesPerHoldoutSeed episodes" $script:Slate
+    Add-Text $slide "Documented-seed-disjoint holdout" 62 286 836 22 16 $script:Muted $true 2 | Out-Null
+    Add-Text $slide "x $shortageCount" 310 192 80 42 30 $script:Gold $true 2 | Out-Null
+    Add-StatCard $slide 400 156 218 126 "$matchedScenarioCount matched" "$shortageLabel shortage" $script:Teal $script:Navy
+    Add-Text $slide "x $controllerCount" 630 192 80 42 30 $script:Gold $true 2 | Out-Null
     Add-StatCard $slide 720 156 178 126 "$controllerEvaluationCount" "controller-scenario evaluations" $script:Slate
     Add-Line $slide 62 318 898 318 $script:Grid 1 | Out-Null
     Add-Text $slide "PPO" 70 350 175 30 24 $script:Teal $true | Out-Null
@@ -544,7 +632,7 @@ try {
     Add-Text $slide "Fixed Rotation" 515 350 230 30 24 $script:Gold $true | Out-Null
     Add-Text $slide ("Three-hour schedule blocks" + [Environment]::NewLine + "No demand or fairness observation") 515 386 330 54 18 $script:OffWhite | Out-Null
     Add-Text $slide "Every stored delta is PPO - Fixed Rotation" 250 458 460 26 19 $script:Teal $true 2 | Out-Null
-    Add-Notes $slide (New-Notes "The 960 conditions are severity variants of 320 independent base draws. Both controllers receive the same immutable scenario." @(
+    Add-Notes $slide (New-Notes "The $matchedScenarioCount conditions are severity variants of $baseDrawCount independent base draws. Both controllers receive the same guarded scenario; detected demand/supply mutation fails closed." @(
             "docs/METHODOLOGY.md",
             "data/evidence/robustness-supplement.json, SHA-256 $expectedRobustnessSha256"
         ))
@@ -565,16 +653,19 @@ try {
     Add-BulletList $slide @(
         "$($trainingSummary.behavior_cloning_initialization.epochs) epochs  |  $($trainingSummary.behavior_cloning_initialization.teacher_samples) teacher samples",
         "$($trainingSummary.behavior_cloning_initialization.optimizer_updates) initialization optimizer updates",
-        "$($trainingSummary.ppo.iterations) PPO iterations  |  $($trainingSummary.ppo.total_episodes) episodes",
-        "$($trainingSummary.ppo.total_transitions) transitions  |  learning rate $($trainingSummary.ppo.learning_rate)"
-    ) 64 298 420 16 $script:Ink 40 $script:Teal | Out-Null
+        "Selected seed $selectedTrainingSeed",
+        "$($trainingSummary.ppo.iterations) PPO iterations  |  $selectedEpisodeLabel episodes",
+        "$selectedTransitionLabel transitions  |  learning rate $($trainingSummary.ppo.learning_rate)"
+    ) 64 298 420 16 $script:Ink 34 $script:Teal | Out-Null
     Add-Text $slide "Training-objective score (diagnostic)" 536 258 350 28 20 $script:Gold $true | Out-Null
-    Add-Text $slide (Format-TwoDecimals ([double]$trainingSummary.convergence.selected_iteration_510)) 536 302 170 58 38 $script:Teal $true | Out-Null
-    Add-Text $slide "selected iteration 510" 536 358 210 24 16 "60727D" | Out-Null
+    Add-Text $slide (Format-TwoDecimals $selectedConvergenceValue) 536 302 170 58 38 $script:Teal $true | Out-Null
+    Add-Text $slide "selected iteration $selectedIteration" 536 358 210 24 16 "60727D" | Out-Null
     Add-Text $slide (Format-TwoDecimals ([double]$trainingSummary.convergence.untrained)) 748 302 140 58 38 "60727D" $true | Out-Null
     Add-Text $slide "untrained" 748 358 140 24 16 "60727D" | Out-Null
-    Add-Text $slide "Model selection used validation seeds; untouched evaluation seeds were not used for training or selection." 536 404 350 68 17 $script:Ink $true | Out-Null
-    Add-Notes $slide (New-Notes "The historical teacher-guided initialization precedes PPO training; the deployed controller remains PPO." @(
+    Add-Text $slide "Three-seed candidate experiment" 536 395 350 24 17 $script:Gold $true | Out-Null
+    Add-Text $slide "$candidateIterationLabel iterations  |  $candidateEpisodeLabel episodes" 536 423 350 22 16 $script:Ink $true | Out-Null
+    Add-Text $slide "$candidateTransitionLabel transitions total" 536 449 350 22 16 "60727D" $true | Out-Null
+    Add-Notes $slide (New-Notes "The displayed runtime, convergence, and checkpoint facts describe selected seed $selectedTrainingSeed; the candidate experiment comprised $candidateRunCount runs totaling $candidateIterationLabel iterations, $candidateEpisodeLabel episodes, and $candidateTransitionLabel transitions. Historical reward gates document model selection and are not independent current headline evidence. The teacher-guided initialization precedes PPO training; the deployed controller remains PPO. $($trainingSummary.attribution_limitations.interpretation)" @(
             "data/model/training-provenance.yaml, SHA-256 $expectedTrainingSha256",
             "data/model/manifest.json"
         ))
@@ -597,10 +688,10 @@ try {
     Add-Text $slide ("cluster bootstrap" + [Environment]::NewLine + "CUDA sort" + [Environment]::NewLine + "linear percentiles") 708 231 164 64 16 $script:Muted $false 2 | Out-Null
     Add-BulletList $slide @(
         "PyTorch 2.8 + CUDA 12.8  |  DLPack sharing with CuPy",
-        "10,000 deterministic seed-stratified bootstrap replicates",
-        "One final host transfer assembles evidence; it is not a controller fallback"
+        "$bootstrapReplicateLabel deterministic seed-stratified bootstrap replicates",
+        "Scalar validity flags may synchronize; one final bulk transfer assembles evidence"
     ) 70 365 820 17 $script:OffWhite 37 $script:Teal | Out-Null
-    Add-Notes $slide (New-Notes "Simulation, PPO inference, metrics, and bootstrap stay GPU-first. One final host transfer supports portable artifact assembly." @(
+    Add-Notes $slide (New-Notes "Simulation, PPO inference, metrics, and bootstrap stay GPU-first. Scalar invariant flags may synchronize; one final full-array host transfer supports portable artifact assembly." @(
             "docs/IMPLEMENTATION.md",
             "docs/decisions/ADR-001-gpu-runtime.md"
         ))
@@ -618,11 +709,11 @@ try {
             "docs/assets/screenshots/live.png"
         ))
 
-    # 8 - untouched outcomes
+    # 8 - documented-seed-disjoint outcomes
     $slide = $presentation.Slides.Add(8, 12)
     Set-SlideBackground $slide $script:OffWhite
     Add-Chrome $slide 8 $true
-    Add-SlideTitle $slide "Untouched confirmatory evidence reports three primary outcomes" $true
+    Add-SlideTitle $slide "Documented-seed-disjoint holdout reports three primary outcomes" $true
     Add-Text $slide "Outcome" 64 145 226 24 16 "60727D" $true | Out-Null
     Add-Text $slide "Fixed Rotation" 300 145 126 24 16 "60727D" $true | Out-Null
     Add-Text $slide "PPO" 434 145 126 24 16 "60727D" $true | Out-Null
@@ -634,9 +725,10 @@ try {
     Add-Line $slide 62 377 898 377 "CFD8DC" 1 | Out-Null
     Add-Text $slide "Safety check" 64 397 150 24 17 $script:Ink $true | Out-Null
     Add-Text $slide "$powerBalanceLabel power-balance violation rate in both controllers" 220 397 540 24 18 $script:Teal $true | Out-Null
-    Add-Box $slide 64 443 828 38 "E4F4F0" $script:Teal 5 | Out-Null
-    Add-Text $slide "Observed as-is  |  no favorable/adverse release gate" 80 452 796 22 17 $script:Ink $true 2 | Out-Null
-    Add-Notes $slide (New-Notes "These are the only three headline outcomes. They use 10 untouched seeds and were reported as observed; result direction was not a release condition." @(
+    Add-Box $slide 64 422 828 73 "F6E8E3" $script:Risk 5 | Out-Null
+    Add-Text $slide "Not preregistered or independently custodied  |  no direction gate" 80 430 796 22 17 $script:Ink $true 2 | Out-Null
+    Add-Text $slide "No behavior-cloning-only ablation was run, so this comparison cannot isolate the incremental effect of PPO fine-tuning." 80 452 796 40 16 $script:Ink $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "These are the only three headline outcomes. The seeds are disjoint only from documented activity: the holdout was not preregistered or independently custodied and cannot rule out undocumented activity. Results were reported as observed; direction was not a release condition. No behavior-cloning-only ablation was run, so this comparison cannot isolate the incremental effect of PPO fine-tuning." @(
             "data/evidence/robustness-supplement.json, SHA-256 $expectedRobustnessSha256",
             "docs/RESULTS.md"
         ))
@@ -645,16 +737,16 @@ try {
     $slide = $presentation.Slides.Add(9, 12)
     Set-SlideBackground $slide $script:Navy
     Add-Chrome $slide 9
-    Add-SlideTitle $slide "24 demand-allocation variants preserve PPO's direction"
+    Add-SlideTitle $slide "$sensitivityVariantCount demand-allocation variants test local sensitivity"
     Add-Text $slide "$sensitivityParameterizationCount parameterizations" 64 145 330 42 29 $script:Gold $true | Out-Null
-    Add-Text $slide "1 locked base + 24 one-at-a-time variants" 64 190 390 28 18 $script:OffWhite | Out-Null
-    Add-StatCard $slide 64 246 246 126 "$($sensitivityFavorable.critical_outage_locality_hours)/24" "critical-outage locality-hours favorable" $script:Slate
-    Add-StatCard $slide 357 246 246 126 "$($sensitivityFavorable.fairness)/24" "Jain fairness favorable" $script:Slate
-    Add-StatCard $slide 650 246 246 126 "$($sensitivityFavorable.utilization)/24" "utilization favorable" $script:Slate
+    Add-Text $slide "1 locked base + $sensitivityVariantCount one-at-a-time variants" 64 190 390 28 18 $script:OffWhite | Out-Null
+    Add-StatCard $slide 64 246 246 126 "$($sensitivityFavorable.critical_outage_locality_hours)/$sensitivityVariantCount" "critical-outage locality-hours favorable" $script:Slate
+    Add-StatCard $slide 357 246 246 126 "$($sensitivityFavorable.fairness)/$sensitivityVariantCount" "Jain fairness favorable" $script:Slate
+    Add-StatCard $slide 650 246 246 126 "$($sensitivityFavorable.utilization)/$sensitivityVariantCount" "utilization favorable" $script:Slate
     Add-Text $slide "Effect-size shift versus base" 64 400 260 24 17 $script:Teal $true | Out-Null
     Add-Text $slide "Outage: $outageDidAdverse adverse  |  $outageDidFavorable favorable  |  $outageDidAmbiguous ambiguous" 330 400 560 24 17 $script:OffWhite $true | Out-Null
-    Add-Text $slide "Direction persists, but effect size is not invariant. Classifications are evidence, not a release gate." 64 446 826 40 17 $script:Muted | Out-Null
-    Add-Notes $slide (New-Notes "All 24 variants retain favorable paired direction for each primary outcome. Difference-in-differences is mixed and no result-direction gate filtered the artifact." @(
+    Add-Text $slide "Descriptive pointwise 95% intervals; unadjusted for multiple comparisons; no family-wide claim." 64 446 826 40 17 $script:Muted | Out-Null
+    Add-Notes $slide (New-Notes "The cards report observed direction counts, not a gate. Sensitivity intervals are descriptive, pointwise 95%, and unadjusted for multiple comparisons; they do not support family-wide significance claims. Difference-in-differences reports effect-size shifts versus base." @(
             "data/evidence/robustness-supplement.json, sensitivity",
             "docs/RESULTS.md"
         ))
@@ -697,10 +789,10 @@ try {
     Add-SlideTitle $slide "The accepted reproduction preserves history, not independence"
     Add-Text $slide "Accepted reproduction context" 64 145 360 30 23 $script:Teal $true | Out-Null
     Add-BulletList $slide @(
-        "Seeds 50001-50003  |  96 base draws",
-        "288 matched conditions  |  576 evaluations",
+        "Seeds $acceptedSeedLabel  |  $acceptedBaseDrawCount base draws",
+        "$acceptedMatchedScenarioCount matched conditions  |  $acceptedControllerEvaluationCount evaluations",
         "Reproduced from the frozen PPO checkpoint",
-        "Not untouched: promotion and acceptance used this layer"
+        "Promotion and acceptance used this layer"
     ) 64 190 410 17 $script:OffWhite 47 $script:Teal | Out-Null
     Add-Line $slide 500 142 500 457 $script:Grid 1 | Out-Null
     Add-Text $slide "Accepted three-primary context" 538 145 345 30 22 $script:Gold $true | Out-Null
@@ -711,8 +803,8 @@ try {
     Add-Text $slide "Utilization" 538 347 175 24 16 $script:Muted $true | Out-Null
     Add-Text $slide ("{0} -> {1}" -f (Format-Percent ([double]$acceptedFixed.utilization)), (Format-Percent ([double]$acceptedPpo.utilization))) 538 373 330 28 19 $script:OffWhite $true | Out-Null
     Add-Box $slide 538 418 330 55 $script:SoftSlate $script:Grid 5 | Out-Null
-    Add-Text $slide "Untouched seeds 81001-81010 remain separate" 552 427 302 40 16 $script:Teal $true 2 | Out-Null
-    Add-Notes $slide (New-Notes "The accepted artifact preserves provenance, but acceptance used its seeds. Confirmatory claims use the separate untouched seed layer." @(
+    Add-Text $slide ("Documented-seed-disjoint holdout" + [Environment]::NewLine + "$holdoutSeedLabel remains separate") 552 421 302 49 16 $script:Teal $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "The accepted artifact preserves provenance, but acceptance used its seeds. Reviewer-facing comparisons use the separate documented-seed-disjoint holdout, subject to its stated custody limitation." @(
             "data/evidence/paired-benchmark.json, SHA-256 $expectedPairedSha256",
             "data/evidence/robustness-supplement.json, seed_separation"
         ))
@@ -732,13 +824,13 @@ try {
     Add-Text $slide "What it does not support" 522 145 370 30 23 $script:Risk $true | Out-Null
     Add-BulletList $slide @(
         "Field performance on Sudan's electrical grid",
-        "Voltage, frequency, protection, or network stability",
-        "Real-data forecast calibration",
-        "Automatic operational dispatch"
+        "Electrical-network or forecast validation",
+        "Incremental PPO effect beyond initialization",
+        "General superiority over stronger baselines"
     ) 522 192 390 17 $script:Ink 50 $script:Risk | Out-Null
     Add-Box $slide 64 424 828 52 "F6E8E3" $script:Risk 5 | Out-Null
-    Add-Text $slide "Synthetic demand and administrative geography are abstractions, not geographic measurements or electrical topology." 82 431 790 40 16 $script:Ink $true 2 | Out-Null
-    Add-Notes $slide (New-Notes "The experiment models shortage allocation, not a power-flow network, and the data are synthetic." @(
+    Add-Text $slide "Fixed Rotation is supply-blind: limited to Off and Full Service; it cannot select Critical Only. Synthetic evidence only." 82 431 790 40 16 $script:Ink $true 2 | Out-Null
+    Add-Notes $slide (New-Notes "The experiment models shortage allocation, not a power-flow network, and the data are synthetic. Fixed Rotation is supply-blind, limited to Off and Full Service, and cannot select Critical Only. No behavior-cloning-only ablation was run, so this comparison cannot isolate the incremental effect of PPO fine-tuning." @(
             "docs/METHODOLOGY.md",
             "docs/RESULTS.md"
         ))
@@ -752,13 +844,13 @@ try {
     Add-Text $slide "under the locked synthetic evaluation protocol" 62 205 700 34 24 $script:Gold | Out-Null
     Add-Line $slide 62 271 898 271 $script:Grid 1 | Out-Null
     Add-BulletList $slide @(
-        "Three untouched primary outcomes - reported without a favorable-result gate",
-        "Matched scenarios, explicit seed roles, and hash-bound evidence",
+        "Three documented-seed-disjoint outcomes - no favorable-result gate",
+        "Against supply-blind Fixed Rotation limited to Off and Full Service; no Critical Only",
         "GPU-first offline desktop with Frozen and Live views kept separate"
     ) 62 306 820 18 $script:OffWhite 49 | Out-Null
     Add-Box $slide 62 452 836 42 $script:Teal "" 5 | Out-Null
     Add-Text $slide "Next: representative operational data and electrical-network constraints" 78 463 804 22 17 $script:Navy $true 2 | Out-Null
-    Add-Notes $slide (New-Notes "PPO outperformed Fixed Rotation under this locked synthetic protocol. Operational-data and network validation must precede field use." @(
+    Add-Notes $slide (New-Notes "PPO outperformed Fixed Rotation under this locked synthetic protocol. Fixed Rotation is supply-blind, limited to Off and Full Service, and cannot select Critical Only; this is not evidence of general controller superiority. No behavior-cloning-only ablation was run, so the comparison cannot isolate the incremental effect of PPO fine-tuning. Operational-data and network validation must precede field use." @(
             "docs/RESULTS.md",
             "docs/REPORT.md"
         ))
