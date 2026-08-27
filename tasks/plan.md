@@ -653,7 +653,7 @@ Scope: Large
 
 Description: Use bounded terminology for the seed-disjoint holdout and sensitivity intervals, add
 the missing behavior-cloning attribution limitation, state the scenario mutation contract exactly,
-and make the training YAML unmistakably discoverable and complete.
+and make the training YAML unmistakably discoverable, scoped, and auditable.
 
 Acceptance criteria:
 
@@ -663,6 +663,12 @@ Acceptance criteria:
   comparisons; no family-wide significance claim is made.
 - UI, evidence, report, deck, and training YAML state that no behavior-cloning-only ablation was run,
   so the observed comparison cannot isolate the incremental effect of PPO fine-tuning.
+- The YAML and every summary surface distinguish the selected seed-43 run workload from the
+  aggregate three-seed candidate experiment; selected-run hardware, runtime, convergence, and
+  checkpoint facts are never presented as experiment-wide facts.
+- Historical fields are classified as directly recorded, source/default reconstructed,
+  arithmetic-derived, or unavailable, and exact promotion checks are retained as model-selection
+  history rather than independent current headline evidence.
 
 Verification:
 
@@ -710,7 +716,7 @@ changing behavior or moving scientific logic into widgets.
 
 Acceptance criteria:
 
-- Results state visibly and accessibly that Fixed Rotation is supply-blind, Off/Full Service only,
+- Results state visibly and accessibly that Fixed Rotation is supply-blind, uses only Off and Full Service,
   and cannot select Critical Only, alongside the synthetic decision-support/field-evidence boundary.
 - `PresentationWindow`, `LiveScenarioPage`, and extracted components meet the roughly 200-line UI
   boundary while preserving tested public aliases, worker lifecycle, keyboard behavior, and state.
@@ -766,7 +772,7 @@ Acceptance criteria:
 - Normal launch ignores poisoned smoke/offscreen environment variables, while the explicit frozen
   smoke path writes only to a validated temporary output and succeeds on `cuda:0`.
 - No SHA-identical NVIDIA/`torch/lib` DLL pair remains; the package is at least 2,000,000,000 bytes
-  smaller than the audited 7,021,231,590-byte tree and is at most 5,100,000,000 bytes.
+  smaller than the audited 7,021,231,590-byte tree and is at most 5,021,231,590 bytes.
 
 Verification:
 
@@ -791,7 +797,7 @@ Acceptance criteria:
 - A machine report records commands, exit codes, JUnit totals, zero skips, Ruff/format results,
   doctor/evidence/reproduction hashes, and actual report/deck/notes counts; no PASS value is copied.
 - A tracked attestation binds final PDF/PPTX hashes to contiguous reviewed page, slide, and note lists;
-  current expected counts are 36 pages and 13 slides/notes, but detected final counts are authoritative.
+  current expected counts are 38 pages and 13 slides/notes, but detected final counts are authoritative.
 - The bumped manifest binds both records, hashes every required release file, rejects substitution or
   stale counts, and discloses that the unsigned hashes require an independently trusted Git commit.
 

@@ -93,45 +93,50 @@
 
 ### Contract and hermetic gates
 
-- [ ] Record A01-A24 in a tracked audit ledger with owner, disposition, and closure evidence.
-- [ ] Set 1.2.0 consistently in specification, package metadata, changelog, and release paths.
-- [ ] Link the strict training-parameter YAML directly from README, report, and packaged reviewer assets.
-- [ ] Pin the build backend and prove the wheel smoke with no index, no sync, and no network.
+- [x] Record A01-A24 in a tracked audit ledger with owner, disposition, and closure evidence.
+- [x] Set 1.2.0 consistently in specification, package metadata, changelog, and release paths.
+- [x] Link the strict training-parameter YAML directly from README, report, and packaged reviewer assets.
+- [x] Pin the build backend and prove the wheel smoke with no index, no sync, and no network.
 - [ ] Split portable tests from strict post-build `release_artifact` tests; require zero skips in both.
-- [ ] Remove the sibling research archive as a required release-build or runtime input.
+- [x] Remove the sibling research archive as a required release-build or runtime input.
 
 ### Scientific assurance
 
-- [ ] Add CUDA mutation guards around matched controller evaluation.
-- [ ] Add and validate a unique canonical scenario SHA-256 on every paired row.
-- [ ] Hold the base available-supply trace exactly fixed for every demand-allocation sensitivity.
-- [ ] Persist strict per-draw robustness inputs and reconstruct every reported bootstrap endpoint.
-- [ ] Rename the holdout to documented-seed-disjoint and state its custody limitations.
-- [ ] Label all sensitivity intervals pointwise, descriptive, and unadjusted for multiplicity.
-- [ ] State that no behavior-cloning-only ablation isolates PPO fine-tuning's incremental effect.
-- [ ] Reproduce paired and robustness evidence twice on CUDA and require byte-identical outputs.
-- [ ] Confirm frozen benchmark, paired values, robustness base values, forecast values, counts, seeds,
+- [x] Add CUDA mutation guards around matched controller evaluation.
+- [x] Add and validate a unique canonical scenario SHA-256 on every paired row.
+- [x] Hold the base available-supply trace exactly fixed for every demand-allocation sensitivity.
+- [x] Persist strict per-draw robustness inputs and reconstruct every reported bootstrap endpoint.
+- [x] Rename the holdout to documented-seed-disjoint and state its custody limitations.
+- [x] Label all sensitivity intervals pointwise, descriptive, and unadjusted for multiplicity.
+- [x] State that no behavior-cloning-only ablation isolates PPO fine-tuning's incremental effect.
+- [x] Separate the selected seed-43 run workload from the aggregate three-seed candidate experiment
+  in the strict YAML, UI, report, deck, and reviewer entry points.
+- [x] Classify direct, reconstructed, derived, and unavailable historical training facts; retain
+  exact promotion gates only as historical model-selection evidence.
+- [x] Reproduce paired and robustness evidence twice on CUDA and require byte-identical outputs.
+- [x] Confirm frozen benchmark, paired values, robustness base values, forecast values, counts, seeds,
   and zero balance violations remain unchanged; review sensitivity-only changes without a direction gate.
 
 ### Claims, UI, report, and deck
 
-- [ ] Put the supply-blind, Off/Full-only, no-Critical-Only Fixed Rotation limitation beside Results.
-- [ ] Split `PresentationWindow` and `LiveScenarioPage` into tested focused components.
-- [ ] Re-run keyboard, accessibility, live/frozen separation, and 1366x768 visual tests.
-- [ ] Correct reference [14], robustness/UI module maps, and bundled provenance-source documentation.
-- [ ] Use Mild, Moderate, and Severe consistently on slide 4.
-- [ ] Bound slide 13 and its notes explicitly to the weak Fixed Rotation comparator.
-- [ ] Apply seed-disjoint, interval, attribution, and synthetic-only wording across every claim surface.
+- [x] Put the supply-blind Fixed Rotation limitation—uses only Off and Full Service and cannot
+  select Critical Only—beside Results.
+- [x] Split `PresentationWindow` and `LiveScenarioPage` into tested focused components.
+- [x] Re-run keyboard, accessibility, live/frozen separation, and 1366x768 visual tests.
+- [x] Correct reference [14], robustness/UI module maps, and bundled provenance-source documentation.
+- [x] Use Mild, Moderate, and Severe consistently on slide 4.
+- [x] Bound slide 13 and its notes explicitly to the weak Fixed Rotation comparator.
+- [x] Apply seed-disjoint, interval, attribution, and synthetic-only wording across every claim surface.
 
 ### Windows release and provenance
 
-- [ ] Safely remove only known stale 1.0.0/generated outputs and emit current 1.2.0 artifacts only.
-- [ ] Replace ambient smoke/offscreen control with an explicit private argument and validated output path.
-- [ ] Remove byte-identical CUDA DLL duplicates after PyInstaller analysis.
-- [ ] Keep the final package at or below 5,100,000,000 bytes and prove all GPU smoke paths still work.
+- [x] Safely remove only known stale 1.0.0/generated outputs and emit current 1.2.0 artifacts only.
+- [x] Replace ambient smoke/offscreen control with an explicit private argument and validated output path.
+- [x] Remove byte-identical CUDA DLL duplicates after PyInstaller analysis.
+- [x] Keep the final package at or below 5,021,231,590 bytes and prove all GPU smoke paths still work.
 - [ ] Generate a fresh machine validation report from actual commands, JUnit totals, hashes, and counts.
-- [ ] Render and inspect every final report page, slide, note source, and screenshot.
-- [ ] Bind a complete visual-review attestation to the final PDF/PPTX hashes.
+- [x] Render and inspect every final report page, slide, note source, and screenshot.
+- [x] Bind a complete visual-review attestation to the final PDF/PPTX hashes.
 - [ ] Rebuild the release manifest from validation evidence; disclose the unsigned Git-anchor trust model.
 
 ### Final proof and publication
