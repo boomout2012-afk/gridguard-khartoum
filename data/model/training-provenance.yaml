@@ -1,11 +1,180 @@
 schema: gridguard.ppo_training_provenance
-schema_version: 1
+schema_version: 3
 record:
   purpose: Historical parameter and lineage record for the accepted PPO actor.
   executable_retraining_configuration: false
   bitwise_retraining_claimed: false
   optimizer_state_included: false
   raw_training_runs_included: false
+experiment_scope:
+  candidate_experiment:
+    name: s2-600-hidden512
+    candidate_training_seeds:
+      - 42
+      - 43
+      - 44
+    candidate_run_count: 3
+    per_run_workload:
+      ppo_iterations: 600
+      complete_episodes: 153600
+      transitions: 3686400
+    aggregate_workload:
+      ppo_iterations: 1800
+      complete_episodes: 460800
+      transitions: 11059200
+  selected_run:
+    training_seed: 43
+    checkpoint_iteration: 510
+    checkpoint_optimizer_updates: 6120
+    scoped_sections:
+      - software_hardware
+      - convergence
+      - ppo.training_seed
+      - ppo.selected_checkpoint_optimizer_updates
+provenance_taxonomy:
+  mapping_scope: Historical training-parameter and experiment fields; schema metadata, documentary boundary
+    flags, current actor-export lineage, and source-binding rows are separately validated.
+  categories:
+    directly-recorded-archive-fact:
+      definition: Value copied from, or cryptographically measured from, a bound archive artifact.
+      mapped_fields:
+        - model.checkpoint
+        - software_hardware.training_device
+        - software_hardware.gpu
+        - software_hardware.pytorch
+        - software_hardware.cuda
+        - software_hardware.elapsed_seconds
+        - software_hardware.ppo_seconds
+        - software_hardware.ppo_transitions_per_second
+        - software_hardware.peak_cuda_memory_mb
+        - behavior_cloning_initialization.teacher_samples
+        - behavior_cloning_initialization.teacher_rollout_batch_size
+        - behavior_cloning_initialization.epochs
+        - behavior_cloning_initialization.minibatch_size
+        - behavior_cloning_initialization.optimizer.learning_rate
+        - ppo.iterations
+        - ppo.complete_episodes_per_iteration
+        - ppo.episode_horizon_hours
+        - ppo.gamma
+        - ppo.gae_lambda
+        - ppo.learning_rate
+        - ppo.clip_epsilon
+        - ppo.value_coefficient
+        - ppo.entropy_coefficient
+        - ppo.epochs_per_iteration
+        - ppo.minibatch_size
+        - ppo.actor_max_gradient_norm
+        - ppo.critic_max_gradient_norm
+        - ppo.optimizer.learning_rate
+        - training_generator.horizon_hours
+        - training_generator.system_peak_mw
+        - training_generator.demand_noise.amplitude
+        - training_generator.training_supply.noise_amplitude
+        - objective.components
+        - validation_and_selection.candidate_best_scores
+        - validation_and_selection.promotion.checks
+        - convergence.untrained_score
+        - convergence.after_behavior_cloning_score
+        - convergence.ppo_iteration_100_score
+        - convergence.selected_iteration_510_score
+        - convergence.final_iteration_600_score
+        - convergence.validation_series
+    bound-source-or-pytorch-default-reconstruction:
+      definition: Value reconstructed from a pinned source blob or an explicitly named PyTorch 2.8 default
+        because the run artifacts did not serialize it directly.
+      mapped_fields:
+        - model.network.observation_dim
+        - model.network.hidden_layers
+        - model.network.separate_actor_critic_encoders
+        - model.network.activation
+        - model.network.critic_output_values
+        - model.network.locality_count
+        - model.network.service_tiers_per_locality
+        - model.network.action_encoding
+        - model.network.initialization
+        - training_generator.hour_resolution
+        - training_generator.locality_demand_weights
+        - training_generator.sector_shares
+        - training_generator.sector_profiles
+        - training_generator.sector_profile_normalization
+        - training_generator.demand_noise.distribution
+        - training_generator.demand_noise.multiplier_min
+        - training_generator.demand_noise.multiplier_max
+        - training_generator.training_supply.coupled_to_total_demand
+        - training_generator.training_supply.base_fraction_distribution
+        - training_generator.training_supply.base_fraction_min
+        - training_generator.training_supply.base_fraction_max
+        - training_generator.training_supply.shock_start_hour_min
+        - training_generator.training_supply.shock_start_hour_max_inclusive
+        - training_generator.training_supply.shock_duration_hours_min
+        - training_generator.training_supply.shock_duration_hours_max_inclusive
+        - training_generator.training_supply.shock_depth_distribution
+        - training_generator.training_supply.shock_depth_min
+        - training_generator.training_supply.shock_depth_max
+        - training_generator.training_supply.fraction_clamp_min
+        - training_generator.training_supply.fraction_clamp_max
+        - training_generator.training_supply.noise_distribution
+        - training_generator.training_supply.total_demand_cap_fraction
+        - objective.public_role
+        - objective.formula
+        - objective.episode_aggregation
+        - objective.component_definitions
+        - behavior_cloning_initialization.teacher_episode_seed_start
+        - behavior_cloning_initialization.teacher_episode_seed_end_inclusive
+        - behavior_cloning_initialization.exploration_probability
+        - behavior_cloning_initialization.exploration_prng_seed
+        - behavior_cloning_initialization.shuffle_prng_seed
+        - behavior_cloning_initialization.gradient_clip_defaults
+        - behavior_cloning_initialization.optimizer
+        - ppo.learning_semantics
+        - ppo.gradient_clip_defaults
+        - ppo.optimizer
+        - validation_and_selection.selection_rule
+    arithmetic-derived-value:
+      definition: Value calculated exactly from validated directly recorded or reconstructed inputs.
+      mapped_fields:
+        - experiment_scope.candidate_experiment.per_run_workload
+        - experiment_scope.candidate_experiment.aggregate_workload
+        - model.network.actor_output_logits
+        - behavior_cloning_initialization.minibatches_per_epoch
+        - behavior_cloning_initialization.optimizer_updates
+        - ppo.transitions_per_iteration
+        - ppo.total_episodes
+        - ppo.total_transitions
+        - ppo.minibatches_per_epoch
+        - ppo.optimizer_updates_per_iteration
+        - ppo.planned_optimizer_updates
+        - ppo.selected_checkpoint_optimizer_updates
+        - validation_and_selection.validation_episodes_per_checkpoint
+    unavailable-historical-environment-fact:
+      definition: Historical environment fact absent from every bound archive artifact and therefore left
+        explicitly unknown.
+      mapped_fields:
+        - provenance_taxonomy.historical_environment_unknowns
+  historical_environment_unknowns:
+    - fact: python-interpreter-version
+      status: unavailable-in-bound-archive
+    - fact: operating-system-edition-and-build
+      status: unavailable-in-bound-archive
+    - fact: nvidia-driver-version
+      status: unavailable-in-bound-archive
+    - fact: cudnn-version-and-runtime-flags
+      status: unavailable-in-bound-archive
+    - fact: cpu-model-and-topology
+      status: unavailable-in-bound-archive
+    - fact: installed-system-memory
+      status: unavailable-in-bound-archive
+    - fact: complete-python-environment-lock-and-wheel-hashes
+      status: unavailable-in-bound-archive
+    - fact: training-process-environment-variables
+      status: unavailable-in-bound-archive
+    - fact: gpu-clock-power-and-thermal-state
+      status: unavailable-in-bound-archive
+  reproducibility_boundary:
+    executable_retraining_configuration: false
+    bitwise_retraining_claimed: false
+    statement: The bound record supports audit of the selected actor's historical lineage, not executable
+      or bitwise-identical retraining.
 model:
   controller: PPO
   checkpoint:
@@ -19,7 +188,9 @@ model:
     size_bytes: 5160058
   network:
     observation_dim: 32
-    hidden_layers: [512, 512]
+    hidden_layers:
+      - 512
+      - 512
     separate_actor_critic_encoders: true
     activation: tanh
     actor_output_logits: 2187
@@ -27,11 +198,31 @@ model:
     locality_count: 7
     service_tiers_per_locality: 3
     action_encoding: little-endian-base-3
+    initialization:
+      encoder_linear_layers:
+        applies_to:
+          - actor_encoder
+          - critic_encoder
+        weight_initializer: orthogonal_
+        weight_gain_expression: 2 ** 0.5
+        weight_gain: 1.4142135623730951
+        bias_initializer: zeros_
+      actor_head:
+        parameter_name: actor
+        weight_initializer: normal_
+        weight_standard_deviation: 0.01
+        bias_initializer: zeros_
+      critic_head:
+        parameter_name: critic
+        weight_initializer: orthogonal_
+        weight_gain: 1.0
+        bias_initializer: zeros_
 software_hardware:
+  scope: selected-run-seed-43
   training_device: cuda:0
   gpu: NVIDIA GeForce RTX 5060 Laptop GPU
   pytorch: 2.8.0+cu128
-  cuda: "12.8"
+  cuda: '12.8'
   elapsed_seconds: 111.02390220000234
   ppo_seconds: 102.75259730000107
   ppo_transitions_per_second: 35876.465382544266
@@ -41,19 +232,69 @@ training_generator:
   hour_resolution: 1
   system_peak_mw: 700.0
   locality_demand_weights:
-    - {locality: Khartoum, relative_weight: 1.0}
-    - {locality: Omdurman, relative_weight: 0.95}
-    - {locality: Bahri, relative_weight: 0.85}
-    - {locality: East Nile, relative_weight: 0.8}
-    - {locality: Jebel Awlia, relative_weight: 0.7}
-    - {locality: Karari, relative_weight: 0.75}
-    - {locality: Ombada, relative_weight: 0.9}
+    - locality: Khartoum
+      relative_weight: 1.0
+    - locality: Omdurman
+      relative_weight: 0.95
+    - locality: Bahri
+      relative_weight: 0.85
+    - locality: East Nile
+      relative_weight: 0.8
+    - locality: Jebel Awlia
+      relative_weight: 0.7
+    - locality: Karari
+      relative_weight: 0.75
+    - locality: Ombada
+      relative_weight: 0.9
   sector_shares:
-    - {sector: Hospital, share: 0.08}
-    - {sector: Water, share: 0.07}
-    - {sector: Bakery, share: 0.05}
-    - {sector: Residential, share: 0.55}
-    - {sector: Commercial, share: 0.25}
+    - sector: Hospital
+      share: 0.08
+    - sector: Water
+      share: 0.07
+    - sector: Bakery
+      share: 0.05
+    - sector: Residential
+      share: 0.55
+    - sector: Commercial
+      share: 0.25
+  sector_profiles:
+    - sector: Hospital
+      baseline_amplitude: 0.95
+      gaussian_terms: []
+    - sector: Water
+      baseline_amplitude: 0.45
+      gaussian_terms:
+        - amplitude: 0.35
+          center_hour: 6.0
+          width_hours: 2.0
+        - amplitude: 0.4
+          center_hour: 18.0
+          width_hours: 2.5
+    - sector: Bakery
+      baseline_amplitude: 0.35
+      gaussian_terms:
+        - amplitude: 0.6
+          center_hour: 5.0
+          width_hours: 1.5
+        - amplitude: 0.45
+          center_hour: 16.0
+          width_hours: 2.0
+    - sector: Residential
+      baseline_amplitude: 0.4
+      gaussian_terms:
+        - amplitude: 0.3
+          center_hour: 7.0
+          width_hours: 2.0
+        - amplitude: 0.65
+          center_hour: 20.0
+          width_hours: 3.0
+    - sector: Commercial
+      baseline_amplitude: 0.25
+      gaussian_terms:
+        - amplitude: 0.75
+          center_hour: 13.0
+          width_hours: 4.0
+  sector_profile_normalization: divide-each-sector-by-its-24-hour-maximum
   demand_noise:
     distribution: symmetric-uniform-multiplier
     amplitude: 0.05
@@ -80,6 +321,32 @@ objective:
   public_role: training-objective-diagnostic
   formula: (5*C + 2*U + 2*J - 0.25*S - 3*O) / 9
   episode_aggregation: sum-of-24-hour-rewards
+  component_definitions:
+    C:
+      name: critical-service-ratio
+      numerator: critical-sector-served-power
+      denominator: max(critical-sector-demand-power, 1e-8)
+      sectors:
+        - Hospital
+        - Water
+        - Bakery
+    U:
+      name: supply-utilization-ratio
+      numerator: total-served-power
+      denominator: max(min(available-supply-power, total-demand-power), 1e-8)
+    J:
+      name: jain-fairness-of-cumulative-locality-service-ratios
+      locality_service_ratio: cumulative-served-energy / max(cumulative-demand-energy, 1e-8)
+      aggregation: square(sum(x_i)) / (7*sum(square(x_i)) + 1e-8)
+      history: through-current-hour
+    S:
+      name: service-tier-switching-rate
+      definition: fraction-of-localities-whose-service-tier-changed
+      first_hour_value: 0.0
+    O:
+      name: requested-power-oversubscription-ratio
+      numerator: max(total-requested-power - available-supply-power, 0)
+      denominator: max(total-demand-power, 1e-8)
   components:
     critical_service_weight: 5.0
     utilization_weight: 2.0
@@ -104,16 +371,28 @@ behavior_cloning_initialization:
   optimized_parameters: actor-only
   loss: categorical-cross-entropy
   max_gradient_norm: 1.0
+  gradient_clip_defaults:
+    norm_type: 2.0
+    error_if_nonfinite: false
+    foreach: null
   optimizer:
-    name: AdamW
+    name: torch.optim.AdamW
     learning_rate: 0.001
     beta1: 0.9
     beta2: 0.999
-    epsilon: 0.00000001
+    epsilon: 1.0e-08
     weight_decay: 0.01
     amsgrad: false
+    maximize: false
+    foreach: null
+    capturable: false
+    differentiable: false
+    fused: null
+    decoupled_weight_decay: true
 ppo:
+  configuration_scope: each-candidate-run
   training_seed: 43
+  training_seed_scope: selected-run-seed-43
   iterations: 600
   complete_episodes_per_iteration: 256
   episode_horizon_hours: 24
@@ -124,6 +403,26 @@ ppo:
   gamma: 0.99
   gae_lambda: 0.95
   advantage_normalization: true
+  learning_semantics:
+    advantage_normalization:
+      mean_centering: subtract-batch-mean
+      standard_deviation: population
+      standard_deviation_unbiased: false
+      denominator_clamp_min: 1.0e-08
+    policy_loss:
+      probability_ratio: exponentiated-new-minus-old-log-probability
+      unclipped_surrogate: probability-ratio-times-normalized-advantage
+      clipped_ratio_lower_bound: 1.0-minus-clip-epsilon
+      clipped_ratio_upper_bound: 1.0-plus-clip-epsilon
+      clipped_surrogate: clipped-probability-ratio-times-normalized-advantage
+      surrogate_selection: elementwise-minimum
+      reduction: negative-mean
+    value_loss:
+      function: mean-squared-error
+      value_clipping: false
+    completed_episode_bootstrap:
+      terminal_next_value: 0.0
+      gae_nonterminal_mask: logical-not-terminated
   learning_rate: 0.0001
   learning_rate_schedule: constant
   clip_epsilon: 0.2
@@ -137,165 +436,346 @@ ppo:
   optimizer_updates_per_iteration: 12
   planned_optimizer_updates: 7200
   selected_checkpoint_optimizer_updates: 6120
+  selected_checkpoint_scope: selected-run-seed-43
   actor_max_gradient_norm: 0.5
   critic_max_gradient_norm: 0.5
+  gradient_clip_defaults:
+    norm_type: 2.0
+    error_if_nonfinite: false
+    foreach: null
   optimizer:
-    name: Adam
+    name: torch.optim.Adam
+    learning_rate: 0.0001
     beta1: 0.9
     beta2: 0.999
-    epsilon: 0.00000001
+    epsilon: 1.0e-08
     weight_decay: 0.0
     amsgrad: false
+    maximize: false
+    foreach: null
+    capturable: false
+    differentiable: false
+    fused: null
+    decoupled_weight_decay: false
 validation_and_selection:
   experiment_summary_path: experiments/s2-600-hidden512.json
-  candidate_training_seeds: [42, 43, 44]
-  validation_seeds: [70000, 70001, 70002]
-  validation_shortage_levels: [Mild, Moderate, Severe]
+  candidate_training_seeds:
+    - 42
+    - 43
+    - 44
+  validation_seeds:
+    - 70000
+    - 70001
+    - 70002
+  validation_shortage_levels:
+    - Mild
+    - Moderate
+    - Severe
   validation_batch_size_per_shortage: 32
   validation_episodes_per_checkpoint: 96
   validate_every_iterations: 5
   selection_score_formula: episode_reward - max(0, 0.98 - critical_service_ratio) * 40
+  promotion:
+    eligible: true
+    incumbent: s1-600-constant
+    eligibility_rule: all-boolean-promotion-checks-must-be-true
+    reward_gate_evidence_role: historical-model-selection-fact-not-independent-current-headline-evidence
+    thresholds:
+      mean_reward_margin_minimum: 0.005
+      matched_seed_wins_minimum: 2
+      maximum_seed_regression: 0.02
+      minimum_throughput_ratio: 0.75
+      minimum_critical_service_ratio: 0.99
+      maximum_oversubscription_ratio: 0.005
+      required_power_balance_violation_rate: 0.0
+    checks:
+      all_runs_safe: true
+      all_performance_finite: true
+      reward_improvement: 0.015751803362807237
+      mean_reward_margin: true
+      matched_seed_wins: 3
+      two_of_three_seeds_improve: true
+      worst_seed_regression: 0.007786220974391966
+      no_large_seed_regression: true
+      throughput_ratio: 1.2173495404586454
+      throughput_within_25_percent: true
+  selection_rule:
+    safety_pool: passed-and-all-gates-true-and-finite-learned-metrics-and-critical-service-at-least-0.99-and-oversubscription-at-most-0.005-and-zero-power-balance-violations
+    fallback: use-all-runs-if-no-run-is-safe
+    ranking: maximum-best-validation-score
   candidate_best_scores:
-    - {seed: 42, score: 23.496178944905598}
-    - {seed: 43, score: 23.50987434387207}
-    - {seed: 44, score: 23.509579340616863}
+    - seed: 42
+      score: 23.496178944905598
+    - seed: 43
+      score: 23.50987434387207
+    - seed: 44
+      score: 23.509579340616863
   selected_seed: 43
   selected_iteration: 510
   selected_score: 23.50987434387207
+attribution_limitations:
+  behavior_cloning_only_ablation_run: false
+  ppo_fine_tuning_incremental_effect_isolated: false
+  interpretation: No behavior-cloning-only ablation was run, so this comparison cannot isolate the incremental
+    effect of PPO fine-tuning.
 evaluation_seed_disclosure:
-  seeds: [50001, 50002, 50003]
+  seeds:
+    - 50001
+    - 50002
+    - 50003
   used_for_gradient_updates: false
   used_for_periodic_validation: false
   used_for_promotion_and_model_selection: true
   untouched_final_test: false
   interpretation: Gradient-disjoint but not an untouched final test.
 convergence:
+  scope: selected-run-seed-43
   untrained_score: 15.072229067484537
   after_behavior_cloning_score: 23.398270924886067
   ppo_iteration_100_score: 23.426668802897137
   selected_iteration_510_score: 23.50987434387207
   final_iteration_600_score: 23.50542449951172
   validation_series:
-    - {iteration: 5, training_objective_score: 23.393992741902668}
-    - {iteration: 10, training_objective_score: 23.371226628621418}
-    - {iteration: 15, training_objective_score: 23.356293360392254}
-    - {iteration: 20, training_objective_score: 23.35450808207194}
-    - {iteration: 25, training_objective_score: 23.327487309773762}
-    - {iteration: 30, training_objective_score: 23.338726043701172}
-    - {iteration: 35, training_objective_score: 23.358165740966797}
-    - {iteration: 40, training_objective_score: 23.357494990030926}
-    - {iteration: 45, training_objective_score: 23.367957433064777}
-    - {iteration: 50, training_objective_score: 23.37807846069336}
-    - {iteration: 55, training_objective_score: 23.363094329833984}
-    - {iteration: 60, training_objective_score: 23.368067423502605}
-    - {iteration: 65, training_objective_score: 23.408223470052082}
-    - {iteration: 70, training_objective_score: 23.406506220499676}
-    - {iteration: 75, training_objective_score: 23.424456278483074}
-    - {iteration: 80, training_objective_score: 23.417489369710285}
-    - {iteration: 85, training_objective_score: 23.41322199503581}
-    - {iteration: 90, training_objective_score: 23.41052182515462}
-    - {iteration: 95, training_objective_score: 23.416548411051433}
-    - {iteration: 100, training_objective_score: 23.426668802897137}
-    - {iteration: 105, training_objective_score: 23.423220952351887}
-    - {iteration: 110, training_objective_score: 23.43180211385091}
-    - {iteration: 115, training_objective_score: 23.42450205485026}
-    - {iteration: 120, training_objective_score: 23.433327356974285}
-    - {iteration: 125, training_objective_score: 23.439495086669922}
-    - {iteration: 130, training_objective_score: 23.424397150675457}
-    - {iteration: 135, training_objective_score: 23.429988861083984}
-    - {iteration: 140, training_objective_score: 23.43092409769694}
-    - {iteration: 145, training_objective_score: 23.43595822652181}
-    - {iteration: 150, training_objective_score: 23.437763214111328}
-    - {iteration: 155, training_objective_score: 23.444787343343098}
-    - {iteration: 160, training_objective_score: 23.462765375773113}
-    - {iteration: 165, training_objective_score: 23.467601776123047}
-    - {iteration: 170, training_objective_score: 23.466014862060547}
-    - {iteration: 175, training_objective_score: 23.464815775553387}
-    - {iteration: 180, training_objective_score: 23.467540740966797}
-    - {iteration: 185, training_objective_score: 23.46852747599284}
-    - {iteration: 190, training_objective_score: 23.469579060872395}
-    - {iteration: 195, training_objective_score: 23.471402486165363}
-    - {iteration: 200, training_objective_score: 23.47694142659505}
-    - {iteration: 205, training_objective_score: 23.476370493570965}
-    - {iteration: 210, training_objective_score: 23.47423553466797}
-    - {iteration: 215, training_objective_score: 23.4799861907959}
-    - {iteration: 220, training_objective_score: 23.477933883666992}
-    - {iteration: 225, training_objective_score: 23.475290934244793}
-    - {iteration: 230, training_objective_score: 23.47045962015788}
-    - {iteration: 235, training_objective_score: 23.481629689534504}
-    - {iteration: 240, training_objective_score: 23.471914291381836}
-    - {iteration: 245, training_objective_score: 23.47395896911621}
-    - {iteration: 250, training_objective_score: 23.47547658284505}
-    - {iteration: 255, training_objective_score: 23.477046966552734}
-    - {iteration: 260, training_objective_score: 23.480828603108723}
-    - {iteration: 265, training_objective_score: 23.4791259765625}
-    - {iteration: 270, training_objective_score: 23.481828053792317}
-    - {iteration: 275, training_objective_score: 23.482056935628254}
-    - {iteration: 280, training_objective_score: 23.48449643452962}
-    - {iteration: 285, training_objective_score: 23.484141667683918}
-    - {iteration: 290, training_objective_score: 23.49066225687663}
-    - {iteration: 295, training_objective_score: 23.489500045776367}
-    - {iteration: 300, training_objective_score: 23.499293009440105}
-    - {iteration: 305, training_objective_score: 23.489172617594402}
-    - {iteration: 310, training_objective_score: 23.484630584716797}
-    - {iteration: 315, training_objective_score: 23.483347574869793}
-    - {iteration: 320, training_objective_score: 23.47422726949056}
-    - {iteration: 325, training_objective_score: 23.475786844889324}
-    - {iteration: 330, training_objective_score: 23.475008010864258}
-    - {iteration: 335, training_objective_score: 23.47907257080078}
-    - {iteration: 340, training_objective_score: 23.482194264729817}
-    - {iteration: 345, training_objective_score: 23.48797035217285}
-    - {iteration: 350, training_objective_score: 23.48236147562663}
-    - {iteration: 355, training_objective_score: 23.48821957906087}
-    - {iteration: 360, training_objective_score: 23.493208567301433}
-    - {iteration: 365, training_objective_score: 23.493419647216797}
-    - {iteration: 370, training_objective_score: 23.49115053812663}
-    - {iteration: 375, training_objective_score: 23.491063435872395}
-    - {iteration: 380, training_objective_score: 23.485926310221355}
-    - {iteration: 385, training_objective_score: 23.496580123901367}
-    - {iteration: 390, training_objective_score: 23.490902582804363}
-    - {iteration: 395, training_objective_score: 23.49249776204427}
-    - {iteration: 400, training_objective_score: 23.49751091003418}
-    - {iteration: 405, training_objective_score: 23.49946467081706}
-    - {iteration: 410, training_objective_score: 23.49322255452474}
-    - {iteration: 415, training_objective_score: 23.497199376424152}
-    - {iteration: 420, training_objective_score: 23.5024471282959}
-    - {iteration: 425, training_objective_score: 23.498372395833332}
-    - {iteration: 430, training_objective_score: 23.503400802612305}
-    - {iteration: 435, training_objective_score: 23.49949582417806}
-    - {iteration: 440, training_objective_score: 23.497323354085285}
-    - {iteration: 445, training_objective_score: 23.505367914835613}
-    - {iteration: 450, training_objective_score: 23.501641591389973}
-    - {iteration: 455, training_objective_score: 23.50545883178711}
-    - {iteration: 460, training_objective_score: 23.50665346781413}
-    - {iteration: 465, training_objective_score: 23.508460998535156}
-    - {iteration: 470, training_objective_score: 23.505388259887695}
-    - {iteration: 475, training_objective_score: 23.50119400024414}
-    - {iteration: 480, training_objective_score: 23.49565315246582}
-    - {iteration: 485, training_objective_score: 23.494740804036457}
-    - {iteration: 490, training_objective_score: 23.500298182169598}
-    - {iteration: 495, training_objective_score: 23.502297083536785}
-    - {iteration: 500, training_objective_score: 23.506088892618816}
-    - {iteration: 505, training_objective_score: 23.509795506795246}
-    - {iteration: 510, training_objective_score: 23.50987434387207}
-    - {iteration: 515, training_objective_score: 23.50309880574544}
-    - {iteration: 520, training_objective_score: 23.50819142659505}
-    - {iteration: 525, training_objective_score: 23.507010142008465}
-    - {iteration: 530, training_objective_score: 23.509227116902668}
-    - {iteration: 535, training_objective_score: 23.504311243693035}
-    - {iteration: 540, training_objective_score: 23.499160766601562}
-    - {iteration: 545, training_objective_score: 23.50230089823405}
-    - {iteration: 550, training_objective_score: 23.50121243794759}
-    - {iteration: 555, training_objective_score: 23.502966562906902}
-    - {iteration: 560, training_objective_score: 23.502769470214844}
-    - {iteration: 565, training_objective_score: 23.504994074503582}
-    - {iteration: 570, training_objective_score: 23.503519694010418}
-    - {iteration: 575, training_objective_score: 23.507644653320312}
-    - {iteration: 580, training_objective_score: 23.50868797302246}
-    - {iteration: 585, training_objective_score: 23.50646146138509}
-    - {iteration: 590, training_objective_score: 23.505393346150715}
-    - {iteration: 595, training_objective_score: 23.50182596842448}
-    - {iteration: 600, training_objective_score: 23.50542449951172}
+    - iteration: 5
+      training_objective_score: 23.393992741902668
+    - iteration: 10
+      training_objective_score: 23.371226628621418
+    - iteration: 15
+      training_objective_score: 23.356293360392254
+    - iteration: 20
+      training_objective_score: 23.35450808207194
+    - iteration: 25
+      training_objective_score: 23.327487309773762
+    - iteration: 30
+      training_objective_score: 23.338726043701172
+    - iteration: 35
+      training_objective_score: 23.358165740966797
+    - iteration: 40
+      training_objective_score: 23.357494990030926
+    - iteration: 45
+      training_objective_score: 23.367957433064777
+    - iteration: 50
+      training_objective_score: 23.37807846069336
+    - iteration: 55
+      training_objective_score: 23.363094329833984
+    - iteration: 60
+      training_objective_score: 23.368067423502605
+    - iteration: 65
+      training_objective_score: 23.408223470052082
+    - iteration: 70
+      training_objective_score: 23.406506220499676
+    - iteration: 75
+      training_objective_score: 23.424456278483074
+    - iteration: 80
+      training_objective_score: 23.417489369710285
+    - iteration: 85
+      training_objective_score: 23.41322199503581
+    - iteration: 90
+      training_objective_score: 23.41052182515462
+    - iteration: 95
+      training_objective_score: 23.416548411051433
+    - iteration: 100
+      training_objective_score: 23.426668802897137
+    - iteration: 105
+      training_objective_score: 23.423220952351887
+    - iteration: 110
+      training_objective_score: 23.43180211385091
+    - iteration: 115
+      training_objective_score: 23.42450205485026
+    - iteration: 120
+      training_objective_score: 23.433327356974285
+    - iteration: 125
+      training_objective_score: 23.439495086669922
+    - iteration: 130
+      training_objective_score: 23.424397150675457
+    - iteration: 135
+      training_objective_score: 23.429988861083984
+    - iteration: 140
+      training_objective_score: 23.43092409769694
+    - iteration: 145
+      training_objective_score: 23.43595822652181
+    - iteration: 150
+      training_objective_score: 23.437763214111328
+    - iteration: 155
+      training_objective_score: 23.444787343343098
+    - iteration: 160
+      training_objective_score: 23.462765375773113
+    - iteration: 165
+      training_objective_score: 23.467601776123047
+    - iteration: 170
+      training_objective_score: 23.466014862060547
+    - iteration: 175
+      training_objective_score: 23.464815775553387
+    - iteration: 180
+      training_objective_score: 23.467540740966797
+    - iteration: 185
+      training_objective_score: 23.46852747599284
+    - iteration: 190
+      training_objective_score: 23.469579060872395
+    - iteration: 195
+      training_objective_score: 23.471402486165363
+    - iteration: 200
+      training_objective_score: 23.47694142659505
+    - iteration: 205
+      training_objective_score: 23.476370493570965
+    - iteration: 210
+      training_objective_score: 23.47423553466797
+    - iteration: 215
+      training_objective_score: 23.4799861907959
+    - iteration: 220
+      training_objective_score: 23.477933883666992
+    - iteration: 225
+      training_objective_score: 23.475290934244793
+    - iteration: 230
+      training_objective_score: 23.47045962015788
+    - iteration: 235
+      training_objective_score: 23.481629689534504
+    - iteration: 240
+      training_objective_score: 23.471914291381836
+    - iteration: 245
+      training_objective_score: 23.47395896911621
+    - iteration: 250
+      training_objective_score: 23.47547658284505
+    - iteration: 255
+      training_objective_score: 23.477046966552734
+    - iteration: 260
+      training_objective_score: 23.480828603108723
+    - iteration: 265
+      training_objective_score: 23.4791259765625
+    - iteration: 270
+      training_objective_score: 23.481828053792317
+    - iteration: 275
+      training_objective_score: 23.482056935628254
+    - iteration: 280
+      training_objective_score: 23.48449643452962
+    - iteration: 285
+      training_objective_score: 23.484141667683918
+    - iteration: 290
+      training_objective_score: 23.49066225687663
+    - iteration: 295
+      training_objective_score: 23.489500045776367
+    - iteration: 300
+      training_objective_score: 23.499293009440105
+    - iteration: 305
+      training_objective_score: 23.489172617594402
+    - iteration: 310
+      training_objective_score: 23.484630584716797
+    - iteration: 315
+      training_objective_score: 23.483347574869793
+    - iteration: 320
+      training_objective_score: 23.47422726949056
+    - iteration: 325
+      training_objective_score: 23.475786844889324
+    - iteration: 330
+      training_objective_score: 23.475008010864258
+    - iteration: 335
+      training_objective_score: 23.47907257080078
+    - iteration: 340
+      training_objective_score: 23.482194264729817
+    - iteration: 345
+      training_objective_score: 23.48797035217285
+    - iteration: 350
+      training_objective_score: 23.48236147562663
+    - iteration: 355
+      training_objective_score: 23.48821957906087
+    - iteration: 360
+      training_objective_score: 23.493208567301433
+    - iteration: 365
+      training_objective_score: 23.493419647216797
+    - iteration: 370
+      training_objective_score: 23.49115053812663
+    - iteration: 375
+      training_objective_score: 23.491063435872395
+    - iteration: 380
+      training_objective_score: 23.485926310221355
+    - iteration: 385
+      training_objective_score: 23.496580123901367
+    - iteration: 390
+      training_objective_score: 23.490902582804363
+    - iteration: 395
+      training_objective_score: 23.49249776204427
+    - iteration: 400
+      training_objective_score: 23.49751091003418
+    - iteration: 405
+      training_objective_score: 23.49946467081706
+    - iteration: 410
+      training_objective_score: 23.49322255452474
+    - iteration: 415
+      training_objective_score: 23.497199376424152
+    - iteration: 420
+      training_objective_score: 23.5024471282959
+    - iteration: 425
+      training_objective_score: 23.498372395833332
+    - iteration: 430
+      training_objective_score: 23.503400802612305
+    - iteration: 435
+      training_objective_score: 23.49949582417806
+    - iteration: 440
+      training_objective_score: 23.497323354085285
+    - iteration: 445
+      training_objective_score: 23.505367914835613
+    - iteration: 450
+      training_objective_score: 23.501641591389973
+    - iteration: 455
+      training_objective_score: 23.50545883178711
+    - iteration: 460
+      training_objective_score: 23.50665346781413
+    - iteration: 465
+      training_objective_score: 23.508460998535156
+    - iteration: 470
+      training_objective_score: 23.505388259887695
+    - iteration: 475
+      training_objective_score: 23.50119400024414
+    - iteration: 480
+      training_objective_score: 23.49565315246582
+    - iteration: 485
+      training_objective_score: 23.494740804036457
+    - iteration: 490
+      training_objective_score: 23.500298182169598
+    - iteration: 495
+      training_objective_score: 23.502297083536785
+    - iteration: 500
+      training_objective_score: 23.506088892618816
+    - iteration: 505
+      training_objective_score: 23.509795506795246
+    - iteration: 510
+      training_objective_score: 23.50987434387207
+    - iteration: 515
+      training_objective_score: 23.50309880574544
+    - iteration: 520
+      training_objective_score: 23.50819142659505
+    - iteration: 525
+      training_objective_score: 23.507010142008465
+    - iteration: 530
+      training_objective_score: 23.509227116902668
+    - iteration: 535
+      training_objective_score: 23.504311243693035
+    - iteration: 540
+      training_objective_score: 23.499160766601562
+    - iteration: 545
+      training_objective_score: 23.50230089823405
+    - iteration: 550
+      training_objective_score: 23.50121243794759
+    - iteration: 555
+      training_objective_score: 23.502966562906902
+    - iteration: 560
+      training_objective_score: 23.502769470214844
+    - iteration: 565
+      training_objective_score: 23.504994074503582
+    - iteration: 570
+      training_objective_score: 23.503519694010418
+    - iteration: 575
+      training_objective_score: 23.507644653320312
+    - iteration: 580
+      training_objective_score: 23.50868797302246
+    - iteration: 585
+      training_objective_score: 23.50646146138509
+    - iteration: 590
+      training_objective_score: 23.505393346150715
+    - iteration: 595
+      training_objective_score: 23.50182596842448
+    - iteration: 600
+      training_objective_score: 23.50542449951172
 source_bindings:
   - path: artifacts/training_manifest.json
     role: selected-run-training-manifest
@@ -306,6 +786,15 @@ source_bindings:
   - path: experiments/s2-600-hidden512.json
     role: candidate-experiment-summary
     sha256: 619eb67aa253a35d7a7dc0efdbc6c743d7b0af6db4687575e7fade9dbcfe940b
+  - path: src/aipower_rl/config.py
+    role: simulation-configuration-source
+    sha256: 5f1f9febaaf7cdae980ed67c83948362b378cd290118f5712f47da1a09d65d04
+  - path: src/aipower_rl/scenarios.py
+    role: training-scenario-generator-source
+    sha256: 689bb4319194baf2f593d98c4b3309d843167e039ed48fff20ee0a9b14aef186
+  - path: src/aipower_rl/models.py
+    role: actor-critic-architecture-source
+    sha256: 6fedcc55675a72aff048a3b1a9a98c86a87962427031c6a4450239fdccbbde03
   - path: src/aipower_rl/training.py
     role: training-orchestration-source
     sha256: 886931d6c12b0ef45f4f17b89d134e27682c68a2dc4c2f90e2911e2dfec708fb

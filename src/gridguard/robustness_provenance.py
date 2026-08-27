@@ -7,7 +7,7 @@ project source manifest independently binds this trust-anchor module.
 
 from typing import Final
 
-ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS: Final[tuple[tuple[str, str, int], ...]] = (
+ROBUSTNESS_LEGACY_IMPLEMENTATION_SOURCE_BINDINGS: Final[tuple[tuple[str, str, int], ...]] = (
     (
         "src/gridguard/controllers.py",
         "340d74a3f01a887caa6daa9d93aa36680edd8772400cc52c5b0df3390a0035a3",
@@ -55,7 +55,75 @@ ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS: Final[tuple[tuple[str, str, int], ...
     ),
 )
 
+ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS: Final[tuple[tuple[str, str, int], ...]] = (
+    (
+        "src/gridguard/controllers.py",
+        "340d74a3f01a887caa6daa9d93aa36680edd8772400cc52c5b0df3390a0035a3",
+        3_619,
+    ),
+    (
+        "src/gridguard/claim_contract.py",
+        "cafc5848930d3115f5909ef25c231cc800385b1b3fdd1f7aff04a10c58327de9",
+        1_332,
+    ),
+    (
+        "src/gridguard/domain.py",
+        "bd16fb46fd04a8865a6db4498a56f681c8eb77fe3d534497b53a8db4b5c31d90",
+        26_417,
+    ),
+    (
+        "src/gridguard/evaluation.py",
+        "a9addfee69647f9111122c2c1b29fbe0d1523a2be9c0578427ef0d2b3eeb36b1",
+        70_616,
+    ),
+    (
+        "src/gridguard/forecast.py",
+        "9d11f80ed6246466da84203138c48439c2a44cbd707dc53c458d307bb16deeea",
+        2_829,
+    ),
+    (
+        "src/gridguard/metrics.py",
+        "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a",
+        6_462,
+    ),
+    (
+        "src/gridguard/paired_inference.py",
+        "59ee10d34e780f44f91d6cb30abaf4cc1e8862c4718cc5738cd90dd08cc4e9de",
+        8_159,
+    ),
+    (
+        "src/gridguard/policy.py",
+        "22f17e11822c89104fab9b145ee5749c7ee8ea45f0eebc1a9ee314efc084a6f9",
+        19_073,
+    ),
+    (
+        "src/gridguard/robustness.py",
+        "68c5f59d81a1cec877bc65b59130bcb0b3aef03ff6d3a8c36c097e483943f309",
+        96_166,
+    ),
+    (
+        "src/gridguard/robustness_inference.py",
+        "b9355bc1704bbbfb144d1281b058c457b59968a24e9eef3708cb4834fe762cc1",
+        37_306,
+    ),
+    (
+        "src/gridguard/scenarios.py",
+        "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990",
+        14_765,
+    ),
+    (
+        "src/gridguard/simulation.py",
+        "84e8d902e7c2c728a9c431b47cee38f04193cfdca1ca0054eb188c1c7b2c4199",
+        13_461,
+    ),
+    (
+        "src/gridguard/statistics.py",
+        "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9",
+        7_279,
+    ),
+)
+
 # Accepted only after two byte-identical CUDA reproductions of the final source bundle.
 ROBUSTNESS_SUPPLEMENT_SHA256: Final = (
-    "c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b"
+    "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
 )

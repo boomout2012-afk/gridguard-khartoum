@@ -27,31 +27,31 @@
       "id": "ppo-inference-manifest",
       "kind": "model-manifest",
       "path": "data/model/manifest.json",
-      "sha256": "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+      "sha256": "9803563a6c9820f395f832bc2958fa28c634beb7fe4c87363cd659035e033ee8"
     },
     {
       "id": "ppo-training-provenance",
       "kind": "historical-training-provenance",
       "path": "data/model/training-provenance.yaml",
-      "sha256": "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a"
+      "sha256": "d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8"
     },
     {
       "id": "paired-proposal-benchmark",
       "kind": "paired-evaluation-evidence",
       "path": "data/evidence/paired-benchmark.json",
-      "sha256": "6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677"
+      "sha256": "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5"
     },
     {
       "id": "robustness-supplement",
-      "kind": "untouched-confirmatory-evidence",
+      "kind": "documented-seed-disjoint-holdout-evidence",
       "path": "data/evidence/robustness-supplement.json",
-      "sha256": "c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b"
+      "sha256": "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
     },
     {
       "id": "robustness-trust-anchor-source",
       "kind": "evidence-trust-anchor-source",
       "path": "src/gridguard/robustness_provenance.py",
-      "sha256": "d84dc43b14178883cb621607e0e4eb466a6134b636c5f84d1f52168ce2cbc661"
+      "sha256": "f3353641e0887325e8ebe52b28a4007d220ba8bd18761edc1eb80116c5b456f7"
     }
   ],
   "lineage": [

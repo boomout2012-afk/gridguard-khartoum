@@ -72,10 +72,10 @@ def test_metric_roles_make_training_objective_diagnostic() -> None:
     assert METRIC_DEFINITIONS["available_mwh"]["role"] == "input"
 
 
-def test_paired_v2_is_explicitly_accepted_reproduction_evidence() -> None:
+def test_paired_v3_is_explicitly_accepted_reproduction_evidence() -> None:
     payload = _paired_payload()
 
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
     assert payload["evidence_role"] == "accepted_reproduction"
     independence = payload["evaluation_independence"]
     assert independence == {

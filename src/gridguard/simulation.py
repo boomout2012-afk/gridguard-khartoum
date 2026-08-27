@@ -12,14 +12,14 @@ from gridguard.domain import (
     HORIZON_HOURS,
     LOCALITIES,
     LOCALITY_DEMAND_WEIGHTS,
+    NUMERIC_EPSILON,
     SECTORS,
     Scenario,
     ServiceTier,
     SimulationResult,
+    canonical_step_reward,
 )
 from gridguard.scenarios import SYSTEM_PEAK_MW
-
-EPSILON = 1e-8
 
 
 def _require_tensor(name: str, value: object) -> torch.Tensor:
@@ -68,6 +68,37 @@ def _validate_step_inputs(
         tensor.dtype != demand.dtype for tensor in (supply, cumulative_demand, cumulative_served)
     ):
         raise ValueError("power tensors must use the same dtype")
+    invalid_values = torch.stack(
+        (
+            ~torch.isfinite(demand).all(),
+            (demand < 0).any(),
+            ~torch.isfinite(supply).all(),
+            (supply < 0).any(),
+            ~torch.isfinite(cumulative_demand).all(),
+            (cumulative_demand < 0).any(),
+            ~torch.isfinite(cumulative_served).all(),
+            (cumulative_served < 0).any(),
+            (cumulative_served > cumulative_demand).any(),
+            (previous_tier < int(ServiceTier.OFF)).any(),
+            (previous_tier > int(ServiceTier.FULL_SERVICE)).any(),
+        )
+    ).to(device="cpu")
+    messages = (
+        "demand must contain only finite power values",
+        "demand must not contain negative power",
+        "supply must contain only finite power values",
+        "supply must not contain negative power",
+        "cumulative_demand must contain only finite power values",
+        "cumulative_demand must not contain negative power",
+        "cumulative_served must contain only finite power values",
+        "cumulative_served must not contain negative power",
+        "cumulative_served must not exceed cumulative_demand",
+        "invalid previous service tier: values must be between 0 and 2",
+        "invalid previous service tier: values must be between 0 and 2",
+    )
+    for invalid, message in zip(invalid_values.tolist(), messages, strict=True):
+        if invalid:
+            raise ValueError(message)
 
 
 def _locality_peaks(reference: torch.Tensor) -> torch.Tensor:
@@ -88,9 +119,9 @@ def _build_observation(
     locality_demand = demand.sum(dim=-1)
     total_demand = locality_demand.sum(dim=-1)
     critical_share = demand[..., :CRITICAL_SECTOR_COUNT].sum(dim=-1) / locality_demand.clamp_min(
-        EPSILON
+        NUMERIC_EPSILON
     )
-    cumulative_service = cumulative_served / cumulative_demand.clamp_min(EPSILON)
+    cumulative_service = cumulative_served / cumulative_demand.clamp_min(NUMERIC_EPSILON)
     previous_tier_fraction = previous_tier.to(demand.dtype) / 2.0
 
     angle = demand.new_full(supply.shape, 2.0 * pi * hour / HORIZON_HOURS)
@@ -98,7 +129,7 @@ def _build_observation(
         (
             torch.sin(angle),
             torch.cos(angle),
-            supply / total_demand.clamp_min(EPSILON),
+            supply / total_demand.clamp_min(NUMERIC_EPSILON),
             supply / SYSTEM_PEAK_MW,
         ),
         dim=-1,
@@ -169,6 +200,23 @@ def _validate_dispatch_inputs(
         raise ValueError("dispatch tensors must remain on the same device")
     if not demand.is_floating_point() or supply.dtype != demand.dtype:
         raise TypeError("demand and supply must use the same floating-point dtype")
+    invalid_power = torch.stack(
+        (
+            ~torch.isfinite(demand).all(),
+            (demand < 0).any(),
+            ~torch.isfinite(supply).all(),
+            (supply < 0).any(),
+        )
+    ).to(device="cpu")
+    messages = (
+        "demand must contain only finite power values",
+        "demand must not contain negative power",
+        "supply must contain only finite power values",
+        "supply must not contain negative power",
+    )
+    for invalid, message in zip(invalid_power.tolist(), messages, strict=True):
+        if invalid:
+            raise ValueError(message)
 
 
 def _dispatch_service_tiers(
@@ -186,7 +234,7 @@ def _dispatch_service_tiers(
     requested_total = requested.sum(dim=(-1, -2))
     scale = torch.minimum(
         torch.ones_like(supply),
-        supply / requested_total.clamp_min(EPSILON),
+        supply / requested_total.clamp_min(NUMERIC_EPSILON),
     )
     served = requested * scale[..., None, None]
     return requested, served
@@ -207,48 +255,6 @@ def dispatch_service_tiers(
     return _dispatch_service_tiers(demand, supply, tiers)
 
 
-def _jain_fairness(service_ratio: torch.Tensor) -> torch.Tensor:
-    return service_ratio.sum(dim=-1).square() / (
-        len(LOCALITIES) * service_ratio.square().sum(dim=-1) + EPSILON
-    )
-
-
-def _step_reward(
-    *,
-    hour: int,
-    demand: torch.Tensor,
-    supply: torch.Tensor,
-    requested: torch.Tensor,
-    served: torch.Tensor,
-    tiers: torch.Tensor,
-    previous_tier: torch.Tensor,
-    next_cumulative_demand: torch.Tensor,
-    next_cumulative_served: torch.Tensor,
-) -> torch.Tensor:
-    demand_total = demand.sum(dim=(-1, -2))
-    served_total = served.sum(dim=(-1, -2))
-    critical_demand = demand[..., :CRITICAL_SECTOR_COUNT].sum(dim=(-1, -2))
-    critical_served = served[..., :CRITICAL_SECTOR_COUNT].sum(dim=(-1, -2))
-    critical_service = critical_served / critical_demand.clamp_min(EPSILON)
-    utilization = served_total / torch.minimum(supply, demand_total).clamp_min(EPSILON)
-    service_ratio = next_cumulative_served / next_cumulative_demand.clamp_min(EPSILON)
-    fairness = _jain_fairness(service_ratio)
-    switching = (
-        torch.zeros_like(supply)
-        if hour == 0
-        else (tiers != previous_tier).to(demand.dtype).mean(dim=-1)
-    )
-    requested_total = requested.sum(dim=(-1, -2))
-    oversubscription = torch.relu(requested_total - supply) / demand_total.clamp_min(EPSILON)
-    return (
-        5.0 * critical_service
-        + 2.0 * utilization
-        + 2.0 * fairness
-        - 0.25 * switching
-        - 3.0 * oversubscription
-    ) / 9.0
-
-
 def _validate_controller_action(
     action: object,
     *,
@@ -263,6 +269,14 @@ def _validate_controller_action(
         raise TypeError("controller action must use torch.long")
     if action.device != device:
         raise ValueError("controller action must remain on the scenario device")
+    # Eager CUDA rejection requires one scalar synchronization; the action tensor stays on-device.
+    invalid_tier = (
+        (action < int(ServiceTier.OFF)) | (action > int(ServiceTier.FULL_SERVICE))
+    ).any()
+    if bool(invalid_tier.item()):
+        raise ValueError(
+            "controller action contains an invalid service tier: values must be between 0 and 2"
+        )
     return action
 
 
@@ -274,6 +288,7 @@ def simulate(scenario: Scenario, controller: Controller) -> SimulationResult:
         raise TypeError("scenario must be a Scenario")
     if not isinstance(controller, Controller):
         raise TypeError("controller must satisfy the Controller protocol")
+    scenario.validate_shortage_invariant()
 
     batch_size = scenario.batch_size
     demand_dtype = scenario.demand.dtype
@@ -320,7 +335,7 @@ def simulate(scenario: Scenario, controller: Controller) -> SimulationResult:
         locality_served = served.sum(dim=-1)
         next_cumulative_demand = cumulative_demand + locality_demand
         next_cumulative_served = cumulative_served + locality_served
-        reward = _step_reward(
+        reward = canonical_step_reward(
             hour=hour,
             demand=demand,
             supply=supply,

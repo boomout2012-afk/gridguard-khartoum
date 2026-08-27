@@ -6,7 +6,11 @@ from dataclasses import dataclass, fields
 
 import torch
 
-from gridguard.domain import CRITICAL_SECTOR_COUNT, LOCALITIES, SimulationResult
+from gridguard.domain import (
+    CRITICAL_SECTOR_COUNT,
+    LOCALITIES,
+    SimulationResult,
+)
 
 EPSILON = 1e-8
 POWER_BALANCE_TOLERANCE_MW = 1e-3
@@ -100,6 +104,7 @@ def compute_episode_metrics(result: SimulationResult) -> EpisodeMetrics:
     requested = result.requested
     tiers = result.service_tiers
     dtype = demand.dtype
+    canonical_reward = result.validate_trace_invariants()
 
     demand_total = demand.sum(dim=(-1, -2))
     served_total = served.sum(dim=(-1, -2))
@@ -144,7 +149,7 @@ def compute_episode_metrics(result: SimulationResult) -> EpisodeMetrics:
     )
 
     return EpisodeMetrics(
-        episode_reward=result.reward.sum(dim=1),
+        episode_reward=canonical_reward.sum(dim=1),
         demand_mwh=demand_mwh,
         available_mwh=supply.sum(dim=1) * STEP_HOURS,
         served_mwh=served_mwh,

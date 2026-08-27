@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -64,7 +65,8 @@ def test_ppo_manifest_is_bound_to_source_lineage_and_exported_artifact() -> None
     assert artifacts["ppo-training-provenance"]["path"] == ("data/model/training-provenance.yaml")
     assert training_binding["filename"] == "training-provenance.yaml"
     assert training_binding["sha256"] == artifacts["ppo-training-provenance"]["sha256"]
-    assert training_binding["size_bytes"] == 14_926
+    training_provenance_path = ROOT / "data" / "model" / training_binding["filename"]
+    assert training_binding["size_bytes"] == training_provenance_path.stat().st_size
 
 
 def test_source_manifest_covers_every_migrated_behavior_dependency() -> None:
@@ -91,6 +93,20 @@ def test_source_manifest_covers_every_migrated_behavior_dependency() -> None:
     }
     assert {item["source_revision"] for item in source_manifest["lineage"]} == {
         "52f6dd82605c993c8094448caecec86faa289c0c"
+    }
+
+
+def test_robustness_source_bundle_binds_the_canonical_claim_contract() -> None:
+    evidence = json.loads(
+        (ROOT / "data" / "evidence" / "robustness-supplement.json").read_text(encoding="utf-8")
+    )
+    bindings = {item["path"]: item for item in evidence["provenance"]["implementation_sources"]}
+    source = ROOT / "src" / "gridguard" / "claim_contract.py"
+
+    assert bindings["src/gridguard/claim_contract.py"] == {
+        "path": "src/gridguard/claim_contract.py",
+        "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "size_bytes": source.stat().st_size,
     }
 
 

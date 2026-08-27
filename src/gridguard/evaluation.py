@@ -14,9 +14,27 @@ from typing import Any, Final
 import numpy as np
 import torch
 
-from gridguard.controllers import FixedRotationController, PPOController
-from gridguard.domain import HORIZON_HOURS, LOCALITIES, Scenario, SimulationResult
-from gridguard.metrics import EpisodeMetrics, compute_episode_metrics
+from gridguard.controllers import (
+    Controller,
+    DecisionContext,
+    FixedRotationController,
+    PPOController,
+)
+from gridguard.domain import (
+    HORIZON_HOURS,
+    LOCALITIES,
+    SECTORS,
+    ControllerName,
+    Scenario,
+    ScenarioMutationGuard,
+    SimulationResult,
+    canonical_scenario_sha256,
+)
+from gridguard.metrics import STEP_HOURS, EpisodeMetrics, compute_episode_metrics
+from gridguard.paired_inference import (
+    PairedInferenceError,
+    verify_paired_inference_reconstruction,
+)
 from gridguard.policy import (
     BUNDLED_ARTIFACT_SHA256,
     SOURCE_CHECKPOINT_PATH,
@@ -25,7 +43,11 @@ from gridguard.policy import (
     load_ppo_policy,
 )
 from gridguard.provenance import sha256_file
-from gridguard.scenarios import generate_scenario_base_draws, scenario_from_base_draws
+from gridguard.scenarios import (
+    DEFAULT_SUPPLY_NOISE,
+    generate_scenario_base_draws,
+    scenario_from_base_draws,
+)
 from gridguard.simulation import simulate
 from gridguard.statistics import (
     DEFAULT_BOOTSTRAP_REPLICATES,
@@ -44,11 +66,21 @@ COUNT_STATEMENT: Final = (
 )
 DELTA_DEFINITION: Final = "PPO - Fixed Rotation"
 FROZEN_BENCHMARK_SHA256: Final = "3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15"
-PAIRED_BENCHMARK_SHA256: Final = "6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677"
+PAIRED_BENCHMARK_SHA256: Final = "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5"
 FROZEN_BENCHMARK_SIZE_BYTES: Final = 9_682
 PPO_ARTIFACT_SIZE_BYTES: Final = 5_160_058
-PPO_MANIFEST_SHA256: Final = "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+PPO_MANIFEST_SHA256: Final = "9803563a6c9820f395f832bc2958fa28c634beb7fe4c87363cd659035e033ee8"
 PPO_MANIFEST_SIZE_BYTES: Final = 1_609
+PAIRED_SCHEMA_VERSION: Final = 3
+LEGACY_PAIRED_SCHEMA_VERSION: Final = 2
+# Independent trust anchor: SHA-256 of each reviewed CUDA row digest followed by LF,
+# in shortage-level / seed / batch-index protocol order.
+PAIRED_SCENARIO_BUNDLE_SHA256: Final = (
+    "e414a43bf96ebcc6ccb2e797944aefa4bd4d1baa5ecf1c072a9601fdf17f6fca"
+)
+SHARED_SUPPLY_MULTIPLIER_ABSOLUTE_TOLERANCE: Final = 3e-7
+LOCKED_SUPPLY_MULTIPLIER_MIN: Final = 1.0 - DEFAULT_SUPPLY_NOISE
+LOCKED_SUPPLY_MULTIPLIER_MAX: Final = 1.0 + DEFAULT_SUPPLY_NOISE
 
 METRIC_ORDER: Final = (
     "episode_reward",
@@ -184,7 +216,7 @@ _TOP_LEVEL_FIELDS = frozenset(
         "schema_version",
     }
 )
-_ROW_FIELDS = frozenset(
+_LEGACY_ROW_FIELDS = frozenset(
     {
         "scenario_id",
         "shortage_level",
@@ -195,6 +227,8 @@ _ROW_FIELDS = frozenset(
         "paired_delta",
     }
 )
+_ROW_FIELDS = _LEGACY_ROW_FIELDS | frozenset({"scenario_sha256", "scenario_trace"})
+_SCENARIO_TRACE_FIELDS = frozenset({"demand_mw", "supply_mw"})
 _CELL_FIELDS = frozenset(
     {"shortage_level", "seed", "episode_count", "Fixed Rotation", "PPO", "paired_delta"}
 )
@@ -239,6 +273,29 @@ class EvaluationArtifactError(ValueError):
     """Raised when paired evaluation evidence is incomplete or untrusted."""
 
 
+@dataclass(frozen=True, slots=True)
+class _ScenarioGuardedController:
+    """Check immutable paired inputs immediately after every controller action."""
+
+    controller: Controller
+    mutation_guard: ScenarioMutationGuard
+    scenario: Scenario
+    label: str
+
+    @property
+    def name(self) -> ControllerName:
+        return self.controller.name
+
+    def act(self, context: DecisionContext) -> torch.Tensor:
+        action = self.controller.act(context)
+        changed_fields = self.mutation_guard.changed_fields(self.scenario)
+        if changed_fields:
+            raise EvaluationArtifactError(
+                f"{self.label} mutated scenario {' and '.join(changed_fields)}"
+            )
+        return action
+
+
 @dataclass(frozen=True, slots=True, eq=False)
 class PairedScenarioEvaluation:
     """Two controller results and metrics sharing one exact scenario object."""
@@ -253,7 +310,7 @@ class PairedScenarioEvaluation:
             raise EvaluationArtifactError("paired controllers must share the exact Scenario object")
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def evaluate_scenario_pair(
     scenario: Scenario,
     *,
@@ -265,8 +322,33 @@ def evaluate_scenario_pair(
         raise TypeError("scenario must be a Scenario")
     if not isinstance(ppo_controller, PPOController):
         raise TypeError("ppo_controller must be a PPOController")
-    fixed_result = simulate(scenario, FixedRotationController())
-    ppo_result = simulate(scenario, ppo_controller)
+    mutation_guard = scenario.capture_mutation_guard()
+    fixed_result = simulate(
+        scenario,
+        _ScenarioGuardedController(
+            controller=FixedRotationController(),
+            mutation_guard=mutation_guard,
+            scenario=scenario,
+            label="Fixed Rotation",
+        ),
+    )
+    changed_fields = mutation_guard.changed_fields(scenario)
+    if changed_fields:
+        raise EvaluationArtifactError(
+            f"Fixed Rotation mutated scenario {' and '.join(changed_fields)}"
+        )
+    ppo_result = simulate(
+        scenario,
+        _ScenarioGuardedController(
+            controller=ppo_controller,
+            mutation_guard=mutation_guard,
+            scenario=scenario,
+            label="PPO",
+        ),
+    )
+    changed_fields = mutation_guard.changed_fields(scenario)
+    if changed_fields:
+        raise EvaluationArtifactError(f"PPO mutated scenario {' and '.join(changed_fields)}")
     return PairedScenarioEvaluation(
         fixed_result=fixed_result,
         ppo_result=ppo_result,
@@ -294,6 +376,8 @@ def build_paired_benchmark_payload(
     fixed_values: np.ndarray[Any, Any],
     ppo_values: np.ndarray[Any, Any],
     bootstrap_values: np.ndarray[Any, Any],
+    scenario_demand_values: np.ndarray[Any, Any],
+    scenario_supply_values: np.ndarray[Any, Any],
     provenance: Mapping[str, object],
     frozen_benchmark_path: str | Path,
 ) -> dict[str, Any]:
@@ -318,6 +402,28 @@ def build_paired_benchmark_payload(
     if bool((bootstrap_values[1] > bootstrap_values[2]).any()):
         raise EvaluationArtifactError("bootstrap lower limits must not exceed upper limits")
 
+    expected_demand_shape = (
+        len(SEVERITIES),
+        len(SEEDS),
+        BATCH_SIZE,
+        HORIZON_HOURS,
+        len(LOCALITIES),
+        len(SECTORS),
+    )
+    expected_supply_shape = (len(SEVERITIES), len(SEEDS), BATCH_SIZE, HORIZON_HOURS)
+    for name, values, expected_trace_shape in (
+        ("scenario_demand_values", scenario_demand_values, expected_demand_shape),
+        ("scenario_supply_values", scenario_supply_values, expected_supply_shape),
+    ):
+        if not isinstance(values, np.ndarray):
+            raise TypeError(f"{name} must be a numpy.ndarray")
+        if values.shape != expected_trace_shape:
+            raise EvaluationArtifactError(f"{name} must have shape {expected_trace_shape}")
+        if values.dtype.kind != "f" or not bool(np.isfinite(values).all()):
+            raise EvaluationArtifactError(f"{name} must contain only finite real floating values")
+        if bool((values < 0.0).any()):
+            raise EvaluationArtifactError(f"{name} must not contain negative power")
+
     frozen_cells, _ = _load_frozen_cells(Path(frozen_benchmark_path))
     frozen_maximum_absolute_error = _measure_frozen_cell_errors(
         fixed_values,
@@ -338,6 +444,24 @@ def build_paired_benchmark_payload(
     for severity_index, shortage_level in enumerate(SEVERITIES):
         for seed_index, seed in enumerate(SEEDS):
             cell_rows: list[dict[str, Any]] = []
+            trace_scenario = Scenario(
+                demand=torch.from_numpy(
+                    np.asarray(
+                        scenario_demand_values[severity_index, seed_index],
+                        dtype=np.float64,
+                        order="C",
+                    )
+                ),
+                supply=torch.from_numpy(
+                    np.asarray(
+                        scenario_supply_values[severity_index, seed_index],
+                        dtype=np.float64,
+                        order="C",
+                    )
+                ),
+                shortage_level=shortage_level,
+                seed=seed,
+            )
             for batch_index in range(BATCH_SIZE):
                 fixed = _metric_mapping(fixed_values[severity_index, seed_index, batch_index])
                 ppo = _metric_mapping(ppo_values[severity_index, seed_index, batch_index])
@@ -348,6 +472,14 @@ def build_paired_benchmark_payload(
                     "batch_index": batch_index,
                     "paired_delta": delta,
                     "scenario_id": f"{shortage_level}-{seed}-{batch_index:03d}",
+                    "scenario_sha256": canonical_scenario_sha256(
+                        trace_scenario,
+                        batch_index=batch_index,
+                    ),
+                    "scenario_trace": _scenario_trace_payload(
+                        trace_scenario,
+                        batch_index=batch_index,
+                    ),
                     "seed": seed,
                     "shortage_level": shortage_level,
                 }
@@ -433,7 +565,7 @@ def build_paired_benchmark_payload(
             "shortage_levels": list(SEVERITIES),
         },
         "provenance": dict(provenance),
-        "schema_version": 2,
+        "schema_version": PAIRED_SCHEMA_VERSION,
     }
     validate_paired_benchmark_payload(payload)
     return payload
@@ -455,21 +587,10 @@ def canonical_paired_json_bytes(payload: object) -> bytes:
     return f"{encoded}\n".encode()
 
 
-def write_paired_benchmark(
-    payload: Mapping[str, object],
+def _write_canonical_paired_bytes(
+    encoded: bytes,
     path: str | Path,
-    *,
-    frozen_benchmark_path: str | Path | None = None,
 ) -> str:
-    """Atomically write neutral evidence, optionally enforcing trusted reproduction integrity."""
-
-    validate_paired_benchmark_payload(payload)
-    if frozen_benchmark_path is not None:
-        assert_paired_benchmark_integrity(
-            payload,
-            frozen_benchmark_path=frozen_benchmark_path,
-        )
-    encoded = canonical_paired_json_bytes(payload)
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(f".{output.name}.tmp")
@@ -481,13 +602,51 @@ def write_paired_benchmark(
     return hashlib.sha256(encoded).hexdigest()
 
 
-def verify_paired_benchmark(
+def _write_canonical_paired_benchmark(
+    payload: Mapping[str, object],
+    path: str | Path,
+) -> str:
+    return _write_canonical_paired_bytes(canonical_paired_json_bytes(payload), path)
+
+
+def write_paired_benchmark_candidate(
+    payload: Mapping[str, object],
+    path: str | Path,
+) -> str:
+    """Write a neutral migration/candidate artifact without granting release trust."""
+
+    validate_paired_benchmark_payload(payload)
+    return _write_canonical_paired_benchmark(payload, path)
+
+
+def write_paired_benchmark(
+    payload: Mapping[str, object],
+    path: str | Path,
+    *,
+    frozen_benchmark_path: str | Path,
+) -> str:
+    """Write paired evidence only after the complete trusted-release contract passes."""
+
+    assert_paired_benchmark_integrity(
+        payload,
+        frozen_benchmark_path=frozen_benchmark_path,
+    )
+    encoded = canonical_paired_json_bytes(payload)
+    actual_sha256 = hashlib.sha256(encoded).hexdigest()
+    if actual_sha256 != PAIRED_BENCHMARK_SHA256:
+        raise EvaluationArtifactError(
+            "paired benchmark does not match the project trust anchor: "
+            f"expected {PAIRED_BENCHMARK_SHA256}, found {actual_sha256}"
+        )
+    return _write_canonical_paired_bytes(encoded, path)
+
+
+def verify_paired_benchmark_candidate(
     path: str | Path,
     *,
     expected_sha256: str,
-    frozen_benchmark_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Verify neutral integrity, plus trusted reproduction when frozen evidence is supplied."""
+    """Verify canonical bytes and neutral integrity without granting release trust."""
 
     if type(expected_sha256) is not str or not _SHA256_PATTERN.fullmatch(expected_sha256):
         raise EvaluationArtifactError("expected_sha256 must be a lowercase SHA-256 digest")
@@ -516,11 +675,24 @@ def verify_paired_benchmark(
     if canonical_paired_json_bytes(mapping) != raw:
         raise EvaluationArtifactError("paired benchmark bytes are not in canonical form")
     validate_paired_benchmark_payload(mapping)
-    if frozen_benchmark_path is not None:
-        assert_paired_benchmark_integrity(
-            mapping,
-            frozen_benchmark_path=frozen_benchmark_path,
-        )
+    return mapping
+
+
+def verify_paired_benchmark(
+    path: str | Path,
+    *,
+    frozen_benchmark_path: str | Path,
+) -> dict[str, Any]:
+    """Verify canonical bytes and the complete trusted-release reproduction contract."""
+
+    mapping = verify_paired_benchmark_candidate(
+        path,
+        expected_sha256=PAIRED_BENCHMARK_SHA256,
+    )
+    assert_paired_benchmark_integrity(
+        mapping,
+        frozen_benchmark_path=frozen_benchmark_path,
+    )
     return mapping
 
 
@@ -541,6 +713,43 @@ def _require_exact_fields(
         )
 
 
+def _validate_exact_contract(actual: object, expected: object, *, field: str) -> None:
+    """Require recursively identical JSON structure, scalar types, and values."""
+
+    if type(actual) is not type(expected):
+        raise EvaluationArtifactError(
+            f"{field} has the wrong JSON type; expected {type(expected).__name__}"
+        )
+    if type(expected) is dict:
+        actual_mapping = actual
+        expected_mapping = expected
+        if set(actual_mapping) != set(expected_mapping):
+            raise EvaluationArtifactError(f"{field} fields drifted")
+        for name, expected_value in expected_mapping.items():
+            _validate_exact_contract(
+                actual_mapping[name],
+                expected_value,
+                field=f"{field}.{name}",
+            )
+        return
+    if type(expected) is list:
+        actual_items = actual
+        expected_items = expected
+        if len(actual_items) != len(expected_items):
+            raise EvaluationArtifactError(f"{field} length drifted")
+        for index, (actual_item, expected_item) in enumerate(
+            zip(actual_items, expected_items, strict=True)
+        ):
+            _validate_exact_contract(
+                actual_item,
+                expected_item,
+                field=f"{field}[{index}]",
+            )
+        return
+    if actual != expected:
+        raise EvaluationArtifactError(f"{field} value drifted")
+
+
 def _number(value: object, *, field: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise EvaluationArtifactError(f"{field} must be a finite number")
@@ -548,6 +757,51 @@ def _number(value: object, *, field: str) -> float:
     if not math.isfinite(normalized):
         raise EvaluationArtifactError(f"{field} must be a finite number")
     return normalized
+
+
+def _strict_trace_array(
+    value: object,
+    *,
+    expected_shape: tuple[int, ...],
+    field: str,
+) -> np.ndarray[Any, np.dtype[np.float64]]:
+    flattened: list[float] = []
+
+    def visit(node: object, axis: int) -> None:
+        if type(node) is not list or len(node) != expected_shape[axis]:
+            raise EvaluationArtifactError(f"{field} must have shape {list(expected_shape)}")
+        if axis + 1 < len(expected_shape):
+            for child in node:
+                visit(child, axis + 1)
+            return
+        for item in node:
+            if type(item) is not float or not math.isfinite(item):
+                raise EvaluationArtifactError(f"{field} must contain only finite floating values")
+            if item < 0.0:
+                raise EvaluationArtifactError(f"{field} must not contain negative power")
+            flattened.append(item)
+
+    visit(value, 0)
+    return np.asarray(flattened, dtype=np.float64).reshape(expected_shape)
+
+
+def _locked_supply_fraction(shortage_level: str) -> np.ndarray[Any, np.dtype[np.float64]]:
+    base, start, duration, depth = {
+        "mild": (0.80, 0, 0, 0.0),
+        "moderate": (0.65, 17, 4, 0.10),
+        "severe": (0.50, 16, 6, 0.15),
+    }[shortage_level]
+    fraction = np.full(HORIZON_HOURS, base, dtype=np.float64)
+    if duration:
+        fraction[start : start + duration] -= depth
+    return fraction
+
+
+def _scenario_trace_payload(scenario: Scenario, *, batch_index: int) -> dict[str, object]:
+    return {
+        "demand_mw": scenario.demand[batch_index].tolist(),
+        "supply_mw": scenario.supply[batch_index].tolist(),
+    }
 
 
 def _metric_values(
@@ -632,10 +886,12 @@ def _validate_protocol(value: object) -> None:
         "severity_variants_per_base_draw": 3,
         "shortage_levels": list(SEVERITIES),
     }
-    if value != expected:
+    try:
+        _validate_exact_contract(value, expected, field="protocol")
+    except EvaluationArtifactError as error:
         raise EvaluationArtifactError(
             "protocol does not match the locked 96-draw / 288-condition design"
-        )
+        ) from error
 
 
 def _validate_provenance_schema(value: object) -> None:
@@ -712,40 +968,140 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
 
     root = _require_mapping(payload, field="paired benchmark")
     _require_exact_fields(root, _TOP_LEVEL_FIELDS, "paired benchmark")
-    if root["schema_version"] != 2 or type(root["schema_version"]) is not int:
+    schema_version = root["schema_version"]
+    if type(schema_version) is not int or schema_version not in {
+        LEGACY_PAIRED_SCHEMA_VERSION,
+        PAIRED_SCHEMA_VERSION,
+    }:
         raise EvaluationArtifactError("unsupported paired benchmark schema_version")
     if root["benchmark_id"] != "proposal-ppo-vs-fixed-rotation-paired":
         raise EvaluationArtifactError("unexpected paired benchmark identity")
     if root["evidence_role"] != "accepted_reproduction":
         raise EvaluationArtifactError("paired benchmark evidence_role drifted")
-    if root["evaluation_independence"] != _EVALUATION_INDEPENDENCE:
-        raise EvaluationArtifactError("paired benchmark evaluation_independence drifted")
+    _validate_exact_contract(
+        root["evaluation_independence"],
+        _EVALUATION_INDEPENDENCE,
+        field="evaluation_independence",
+    )
     _validate_protocol(root["protocol"])
     _validate_provenance_schema(root["provenance"])
-    if root["limitations"] != _LIMITATIONS:
-        raise EvaluationArtifactError("limitations do not match the reviewed evidence scope")
-    if root["metric_definitions"] != METRIC_DEFINITIONS:
-        raise EvaluationArtifactError("metric_definitions drifted from the locked definitions")
+    _validate_exact_contract(root["limitations"], _LIMITATIONS, field="limitations")
+    _validate_exact_contract(
+        root["metric_definitions"],
+        METRIC_DEFINITIONS,
+        field="metric_definitions",
+    )
 
     rows = root["paired_rows"]
     if not isinstance(rows, list) or len(rows) != MATCHED_SCENARIO_COUNT:
         raise EvaluationArtifactError("paired benchmark must contain exactly 288 paired rows")
     rows_by_cell: dict[tuple[str, int], list[dict[str, Any]]] = {}
+    scenario_hashes: set[str] = set()
+    shared_trace_reference: dict[
+        tuple[int, int],
+        tuple[
+            np.ndarray[Any, np.dtype[np.float64]],
+            np.ndarray[Any, np.dtype[np.float64]],
+        ],
+    ] = {}
     position = 0
     for shortage_level in SEVERITIES:
         for seed in SEEDS:
+            cell_start = position
+            cell_rows: list[dict[str, Any]] = []
+            cell_metrics: list[tuple[dict[str, float], dict[str, float]]] = []
+            trace_demand_rows: list[np.ndarray[Any, np.dtype[np.float64]]] = []
+            trace_supply_rows: list[np.ndarray[Any, np.dtype[np.float64]]] = []
             for batch_index in range(BATCH_SIZE):
                 row = _require_mapping(rows[position], field=f"paired_rows[{position}]")
-                _require_exact_fields(row, _ROW_FIELDS, f"paired_rows[{position}]")
+                expected_fields = (
+                    _ROW_FIELDS if schema_version == PAIRED_SCHEMA_VERSION else _LEGACY_ROW_FIELDS
+                )
+                _require_exact_fields(row, expected_fields, f"paired_rows[{position}]")
                 expected_id = f"{shortage_level}-{seed}-{batch_index:03d}"
-                if row["scenario_id"] != expected_id:
+                if type(row["scenario_id"]) is not str or row["scenario_id"] != expected_id:
                     raise EvaluationArtifactError(f"paired_rows[{position}].scenario_id drifted")
                 if (
-                    row["shortage_level"] != shortage_level
+                    type(row["shortage_level"]) is not str
+                    or row["shortage_level"] != shortage_level
+                    or type(row["seed"]) is not int
                     or row["seed"] != seed
+                    or type(row["batch_index"]) is not int
                     or row["batch_index"] != batch_index
                 ):
-                    raise EvaluationArtifactError(f"paired_rows[{position}] cell identity drifted")
+                    raise EvaluationArtifactError(
+                        f"paired_rows[{position}] cell identity type or value drifted"
+                    )
+                if schema_version == PAIRED_SCHEMA_VERSION:
+                    trace = _require_mapping(
+                        row["scenario_trace"],
+                        field=f"paired_rows[{position}].scenario_trace",
+                    )
+                    _require_exact_fields(
+                        trace,
+                        _SCENARIO_TRACE_FIELDS,
+                        f"paired_rows[{position}].scenario_trace",
+                    )
+                    trace_demand = _strict_trace_array(
+                        trace["demand_mw"],
+                        expected_shape=(HORIZON_HOURS, len(LOCALITIES), len(SECTORS)),
+                        field=f"paired_rows[{position}].scenario_trace.demand_mw",
+                    )
+                    trace_supply = _strict_trace_array(
+                        trace["supply_mw"],
+                        expected_shape=(HORIZON_HOURS,),
+                        field=f"paired_rows[{position}].scenario_trace.supply_mw",
+                    )
+                    trace_demand_rows.append(trace_demand)
+                    trace_supply_rows.append(trace_supply)
+
+                    hourly_demand = trace_demand.sum(axis=(-1, -2))
+                    if bool((hourly_demand <= 0.0).any()):
+                        raise EvaluationArtifactError(
+                            f"paired_rows[{position}].scenario_trace hourly demand must be positive"
+                        )
+                    supply_multiplier = trace_supply / (
+                        hourly_demand * _locked_supply_fraction(shortage_level)
+                    )
+                    if bool(
+                        (
+                            supply_multiplier
+                            < LOCKED_SUPPLY_MULTIPLIER_MIN
+                            - SHARED_SUPPLY_MULTIPLIER_ABSOLUTE_TOLERANCE
+                        ).any()
+                    ) or bool(
+                        (
+                            supply_multiplier
+                            > LOCKED_SUPPLY_MULTIPLIER_MAX
+                            + SHARED_SUPPLY_MULTIPLIER_ABSOLUTE_TOLERANCE
+                        ).any()
+                    ):
+                        raise EvaluationArtifactError(
+                            f"paired_rows[{position}] supply multiplier is outside the locked "
+                            "generator range"
+                        )
+                    draw_key = (seed, batch_index)
+                    reference = shared_trace_reference.get(draw_key)
+                    if reference is None:
+                        shared_trace_reference[draw_key] = (
+                            trace_demand.copy(),
+                            supply_multiplier.copy(),
+                        )
+                    else:
+                        reference_demand, reference_supply_multiplier = reference
+                        if not np.array_equal(trace_demand, reference_demand):
+                            raise EvaluationArtifactError(
+                                f"paired_rows[{position}] does not preserve shared base draw demand"
+                            )
+                        if not np.allclose(
+                            supply_multiplier,
+                            reference_supply_multiplier,
+                            atol=SHARED_SUPPLY_MULTIPLIER_ABSOLUTE_TOLERANCE,
+                            rtol=0.0,
+                        ):
+                            raise EvaluationArtifactError(
+                                f"paired_rows[{position}] does not preserve shared base draw supply"
+                            )
                 fixed = _metric_values(
                     row["Fixed Rotation"],
                     field=f"paired_rows[{position}].Fixed Rotation",
@@ -769,8 +1125,71 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
                         raise EvaluationArtifactError(
                             f"paired_rows[{position}] does not preserve matched {metric}"
                         )
-                rows_by_cell.setdefault((shortage_level, seed), []).append(row)
+                cell_rows.append(row)
+                cell_metrics.append((fixed, ppo))
                 position += 1
+
+            if schema_version == PAIRED_SCHEMA_VERSION:
+                trace_scenario = Scenario(
+                    demand=torch.from_numpy(np.stack(trace_demand_rows)),
+                    supply=torch.from_numpy(np.stack(trace_supply_rows)),
+                    shortage_level=shortage_level,
+                    seed=seed,
+                )
+                for batch_index, (row, metrics, demand, supply) in enumerate(
+                    zip(
+                        cell_rows,
+                        cell_metrics,
+                        trace_demand_rows,
+                        trace_supply_rows,
+                        strict=True,
+                    )
+                ):
+                    row_position = cell_start + batch_index
+                    scenario_sha256 = row["scenario_sha256"]
+                    if type(scenario_sha256) is not str or not _SHA256_PATTERN.fullmatch(
+                        scenario_sha256
+                    ):
+                        raise EvaluationArtifactError(
+                            f"paired_rows[{row_position}].scenario_sha256 is invalid"
+                        )
+                    expected_sha256 = canonical_scenario_sha256(
+                        trace_scenario,
+                        batch_index=batch_index,
+                    )
+                    if scenario_sha256 != expected_sha256:
+                        raise EvaluationArtifactError(
+                            f"paired_rows[{row_position}].scenario_sha256 does not match "
+                            "scenario_trace"
+                        )
+                    if scenario_sha256 in scenario_hashes:
+                        raise EvaluationArtifactError(
+                            "paired row scenario_sha256 values must be unique in protocol order"
+                        )
+                    scenario_hashes.add(scenario_sha256)
+                    trace_totals = {
+                        "demand_mwh": math.fsum(float(value) for value in demand.flat) * STEP_HOURS,
+                        "available_mwh": math.fsum(float(value) for value in supply.flat)
+                        * STEP_HOURS,
+                    }
+                    for controller, metric_values in zip(
+                        ("Fixed Rotation", "PPO"),
+                        metrics,
+                        strict=True,
+                    ):
+                        for metric, trace_total in trace_totals.items():
+                            if not math.isclose(
+                                metric_values[metric],
+                                trace_total,
+                                abs_tol=ENERGY_IDENTITY_ABSOLUTE_TOLERANCE,
+                                rel_tol=0.0,
+                            ):
+                                raise EvaluationArtifactError(
+                                    f"paired_rows[{row_position}].scenario_trace trace-derived "
+                                    f"{metric} does not match {controller}"
+                                )
+
+            rows_by_cell[(shortage_level, seed)] = cell_rows
 
     cells = root["cells"]
     if not isinstance(cells, list) or len(cells) != 9:
@@ -781,11 +1200,16 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
         summary = _require_mapping(cell, field=f"cells[{cell_index}]")
         _require_exact_fields(summary, _CELL_FIELDS, f"cells[{cell_index}]")
         if (
-            summary["shortage_level"] != shortage_level
+            type(summary["shortage_level"]) is not str
+            or summary["shortage_level"] != shortage_level
+            or type(summary["seed"]) is not int
             or summary["seed"] != seed
+            or type(summary["episode_count"]) is not int
             or summary["episode_count"] != BATCH_SIZE
         ):
-            raise EvaluationArtifactError(f"cells[{cell_index}] identity or count drifted")
+            raise EvaluationArtifactError(
+                f"cells[{cell_index}] identity or count type/value drifted"
+            )
         for controller in ("Fixed Rotation", "PPO", "paired_delta"):
             actual = _metric_values(
                 summary[controller],
@@ -847,8 +1271,11 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
         raise EvaluationArtifactError("frozen_parity.status must be passed or failed")
     if parity["comparison_granularity"] != "18 controller batch-cell summaries":
         raise EvaluationArtifactError("frozen_parity comparison granularity drifted")
-    if parity["absolute_tolerances"] != FROZEN_ABSOLUTE_TOLERANCES:
-        raise EvaluationArtifactError("frozen_parity tolerances drifted")
+    _validate_exact_contract(
+        parity["absolute_tolerances"],
+        FROZEN_ABSOLUTE_TOLERANCES,
+        field="frozen_parity.absolute_tolerances",
+    )
     errors = _require_mapping(
         parity["maximum_absolute_error"], field="frozen_parity.maximum_absolute_error"
     )
@@ -875,6 +1302,18 @@ def validate_paired_benchmark_payload(payload: Mapping[str, object]) -> None:
         )
 
 
+def _ordered_scenario_bundle_sha256(rows: list[object]) -> str:
+    digest = hashlib.sha256()
+    for position, value in enumerate(rows):
+        row = _require_mapping(value, field=f"paired_rows[{position}]")
+        scenario_sha256 = row.get("scenario_sha256")
+        if type(scenario_sha256) is not str or not _SHA256_PATTERN.fullmatch(scenario_sha256):
+            raise EvaluationArtifactError(f"paired_rows[{position}].scenario_sha256 is invalid")
+        digest.update(scenario_sha256.encode("ascii"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
 def assert_paired_benchmark_integrity(
     payload: Mapping[str, object],
     *,
@@ -884,12 +1323,43 @@ def assert_paired_benchmark_integrity(
 
     validate_paired_benchmark_payload(payload)
     root = _require_mapping(payload, field="paired benchmark")
+    if root["schema_version"] != PAIRED_SCHEMA_VERSION:
+        raise EvaluationArtifactError("trusted integrity requires paired schema_version 3")
+    rows = root["paired_rows"]
+    if type(rows) is not list:
+        raise EvaluationArtifactError("paired benchmark must contain a paired_rows array")
+    scenario_bundle_sha256 = _ordered_scenario_bundle_sha256(rows)
+    if scenario_bundle_sha256 != PAIRED_SCENARIO_BUNDLE_SHA256:
+        raise EvaluationArtifactError(
+            "paired evidence does not match the reviewed CUDA scenario bundle: "
+            f"expected {PAIRED_SCENARIO_BUNDLE_SHA256}, found {scenario_bundle_sha256}"
+        )
     _assert_locked_provenance(root["provenance"])
-
     _cross_check_frozen_parity(root, Path(frozen_benchmark_path))
     parity = _require_mapping(root["frozen_parity"], field="frozen_parity")
     if parity["status"] != "passed":
         raise EvaluationArtifactError("frozen parity did not pass the reviewed comparison")
+
+
+def verify_paired_inference_on_cuda(payload: Mapping[str, object]) -> float:
+    """Reconstruct every persisted paired-inference endpoint explicitly on ``cuda:0``."""
+
+    validate_paired_benchmark_payload(payload)
+    root = _require_mapping(payload, field="paired benchmark")
+    if root["schema_version"] != PAIRED_SCHEMA_VERSION:
+        raise EvaluationArtifactError("paired CUDA reconstruction requires schema_version 3")
+    try:
+        return verify_paired_inference_reconstruction(
+            paired_rows=root["paired_rows"],
+            paired_inference=root["paired_inference"],
+            protocol=root["protocol"],
+            severity_order=SEVERITIES,
+            seed_order=SEEDS,
+            episodes_per_cell=BATCH_SIZE,
+            inference_metric_order=INFERENCE_METRICS,
+        )
+    except PairedInferenceError as error:
+        raise EvaluationArtifactError(f"paired inference reconstruction failed: {error}") from error
 
 
 def _reject_duplicate_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -1141,6 +1611,8 @@ def run_full_paired_evaluation(
 
     fixed_cells: list[torch.Tensor] = []
     ppo_cells: list[torch.Tensor] = []
+    scenario_demand_cells: list[torch.Tensor] = []
+    scenario_supply_cells: list[torch.Tensor] = []
     base_draws_by_seed = {
         seed: generate_scenario_base_draws(BATCH_SIZE, seed, device=resolved_device)
         for seed in SEEDS
@@ -1159,11 +1631,27 @@ def run_full_paired_evaluation(
                 raise EvaluationArtifactError("controller pairing lost exact Scenario identity")
             fixed_cells.append(_episode_metric_matrix(evaluated.fixed_metrics))
             ppo_cells.append(_episode_metric_matrix(evaluated.ppo_metrics))
+            scenario_demand_cells.append(scenario.demand)
+            scenario_supply_cells.append(scenario.supply)
 
     fixed_cube = torch.stack(fixed_cells).reshape(
         len(SEVERITIES), len(SEEDS), BATCH_SIZE, len(METRIC_ORDER)
     )
     ppo_cube = torch.stack(ppo_cells).reshape_as(fixed_cube)
+    scenario_demand_cube = torch.stack(scenario_demand_cells).reshape(
+        len(SEVERITIES),
+        len(SEEDS),
+        BATCH_SIZE,
+        HORIZON_HOURS,
+        len(LOCALITIES),
+        len(SECTORS),
+    )
+    scenario_supply_cube = torch.stack(scenario_supply_cells).reshape(
+        len(SEVERITIES),
+        len(SEEDS),
+        BATCH_SIZE,
+        HORIZON_HOURS,
+    )
     inference_indices = torch.tensor(
         [METRIC_ORDER.index(metric) for metric in INFERENCE_METRICS],
         dtype=torch.long,
@@ -1188,15 +1676,26 @@ def run_full_paired_evaluation(
             fixed_cube.to(torch.float64).flatten(),
             ppo_cube.to(torch.float64).flatten(),
             bootstrap_tensor.flatten(),
+            scenario_demand_cube.to(torch.float64).flatten(),
+            scenario_supply_cube.to(torch.float64).flatten(),
         )
     )
     host = packed.cpu().numpy()
     cube_size = fixed_cube.numel()
     bootstrap_size = bootstrap_tensor.numel()
+    scenario_demand_size = scenario_demand_cube.numel()
+    scenario_supply_size = scenario_supply_cube.numel()
     fixed_host = host[:cube_size].reshape(fixed_cube.shape)
     ppo_host = host[cube_size : 2 * cube_size].reshape(ppo_cube.shape)
-    bootstrap_host = host[2 * cube_size : 2 * cube_size + bootstrap_size].reshape(
-        3, len(INFERENCE_METRICS)
+    offset = 2 * cube_size
+    bootstrap_host = host[offset : offset + bootstrap_size].reshape(3, len(INFERENCE_METRICS))
+    offset += bootstrap_size
+    scenario_demand_host = host[offset : offset + scenario_demand_size].reshape(
+        scenario_demand_cube.shape
+    )
+    offset += scenario_demand_size
+    scenario_supply_host = host[offset : offset + scenario_supply_size].reshape(
+        scenario_supply_cube.shape
     )
 
     provenance = _build_provenance(
@@ -1208,6 +1707,8 @@ def run_full_paired_evaluation(
         fixed_values=fixed_host,
         ppo_values=ppo_host,
         bootstrap_values=bootstrap_host,
+        scenario_demand_values=scenario_demand_host,
+        scenario_supply_values=scenario_supply_host,
         provenance=provenance,
         frozen_benchmark_path=frozen_path,
     )

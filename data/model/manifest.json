@@ -65,8 +65,8 @@
     "filename": "training-provenance.yaml",
     "format": "yaml",
     "schema": "gridguard.ppo_training_provenance",
-    "schema_version": 1,
-    "sha256": "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a",
-    "size_bytes": 14926
+    "schema_version": 3,
+    "sha256": "d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8",
+    "size_bytes": 29126
   }
 }

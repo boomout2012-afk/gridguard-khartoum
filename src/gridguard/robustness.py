@@ -1,4 +1,4 @@
-"""Untouched-seed robustness, sensitivity, and forecast evidence."""
+"""Documented-seed-disjoint robustness, sensitivity, and forecast evidence."""
 
 from __future__ import annotations
 
@@ -15,6 +15,12 @@ from typing import Any, Final, Literal
 
 import torch
 
+from gridguard.claim_contract import (
+    DOCUMENTED_SEED_DISJOINT_ROLE,
+    HOLDOUT_CUSTODY_LIMITATION,
+    PPO_ATTRIBUTION_LIMITATION,
+    SENSITIVITY_INTERVAL_LIMITATION,
+)
 from gridguard.controllers import PPOController
 from gridguard.domain import (
     HORIZON_HOURS,
@@ -26,10 +32,40 @@ from gridguard.domain import (
     ShortageLevel,
 )
 from gridguard.evaluation import evaluate_scenario_pair
+from gridguard.forecast import causal_demand_projection
 from gridguard.metrics import EpisodeMetrics
 from gridguard.policy import SOURCE_REVISION, load_ppo_policy
 from gridguard.provenance import sha256_file
-from gridguard.robustness_provenance import ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+from gridguard.robustness_inference import (
+    BaseControllerCubeContract,
+    DeltaCubeContract,
+    ForecastDemandCubeContract,
+    PowerBalanceCubeContract,
+    RobustnessInferenceError,
+    SensitivityControllerCubeContract,
+    base_controller_cube_to_cuda,
+    build_base_controller_cube_payload,
+    build_delta_cube_payload,
+    build_forecast_demand_cube_payload,
+    build_power_balance_cube_payload,
+    build_sensitivity_controller_cube_payload,
+    decode_base_controller_cube_payload,
+    decode_delta_cube_payload,
+    decode_forecast_demand_cube_payload,
+    decode_power_balance_cube_payload,
+    decode_sensitivity_controller_cube_payload,
+    delta_cube_to_cuda,
+    forecast_demand_cube_to_cuda,
+    power_balance_cube_to_cuda,
+    reconstruct_bootstrap_intervals,
+    reconstruct_controller_statistics,
+    sensitivity_controller_cube_to_cuda,
+    validate_reconstruction_cube_semantics,
+)
+from gridguard.robustness_provenance import (
+    ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS,
+    ROBUSTNESS_LEGACY_IMPLEMENTATION_SOURCE_BINDINGS,
+)
 from gridguard.robustness_provenance import (
     ROBUSTNESS_SUPPLEMENT_SHA256 as ROBUSTNESS_SUPPLEMENT_SHA256,
 )
@@ -39,27 +75,46 @@ from gridguard.scenarios import (
     generate_scenario_base_draws,
     scenario_from_base_draws,
 )
-from gridguard.statistics import stratified_paired_bootstrap
+from gridguard.statistics import BootstrapError, stratified_paired_bootstrap
 
 ROBUSTNESS_SCHEMA_NAME: Final = "gridguard.robustness_supplement"
-ROBUSTNESS_SCHEMA_VERSION: Final = 1
-ROBUSTNESS_EVIDENCE_ROLE: Final = "untouched_confirmatory"
-ROBUSTNESS_ARTIFACT_ID: Final = "gridguard-robustness-supplement-v1"
+ROBUSTNESS_SCHEMA_VERSION: Final = 2
+ROBUSTNESS_LEGACY_SCHEMA_VERSION: Final = 1
+ROBUSTNESS_EVIDENCE_ROLE: Final = DOCUMENTED_SEED_DISJOINT_ROLE
+ROBUSTNESS_LEGACY_EVIDENCE_ROLE: Final = "untouched_confirmatory"
+ROBUSTNESS_ARTIFACT_ID: Final = "gridguard-robustness-supplement-v2"
+ROBUSTNESS_LEGACY_ARTIFACT_ID: Final = "gridguard-robustness-supplement-v1"
 ROBUSTNESS_SOURCE_REVISION: Final = SOURCE_REVISION
 ROBUSTNESS_MODEL_MANIFEST_SHA256: Final = (
-    "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+    "9803563a6c9820f395f832bc2958fa28c634beb7fe4c87363cd659035e033ee8"
 )
 ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES: Final = 1_609
+ROBUSTNESS_LEGACY_MODEL_MANIFEST_SHA256: Final = (
+    "54300578c34ce18fe54aa57e95e216a81d002da43e82ee09e1ae5bd4e1b51349"
+)
+ROBUSTNESS_LEGACY_MODEL_MANIFEST_SIZE_BYTES: Final = 1_609
 ROBUSTNESS_ACTOR_SHA256: Final = "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5"
 ROBUSTNESS_ACTOR_SIZE_BYTES: Final = 5_160_058
+ROBUSTNESS_LEGACY_ACTOR_SHA256: Final = (
+    "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5"
+)
+ROBUSTNESS_LEGACY_ACTOR_SIZE_BYTES: Final = 5_160_058
 ROBUSTNESS_SCENARIO_GENERATOR_SHA256: Final = (
+    "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990"
+)
+ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES: Final = 14_765
+ROBUSTNESS_LEGACY_SCENARIO_GENERATOR_SHA256: Final = (
     "e07c7ee9b41ead44991fbf20e64a7c504883175bd3a6a4b6a51ac7ef0305db84"
 )
-ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES: Final = 12_513
+ROBUSTNESS_LEGACY_SCENARIO_GENERATOR_SIZE_BYTES: Final = 12_513
 ROBUSTNESS_TRAINING_PROVENANCE_SHA256: Final = (
+    "d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8"
+)
+ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES: Final = 29_126
+ROBUSTNESS_LEGACY_TRAINING_PROVENANCE_SHA256: Final = (
     "2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a"
 )
-ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES: Final = 14_926
+ROBUSTNESS_LEGACY_TRAINING_PROVENANCE_SIZE_BYTES: Final = 14_926
 ROBUSTNESS_SEEDS: Final = tuple(range(81001, 81011))
 ROBUSTNESS_BATCH_SIZE: Final = 32
 ROBUSTNESS_BOOTSTRAP_REPLICATES: Final = 10_000
@@ -74,15 +129,27 @@ SAFETY_METRIC: Final = "power_balance_violation_rate"
 FORECAST_METHODS: Final = ("trailing_mean_3h", "persistence_1h")
 FORECAST_TARGET_HOURS: Final = tuple(range(3, HORIZON_HOURS))
 SENSITIVITY_FACTORS: Final = (0.75, 1.25)
-ROBUSTNESS_LIMITATIONS: Final = (
+ROBUSTNESS_MAX_OUTAGE_LOCALITY_HOURS: Final = len(LOCALITIES) * HORIZON_HOURS
+ROBUSTNESS_LEGACY_LIMITATIONS: Final = (
     "Synthetic demand traces do not establish real-world forecast accuracy.",
     "Sensitivity covers only one-factor-at-a-time ±25% demand-allocation perturbations.",
     "Observed interval direction is descriptive and is not a release gate.",
 )
-ROBUSTNESS_SEED_SEPARATION_CLAIM: Final = (
+ROBUSTNESS_LIMITATIONS: Final = (
+    *ROBUSTNESS_LEGACY_LIMITATIONS[:2],
+    SENSITIVITY_INTERVAL_LIMITATION,
+    HOLDOUT_CUSTODY_LIMITATION,
+    PPO_ATTRIBUTION_LIMITATION,
+)
+ROBUSTNESS_LEGACY_SEED_SEPARATION_CLAIM: Final = (
     "Untouched means disjoint from every training, validation, and model-selection seed "
     "documented in data/model/training-provenance.yaml; it does not claim knowledge of "
     "undocumented external activity."
+)
+ROBUSTNESS_SEED_SEPARATION_CLAIM: Final = (
+    "Documented-seed-disjoint means disjoint from every training, validation, and "
+    "model-selection seed documented in data/model/training-provenance.yaml; it does not "
+    "claim knowledge of undocumented external activity."
 )
 ROBUSTNESS_METRIC_DEFINITIONS: Final = {
     "critical_outage_locality_hours": {
@@ -227,16 +294,18 @@ def _validate_binding(
     return binding
 
 
-def _validate_implementation_sources(value: object) -> None:
+def _validate_implementation_sources(
+    value: object,
+    *,
+    expected_bindings: tuple[tuple[str, str, int], ...],
+) -> None:
     if not isinstance(value, list):
         raise RobustnessArtifactError("provenance.implementation_sources must be an array")
-    if len(value) != len(ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS):
+    if len(value) != len(expected_bindings):
         raise RobustnessArtifactError(
             "provenance.implementation_sources does not contain the closed source bundle"
         )
-    for index, (actual, expected) in enumerate(
-        zip(value, ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS, strict=True)
-    ):
+    for index, (actual, expected) in enumerate(zip(value, expected_bindings, strict=True)):
         expected_path, expected_sha256, expected_size_bytes = expected
         _validate_binding(
             actual,
@@ -247,9 +316,11 @@ def _validate_implementation_sources(value: object) -> None:
         )
 
 
-def _seed_separation_payload() -> dict[str, object]:
+def _seed_separation_payload(
+    *, claim_scope: str = ROBUSTNESS_SEED_SEPARATION_CLAIM
+) -> dict[str, object]:
     return {
-        "claim_scope": ROBUSTNESS_SEED_SEPARATION_CLAIM,
+        "claim_scope": claim_scope,
         "robustness_seeds": list(ROBUSTNESS_SEEDS),
         "documented_seed_sets": {
             "behavior_cloning_teacher_episode_seed_range": {
@@ -273,8 +344,15 @@ def _seed_separation_payload() -> dict[str, object]:
     }
 
 
-def _validate_seed_separation(value: object) -> None:
-    _validate_exact_contract(value, _seed_separation_payload(), field="provenance.seed_separation")
+def _validate_seed_separation(value: object, *, is_legacy: bool) -> None:
+    claim_scope = (
+        ROBUSTNESS_LEGACY_SEED_SEPARATION_CLAIM if is_legacy else ROBUSTNESS_SEED_SEPARATION_CLAIM
+    )
+    _validate_exact_contract(
+        value,
+        _seed_separation_payload(claim_scope=claim_scope),
+        field="provenance.seed_separation",
+    )
 
 
 def canonical_robustness_json_bytes(payload: object) -> bytes:
@@ -837,7 +915,10 @@ def _host_array(value: object, *, shape: tuple[int, ...], field: str) -> Any:
     # the evaluator's single final tensor transfer.
     import numpy as np
 
-    array = np.asarray(value, dtype=np.float64)
+    untyped = np.asarray(value)
+    if np.iscomplexobj(untyped):
+        raise RobustnessArtifactError(f"{field} must contain real values")
+    array = np.asarray(untyped, dtype=np.float64)
     if array.shape != shape:
         raise RobustnessArtifactError(f"{field} must have shape {list(shape)}")
     if not bool(np.isfinite(array).all()):
@@ -944,6 +1025,11 @@ def build_robustness_supplement_payload(
     base_bootstrap: object,
     sensitivity_paired_bootstrap: object,
     sensitivity_difference_bootstrap: object,
+    bootstrap_delta_cube: object,
+    base_controller_metric_cube: object,
+    sensitivity_controller_metric_cube: object,
+    power_balance_cube: object,
+    forecast_demand_cube: object,
     forecast_statistics: object,
     maximum_power_balance_violation_rate: float,
 ) -> dict[str, Any]:
@@ -964,6 +1050,36 @@ def build_robustness_supplement_payload(
         sensitivity_difference_bootstrap,
         shape=(24, 3, 3),
         field="sensitivity_difference_bootstrap",
+    )
+    delta_contract = robustness_delta_cube_contract()
+    delta_cube = _host_array(
+        bootstrap_delta_cube,
+        shape=delta_contract.shape,
+        field="bootstrap_delta_cube",
+    )
+    controller_contract = robustness_base_controller_cube_contract()
+    controller_cube = _host_array(
+        base_controller_metric_cube,
+        shape=controller_contract.shape,
+        field="base_controller_metric_cube",
+    )
+    sensitivity_controller_contract = robustness_sensitivity_controller_cube_contract()
+    sensitivity_controller_cube = _host_array(
+        sensitivity_controller_metric_cube,
+        shape=sensitivity_controller_contract.shape,
+        field="sensitivity_controller_metric_cube",
+    )
+    power_contract = robustness_power_balance_cube_contract()
+    power_cube = _host_array(
+        power_balance_cube,
+        shape=power_contract.shape,
+        field="power_balance_cube",
+    )
+    forecast_contract = robustness_forecast_demand_cube_contract()
+    forecast_demand_values = _host_array(
+        forecast_demand_cube,
+        shape=forecast_contract.shape,
+        field="forecast_demand_cube",
     )
     forecast_values = _host_array(
         forecast_statistics,
@@ -1024,6 +1140,27 @@ def build_robustness_supplement_payload(
             metric: dict(definition) for metric, definition in ROBUSTNESS_METRIC_DEFINITIONS.items()
         },
         "forecast_metric_definitions": deepcopy(ROBUSTNESS_FORECAST_METRIC_DEFINITIONS),
+        "bootstrap_inputs": {
+            "paired_delta_cube": build_delta_cube_payload(delta_cube, contract=delta_contract),
+            "base_controller_cube": build_base_controller_cube_payload(
+                controller_cube,
+                contract=controller_contract,
+            ),
+            "sensitivity_controller_cube": build_sensitivity_controller_cube_payload(
+                sensitivity_controller_cube,
+                contract=sensitivity_controller_contract,
+            ),
+            "power_balance_cube": build_power_balance_cube_payload(
+                power_cube,
+                contract=power_contract,
+            ),
+        },
+        "forecast_inputs": {
+            "demand_cube": build_forecast_demand_cube_payload(
+                forecast_demand_values,
+                contract=forecast_contract,
+            )
+        },
         "base_evaluation": {
             "controller_means": controller_means,
             "paired_inference": _paired_inference_payload(base_intervals),
@@ -1174,7 +1311,7 @@ def _require_cuda_zero(device: str | torch.device) -> torch.device:
     return resolved
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def run_full_robustness_evaluation(
     *,
     ppo_manifest_path: str | Path,
@@ -1227,6 +1364,7 @@ def run_full_robustness_evaluation(
     )
     fixed_cube = torch.stack(fixed_cells).reshape(base_shape)
     ppo_cube = torch.stack(ppo_cells).reshape(base_shape)
+    base_controller_cube = torch.stack((fixed_cube, ppo_cube)).to(torch.float64)
     base_deltas = ppo_cube[..., :3].to(torch.float64) - fixed_cube[..., :3].to(torch.float64)
     base_bootstrap = stratified_paired_bootstrap(
         base_deltas,
@@ -1234,23 +1372,14 @@ def run_full_robustness_evaluation(
         replicates=ROBUSTNESS_BOOTSTRAP_REPLICATES,
         seed=ROBUSTNESS_BOOTSTRAP_SEED,
     ).as_tensor()
-    base_means = torch.stack(
-        (
-            fixed_cube.to(torch.float64).mean(dim=(0, 1, 2)),
-            ppo_cube.to(torch.float64).mean(dim=(0, 1, 2)),
-        )
-    )
-    maximum_power_balance = (
-        torch.stack((fixed_cube[..., 3].amax(), ppo_cube[..., 3].amax())).amax().reshape(1)
-    )
+    base_means = base_controller_cube.mean(dim=(1, 2, 3))
     forecast_demand_tensor = torch.stack(forecast_demands)
     forecast_validation = forecast_input_validation_flags(forecast_demand_tensor)
     forecast_statistics = forecast_error_sufficient_statistics(forecast_demand_tensor)
 
-    variant_deltas: list[torch.Tensor] = []
-    sensitivity_power_balance: list[torch.Tensor] = []
+    sensitivity_controller_cubes: list[torch.Tensor] = []
     for variant in build_sensitivity_variants():
-        cells: list[torch.Tensor] = []
+        controller_cells: list[torch.Tensor] = []
         for shortage_level in ROBUSTNESS_SHORTAGE_LEVELS:
             for seed in ROBUSTNESS_SEEDS:
                 scenario = _scenario_for_demand_allocation_sensitivity(
@@ -1262,21 +1391,26 @@ def run_full_robustness_evaluation(
                 evaluated = evaluate_scenario_pair(scenario, ppo_controller=ppo_controller)
                 fixed_metrics = _robustness_metric_matrix(evaluated.fixed_metrics)
                 ppo_metrics = _robustness_metric_matrix(evaluated.ppo_metrics)
-                cells.append(
-                    ppo_metrics[..., :3].to(torch.float64)
-                    - fixed_metrics[..., :3].to(torch.float64)
+                controller_cells.append(
+                    torch.stack((fixed_metrics, ppo_metrics), dim=0).to(torch.float64)
                 )
-                sensitivity_power_balance.extend(
-                    (fixed_metrics[..., 3].amax(), ppo_metrics[..., 3].amax())
-                )
-        variant_deltas.append(
-            torch.stack(cells).reshape(
+        sensitivity_controller_cubes.append(
+            torch.stack(controller_cells)
+            .reshape(
                 len(ROBUSTNESS_SHORTAGE_LEVELS),
                 len(ROBUSTNESS_SEEDS),
+                2,
                 ROBUSTNESS_BATCH_SIZE,
-                len(PRIMARY_METRICS),
+                len(PRIMARY_METRICS) + 1,
             )
+            .permute(2, 0, 1, 3, 4)
         )
+
+    sensitivity_controller_cube = torch.stack(sensitivity_controller_cubes)
+    variant_deltas = (
+        sensitivity_controller_cube[:, 1, ..., : len(PRIMARY_METRICS)]
+        - sensitivity_controller_cube[:, 0, ..., : len(PRIMARY_METRICS)]
+    )
 
     sensitivity_summaries: list[torch.Tensor] = []
     difference_summaries: list[torch.Tensor] = []
@@ -1297,12 +1431,20 @@ def run_full_robustness_evaluation(
                 seed=ROBUSTNESS_BOOTSTRAP_SEED,
             ).as_tensor()
         )
-    maximum_power_balance = torch.maximum(
-        maximum_power_balance,
-        torch.stack(sensitivity_power_balance).amax().reshape(1),
+    power_balance_cube = torch.cat(
+        (
+            base_controller_cube[..., 3].unsqueeze(0),
+            sensitivity_controller_cube[..., 3],
+        ),
+        dim=0,
     )
+    maximum_power_balance = power_balance_cube.amax().reshape(1)
     sensitivity_tensor = torch.stack(sensitivity_summaries)
     difference_tensor = torch.stack(difference_summaries)
+    bootstrap_delta_cube = torch.cat(
+        (base_deltas.unsqueeze(0), variant_deltas),
+        dim=0,
+    )
 
     # This is the evaluator's only full numeric evidence-array device-to-host
     # transfer. Boundary invariant checks elsewhere may legitimately scalar-sync.
@@ -1312,6 +1454,11 @@ def run_full_robustness_evaluation(
             base_bootstrap.flatten(),
             sensitivity_tensor.flatten(),
             difference_tensor.flatten(),
+            bootstrap_delta_cube.flatten(),
+            base_controller_cube.flatten(),
+            sensitivity_controller_cube.flatten(),
+            power_balance_cube.flatten(),
+            forecast_demand_tensor.flatten(),
             forecast_statistics.flatten(),
             forecast_validation.flatten(),
             maximum_power_balance.flatten(),
@@ -1331,6 +1478,11 @@ def run_full_robustness_evaluation(
     base_bootstrap_host = take((3, 3))
     sensitivity_host = take((24, 3, 3))
     difference_host = take((24, 3, 3))
+    bootstrap_delta_cube_host = take(robustness_delta_cube_contract().shape)
+    base_controller_cube_host = take(robustness_base_controller_cube_contract().shape)
+    sensitivity_controller_cube_host = take(robustness_sensitivity_controller_cube_contract().shape)
+    power_balance_cube_host = take(robustness_power_balance_cube_contract().shape)
+    forecast_demand_host = take(robustness_forecast_demand_cube_contract().shape)
     forecast_host = take((2, len(ROBUSTNESS_SEEDS), 2, 3))
     forecast_validation_host = take((2,))
     maximum_power_balance_host = float(take((1,))[0])
@@ -1346,6 +1498,11 @@ def run_full_robustness_evaluation(
         base_bootstrap=base_bootstrap_host,
         sensitivity_paired_bootstrap=sensitivity_host,
         sensitivity_difference_bootstrap=difference_host,
+        bootstrap_delta_cube=bootstrap_delta_cube_host,
+        base_controller_metric_cube=base_controller_cube_host,
+        sensitivity_controller_metric_cube=sensitivity_controller_cube_host,
+        power_balance_cube=power_balance_cube_host,
+        forecast_demand_cube=forecast_demand_host,
         forecast_statistics=forecast_host,
         maximum_power_balance_violation_rate=maximum_power_balance_host,
     )
@@ -1355,34 +1512,41 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
     """Validate the closed robustness schema without requiring CUDA."""
 
     document = _require_mapping(payload, field="robustness supplement")
-    _require_exact_fields(
-        document,
-        frozenset(
-            {
-                "schema",
-                "evidence_role",
-                "provenance",
-                "protocol",
-                "metric_definitions",
-                "forecast_metric_definitions",
-                "base_evaluation",
-                "sensitivity",
-                "forecast_evaluation",
-                "limitations",
-            }
-        ),
-        field="robustness supplement",
-    )
-    schema = _require_mapping(document["schema"], field="schema")
+    schema = _require_mapping(document.get("schema"), field="schema")
     _require_exact_fields(schema, frozenset({"name", "version"}), field="schema")
+    version = schema["version"]
     if (
         schema["name"] != ROBUSTNESS_SCHEMA_NAME
-        or type(schema["version"]) is not int
-        or schema["version"] != ROBUSTNESS_SCHEMA_VERSION
+        or type(version) is not int
+        or version not in {ROBUSTNESS_LEGACY_SCHEMA_VERSION, ROBUSTNESS_SCHEMA_VERSION}
     ):
-        raise RobustnessArtifactError("schema does not identify robustness supplement version 1")
-    if document["evidence_role"] != ROBUSTNESS_EVIDENCE_ROLE:
-        raise RobustnessArtifactError("evidence_role must be untouched_confirmatory")
+        raise RobustnessArtifactError(
+            "schema does not identify a supported robustness supplement version"
+        )
+    is_legacy = version == ROBUSTNESS_LEGACY_SCHEMA_VERSION
+    expected_document_fields = {
+        "schema",
+        "evidence_role",
+        "provenance",
+        "protocol",
+        "metric_definitions",
+        "forecast_metric_definitions",
+        "base_evaluation",
+        "sensitivity",
+        "forecast_evaluation",
+        "limitations",
+    }
+    if not is_legacy:
+        expected_document_fields.add("bootstrap_inputs")
+        expected_document_fields.add("forecast_inputs")
+    _require_exact_fields(
+        document,
+        frozenset(expected_document_fields),
+        field="robustness supplement",
+    )
+    expected_role = ROBUSTNESS_LEGACY_EVIDENCE_ROLE if is_legacy else ROBUSTNESS_EVIDENCE_ROLE
+    if document["evidence_role"] != expected_role:
+        raise RobustnessArtifactError(f"evidence_role must be {expected_role}")
 
     provenance = _require_mapping(document["provenance"], field="provenance")
     _require_exact_fields(
@@ -1401,7 +1565,8 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
         ),
         field="provenance",
     )
-    if provenance["artifact_id"] != ROBUSTNESS_ARTIFACT_ID:
+    expected_artifact_id = ROBUSTNESS_LEGACY_ARTIFACT_ID if is_legacy else ROBUSTNESS_ARTIFACT_ID
+    if provenance["artifact_id"] != expected_artifact_id:
         raise RobustnessArtifactError("provenance.artifact_id does not match the contract")
     source_revision = provenance["source_revision"]
     if type(source_revision) is not str or not _GIT_SHA_PATTERN.fullmatch(source_revision):
@@ -1414,51 +1579,564 @@ def validate_robustness_supplement_payload(payload: object) -> dict[str, Any]:
         provenance["model_manifest"],
         field="provenance.model_manifest",
         expected_path="data/model/manifest.json",
-        expected_sha256=ROBUSTNESS_MODEL_MANIFEST_SHA256,
-        expected_size_bytes=ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES,
+        expected_sha256=(
+            ROBUSTNESS_LEGACY_MODEL_MANIFEST_SHA256
+            if is_legacy
+            else ROBUSTNESS_MODEL_MANIFEST_SHA256
+        ),
+        expected_size_bytes=(
+            ROBUSTNESS_LEGACY_MODEL_MANIFEST_SIZE_BYTES
+            if is_legacy
+            else ROBUSTNESS_MODEL_MANIFEST_SIZE_BYTES
+        ),
     )
     _validate_binding(
         provenance["actor"],
         field="provenance.actor",
         expected_path="data/model/ppo-policy.npz",
-        expected_sha256=ROBUSTNESS_ACTOR_SHA256,
-        expected_size_bytes=ROBUSTNESS_ACTOR_SIZE_BYTES,
+        expected_sha256=ROBUSTNESS_LEGACY_ACTOR_SHA256 if is_legacy else ROBUSTNESS_ACTOR_SHA256,
+        expected_size_bytes=(
+            ROBUSTNESS_LEGACY_ACTOR_SIZE_BYTES if is_legacy else ROBUSTNESS_ACTOR_SIZE_BYTES
+        ),
     )
     _validate_binding(
         provenance["scenario_generator"],
         field="provenance.scenario_generator",
         expected_path="src/gridguard/scenarios.py",
-        expected_sha256=ROBUSTNESS_SCENARIO_GENERATOR_SHA256,
-        expected_size_bytes=ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES,
+        expected_sha256=(
+            ROBUSTNESS_LEGACY_SCENARIO_GENERATOR_SHA256
+            if is_legacy
+            else ROBUSTNESS_SCENARIO_GENERATOR_SHA256
+        ),
+        expected_size_bytes=(
+            ROBUSTNESS_LEGACY_SCENARIO_GENERATOR_SIZE_BYTES
+            if is_legacy
+            else ROBUSTNESS_SCENARIO_GENERATOR_SIZE_BYTES
+        ),
     )
     _validate_binding(
         provenance["training_provenance"],
         field="provenance.training_provenance",
         expected_path="data/model/training-provenance.yaml",
-        expected_sha256=ROBUSTNESS_TRAINING_PROVENANCE_SHA256,
-        expected_size_bytes=ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES,
+        expected_sha256=(
+            ROBUSTNESS_LEGACY_TRAINING_PROVENANCE_SHA256
+            if is_legacy
+            else ROBUSTNESS_TRAINING_PROVENANCE_SHA256
+        ),
+        expected_size_bytes=(
+            ROBUSTNESS_LEGACY_TRAINING_PROVENANCE_SIZE_BYTES
+            if is_legacy
+            else ROBUSTNESS_TRAINING_PROVENANCE_SIZE_BYTES
+        ),
     )
-    _validate_implementation_sources(provenance["implementation_sources"])
-    _validate_seed_separation(provenance["seed_separation"])
+    _validate_implementation_sources(
+        provenance["implementation_sources"],
+        expected_bindings=(
+            ROBUSTNESS_LEGACY_IMPLEMENTATION_SOURCE_BINDINGS
+            if is_legacy
+            else ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+        ),
+    )
+    _validate_seed_separation(provenance["seed_separation"], is_legacy=is_legacy)
     _validate_protocol(document["protocol"])
     _validate_metric_definitions(document["metric_definitions"])
     _validate_forecast_metric_definitions(document["forecast_metric_definitions"])
+    if not is_legacy:
+        bootstrap_inputs = _require_mapping(document["bootstrap_inputs"], field="bootstrap_inputs")
+        _require_exact_fields(
+            bootstrap_inputs,
+            frozenset(
+                {
+                    "paired_delta_cube",
+                    "base_controller_cube",
+                    "sensitivity_controller_cube",
+                    "power_balance_cube",
+                }
+            ),
+            field="bootstrap_inputs",
+        )
+        try:
+            decode_delta_cube_payload(
+                bootstrap_inputs["paired_delta_cube"],
+                contract=robustness_delta_cube_contract(),
+            )
+            decode_base_controller_cube_payload(
+                bootstrap_inputs["base_controller_cube"],
+                contract=robustness_base_controller_cube_contract(),
+            )
+            decode_sensitivity_controller_cube_payload(
+                bootstrap_inputs["sensitivity_controller_cube"],
+                contract=robustness_sensitivity_controller_cube_contract(),
+            )
+            decode_power_balance_cube_payload(
+                bootstrap_inputs["power_balance_cube"],
+                contract=robustness_power_balance_cube_contract(),
+            )
+        except RobustnessInferenceError as error:
+            raise RobustnessArtifactError(f"bootstrap_inputs: {error}") from error
+        forecast_inputs = _require_mapping(document["forecast_inputs"], field="forecast_inputs")
+        _require_exact_fields(
+            forecast_inputs,
+            frozenset({"demand_cube"}),
+            field="forecast_inputs",
+        )
+        try:
+            decode_forecast_demand_cube_payload(
+                forecast_inputs["demand_cube"],
+                contract=robustness_forecast_demand_cube_contract(),
+            )
+        except RobustnessInferenceError as error:
+            raise RobustnessArtifactError(f"forecast_inputs: {error}") from error
     base_paired_means = _validate_base_evaluation(document["base_evaluation"])
     _validate_sensitivity(
         document["sensitivity"],
         base_paired_means=base_paired_means,
     )
     _validate_forecast_evaluation(document["forecast_evaluation"])
-    if document["limitations"] != list(ROBUSTNESS_LIMITATIONS):
+    expected_limitations = ROBUSTNESS_LEGACY_LIMITATIONS if is_legacy else ROBUSTNESS_LIMITATIONS
+    if document["limitations"] != list(expected_limitations):
         raise RobustnessArtifactError("limitations do not match the reviewed bounded claims")
     return payload  # type: ignore[return-value]
 
 
-def write_robustness_supplement(payload: Mapping[str, object], path: str | Path) -> str:
-    """Atomically write a validated canonical robustness supplement."""
+def robustness_delta_cube_contract() -> DeltaCubeContract:
+    """Return the closed axis identity for persisted robustness bootstrap inputs."""
 
-    validate_robustness_supplement_payload(payload)
-    encoded = canonical_robustness_json_bytes(payload)
+    return DeltaCubeContract(
+        parameterization_order=(
+            "base",
+            *(variant.variant_id for variant in build_sensitivity_variants()),
+        ),
+        shortage_level_order=tuple(ROBUSTNESS_SHORTAGE_LEVELS),
+        seed_order=tuple(ROBUSTNESS_SEEDS),
+        episode_order=tuple(range(ROBUSTNESS_BATCH_SIZE)),
+        metric_order=tuple(PRIMARY_METRICS),
+    )
+
+
+def robustness_base_controller_cube_contract() -> BaseControllerCubeContract:
+    """Return the closed axes for base per-controller primary and safety values."""
+
+    return BaseControllerCubeContract(
+        controller_order=("Fixed Rotation", "PPO"),
+        shortage_level_order=tuple(ROBUSTNESS_SHORTAGE_LEVELS),
+        seed_order=tuple(ROBUSTNESS_SEEDS),
+        episode_order=tuple(range(ROBUSTNESS_BATCH_SIZE)),
+        metric_order=(*PRIMARY_METRICS, SAFETY_METRIC),
+    )
+
+
+def robustness_power_balance_cube_contract() -> PowerBalanceCubeContract:
+    """Return the closed axes for safety values across every parameterization."""
+
+    return PowerBalanceCubeContract(
+        parameterization_order=(
+            "base",
+            *(variant.variant_id for variant in build_sensitivity_variants()),
+        ),
+        controller_order=("Fixed Rotation", "PPO"),
+        shortage_level_order=tuple(ROBUSTNESS_SHORTAGE_LEVELS),
+        seed_order=tuple(ROBUSTNESS_SEEDS),
+        episode_order=tuple(range(ROBUSTNESS_BATCH_SIZE)),
+    )
+
+
+def robustness_sensitivity_controller_cube_contract() -> SensitivityControllerCubeContract:
+    """Return closed axes for raw controller draws under all 24 variants."""
+
+    return SensitivityControllerCubeContract(
+        parameterization_order=tuple(
+            variant.variant_id for variant in build_sensitivity_variants()
+        ),
+        controller_order=("Fixed Rotation", "PPO"),
+        shortage_level_order=tuple(ROBUSTNESS_SHORTAGE_LEVELS),
+        seed_order=tuple(ROBUSTNESS_SEEDS),
+        episode_order=tuple(range(ROBUSTNESS_BATCH_SIZE)),
+        metric_order=(*PRIMARY_METRICS, SAFETY_METRIC),
+    )
+
+
+def robustness_forecast_demand_cube_contract() -> ForecastDemandCubeContract:
+    """Return closed axes for the persisted forecast-evaluation demand traces."""
+
+    return ForecastDemandCubeContract(
+        seed_order=tuple(ROBUSTNESS_SEEDS),
+        episode_order=tuple(range(ROBUSTNESS_BATCH_SIZE)),
+        hour_order=tuple(range(HORIZON_HOURS)),
+        locality_order=tuple(locality.value for locality in LOCALITIES),
+        sector_order=tuple(sector.value for sector in SECTORS),
+    )
+
+
+def _reported_interval_tensor(
+    value: Mapping[str, object],
+    *,
+    device: torch.device,
+) -> torch.Tensor:
+    rows = []
+    for statistic in ("mean_delta", "ci95_lower", "ci95_upper"):
+        rows.append(
+            [
+                _number(
+                    _require_mapping(value[metric], field=f"reported.{metric}")[statistic],
+                    field=f"reported.{metric}.{statistic}",
+                )
+                for metric in PRIMARY_METRICS
+            ]
+        )
+    return torch.tensor(rows, dtype=torch.float64, device=device)
+
+
+def _require_reconstructed_intervals(
+    label: str,
+    actual: torch.Tensor,
+    reported: torch.Tensor,
+) -> None:
+    if actual.shape != reported.shape or not bool(
+        torch.isclose(actual, reported, rtol=0.0, atol=1e-12).all().item()
+    ):
+        raise RobustnessArtifactError(f"{label} do not match persisted bootstrap inputs")
+
+
+def _reported_controller_mean_tensor(
+    value: object,
+    *,
+    device: torch.device,
+) -> torch.Tensor:
+    controller_means = _require_mapping(value, field="base_evaluation.controller_means")
+    return torch.tensor(
+        [
+            [
+                _number(
+                    _require_mapping(
+                        controller_means[controller],
+                        field=f"base_evaluation.controller_means.{controller}",
+                    )[metric],
+                    field=f"base_evaluation.controller_means.{controller}.{metric}",
+                )
+                for metric in (*PRIMARY_METRICS, SAFETY_METRIC)
+            ]
+            for controller in ("Fixed Rotation", "PPO")
+        ],
+        dtype=torch.float64,
+        device=device,
+    )
+
+
+def _reported_forecast_reconstruction_tensor(
+    value: object,
+    *,
+    device: torch.device,
+) -> torch.Tensor:
+    forecast = _require_mapping(value, field="forecast_evaluation")
+    methods = _require_mapping(forecast["methods"], field="forecast_evaluation.methods")
+    raw_values: list[float] = []
+    pooled_values: list[float] = []
+    for method_name in FORECAST_METHODS:
+        method = _require_mapping(
+            methods[method_name],
+            field=f"forecast_evaluation.methods.{method_name}",
+        )
+        per_seed = method["per_seed"]
+        if not isinstance(per_seed, list):
+            raise RobustnessArtifactError(
+                f"forecast_evaluation.methods.{method_name}.per_seed must be a list"
+            )
+        for seed_index, seed_summary_value in enumerate(per_seed):
+            seed_summary = _require_mapping(
+                seed_summary_value,
+                field=f"forecast_evaluation.methods.{method_name}.per_seed[{seed_index}]",
+            )
+            for aggregation in ("locality_sector", "system_total"):
+                summary = _require_mapping(
+                    seed_summary[aggregation],
+                    field=(
+                        f"forecast_evaluation.methods.{method_name}.per_seed[{seed_index}]."
+                        f"{aggregation}"
+                    ),
+                )
+                raw_values.extend(
+                    (
+                        float(_positive_integer(summary["count"], field="forecast count")),
+                        _number(summary["sum_absolute_error"], field="forecast SAE"),
+                        _number(summary["sum_squared_error"], field="forecast SSE"),
+                    )
+                )
+        pooled = _require_mapping(
+            method["pooled"],
+            field=f"forecast_evaluation.methods.{method_name}.pooled",
+        )
+        for aggregation in ("locality_sector", "system_total"):
+            summary = _require_mapping(
+                pooled[aggregation],
+                field=f"forecast_evaluation.methods.{method_name}.pooled.{aggregation}",
+            )
+            pooled_values.extend(
+                (
+                    float(_positive_integer(summary["count"], field="forecast pooled count")),
+                    _number(summary["mae"], field="forecast pooled MAE"),
+                    _number(summary["rmse"], field="forecast pooled RMSE"),
+                )
+            )
+    comparison = _require_mapping(
+        forecast["comparison"],
+        field="forecast_evaluation.comparison",
+    )
+    deltas = _require_mapping(
+        comparison["trailing_minus_persistence"],
+        field="forecast_evaluation.comparison.trailing_minus_persistence",
+    )
+    winners = _require_mapping(
+        comparison["lower_error_method"],
+        field="forecast_evaluation.comparison.lower_error_method",
+    )
+    winner_codes = {"tie": 0.0, "trailing_mean_3h": 1.0, "persistence_1h": 2.0}
+    measurement_order = (
+        "locality_sector_mae",
+        "locality_sector_rmse",
+        "system_total_mae",
+        "system_total_rmse",
+    )
+    comparison_values = [
+        _number(deltas[name], field=f"forecast delta {name}") for name in measurement_order
+    ]
+    comparison_values.extend(winner_codes[str(winners[name])] for name in measurement_order)
+    return torch.tensor(
+        (*raw_values, *pooled_values, *comparison_values),
+        dtype=torch.float64,
+        device=device,
+    )
+
+
+def _reconstructed_forecast_tensor(statistics: torch.Tensor) -> torch.Tensor:
+    if statistics.shape != (2, len(ROBUSTNESS_SEEDS), 2, 3):
+        raise RobustnessArtifactError("reconstructed forecast statistics have the wrong shape")
+    if statistics.dtype != torch.float64 or statistics.device != torch.device("cuda:0"):
+        raise RobustnessArtifactError(
+            "reconstructed forecast statistics must remain float64 on cuda:0"
+        )
+    statistics_float64 = statistics
+    totals = statistics_float64.sum(dim=1)
+    counts = totals[..., 0]
+    if bool((counts <= 0.0).any().item()):
+        raise RobustnessArtifactError("reconstructed forecast counts must remain positive")
+    pooled = torch.stack(
+        (
+            counts,
+            totals[..., 1] / counts,
+            torch.sqrt(totals[..., 2] / counts),
+        ),
+        dim=-1,
+    )
+    deltas = (pooled[0, :, 1:] - pooled[1, :, 1:]).reshape(-1)
+    winner_codes = torch.where(
+        torch.isclose(
+            deltas,
+            torch.zeros_like(deltas),
+            rtol=0.0,
+            atol=1e-12,
+        ),
+        torch.zeros_like(deltas),
+        torch.where(deltas < 0.0, torch.ones_like(deltas), torch.full_like(deltas, 2.0)),
+    )
+    return torch.cat((statistics_float64.flatten(), pooled.flatten(), deltas, winner_codes))
+
+
+@torch.inference_mode()
+def _locked_forecast_demand_cube_on_cuda() -> torch.Tensor:
+    demands = []
+    for seed in ROBUSTNESS_SEEDS:
+        draws = generate_scenario_base_draws(
+            ROBUSTNESS_BATCH_SIZE,
+            seed,
+            device="cuda:0",
+        )
+        demands.append(scenario_from_base_draws(draws, "mild").demand)
+    return torch.stack(demands)
+
+
+def verify_robustness_inference_on_cuda(payload: object) -> dict[str, int]:
+    """Reconstruct every robustness interval from persisted inputs on ``cuda:0``."""
+
+    document = validate_robustness_supplement_payload(payload)
+    schema = _require_mapping(document["schema"], field="schema")
+    if schema["version"] != ROBUSTNESS_SCHEMA_VERSION:
+        raise RobustnessArtifactError(
+            f"CUDA inference reconstruction requires robustness schema version "
+            f"{ROBUSTNESS_SCHEMA_VERSION}"
+        )
+    contract = robustness_delta_cube_contract()
+    controller_contract = robustness_base_controller_cube_contract()
+    sensitivity_controller_contract = robustness_sensitivity_controller_cube_contract()
+    power_contract = robustness_power_balance_cube_contract()
+    forecast_contract = robustness_forecast_demand_cube_contract()
+    try:
+        bootstrap_inputs = _require_mapping(document["bootstrap_inputs"], field="bootstrap_inputs")
+        delta_cube = delta_cube_to_cuda(
+            bootstrap_inputs["paired_delta_cube"],
+            contract=contract,
+            device="cuda:0",
+        )
+        controller_cube = base_controller_cube_to_cuda(
+            bootstrap_inputs["base_controller_cube"],
+            contract=controller_contract,
+            device="cuda:0",
+        )
+        sensitivity_controller_cube = sensitivity_controller_cube_to_cuda(
+            bootstrap_inputs["sensitivity_controller_cube"],
+            contract=sensitivity_controller_contract,
+            device="cuda:0",
+        )
+        power_balance_cube = power_balance_cube_to_cuda(
+            bootstrap_inputs["power_balance_cube"],
+            contract=power_contract,
+            device="cuda:0",
+        )
+        forecast_inputs = _require_mapping(document["forecast_inputs"], field="forecast_inputs")
+        forecast_demand_cube = forecast_demand_cube_to_cuda(
+            forecast_inputs["demand_cube"],
+            contract=forecast_contract,
+            device="cuda:0",
+        )
+        validate_reconstruction_cube_semantics(
+            delta_cube,
+            controller_cube,
+            sensitivity_controller_cube,
+            power_balance_cube,
+            delta_contract=contract,
+            base_controller_contract=controller_contract,
+            sensitivity_controller_contract=sensitivity_controller_contract,
+            power_balance_contract=power_contract,
+            maximum_outage_locality_hours=float(ROBUSTNESS_MAX_OUTAGE_LOCALITY_HOURS),
+        )
+        base, variants, differences = reconstruct_bootstrap_intervals(
+            delta_cube,
+            metric_names=tuple(PRIMARY_METRICS),
+            replicates=ROBUSTNESS_BOOTSTRAP_REPLICATES,
+            seed=ROBUSTNESS_BOOTSTRAP_SEED,
+        )
+        controller_means, maximum_power_balance = reconstruct_controller_statistics(
+            controller_cube,
+            power_balance_cube,
+        )
+        expected_forecast_demand = _locked_forecast_demand_cube_on_cuda()
+        if not bool(torch.equal(forecast_demand_cube, expected_forecast_demand)):
+            raise RobustnessInferenceError(
+                "persisted forecast demand traces do not match locked scenario reconstruction"
+            )
+        if bool(
+            torch.logical_or(
+                ~torch.isfinite(forecast_demand_cube),
+                forecast_demand_cube < 0.0,
+            )
+            .any()
+            .item()
+        ):
+            raise RobustnessInferenceError(
+                "persisted forecast demand traces must be finite and non-negative"
+            )
+        forecast_statistics = forecast_error_sufficient_statistics(forecast_demand_cube)
+        reconstructed_forecast = _reconstructed_forecast_tensor(forecast_statistics)
+    except (BootstrapError, RobustnessInferenceError, RuntimeError, ValueError) as error:
+        raise RobustnessArtifactError(f"bootstrap reconstruction failed: {error}") from error
+
+    try:
+        base_evaluation = _require_mapping(document["base_evaluation"], field="base_evaluation")
+        reported_controller_means = _reported_controller_mean_tensor(
+            base_evaluation["controller_means"],
+            device=delta_cube.device,
+        )
+        power_balance = _require_mapping(
+            base_evaluation["power_balance"],
+            field="base_evaluation.power_balance",
+        )
+        reported_maximum_power_balance = torch.tensor(
+            _number(
+                power_balance["maximum_violation_rate"],
+                field="base_evaluation.power_balance.maximum_violation_rate",
+            ),
+            dtype=torch.float64,
+            device=delta_cube.device,
+        )
+        reported_base = _reported_interval_tensor(
+            _require_mapping(
+                base_evaluation["paired_inference"], field="base_evaluation.paired_inference"
+            ),
+            device=delta_cube.device,
+        )
+        reported_forecast = _reported_forecast_reconstruction_tensor(
+            document["forecast_evaluation"],
+            device=delta_cube.device,
+        )
+        sensitivity = _require_mapping(document["sensitivity"], field="sensitivity")
+        variant_documents = sensitivity["variants"]
+        if not isinstance(variant_documents, list):
+            raise RobustnessArtifactError("sensitivity.variants must be a list")
+        reported_variants = torch.stack(
+            tuple(
+                _reported_interval_tensor(
+                    _require_mapping(
+                        _require_mapping(value, field=f"sensitivity.variants[{index}]")[
+                            "paired_inference"
+                        ],
+                        field=f"sensitivity.variants[{index}].paired_inference",
+                    ),
+                    device=delta_cube.device,
+                )
+                for index, value in enumerate(variant_documents)
+            )
+        )
+        reported_differences = torch.stack(
+            tuple(
+                _reported_interval_tensor(
+                    _require_mapping(
+                        _require_mapping(value, field=f"sensitivity.variants[{index}]")[
+                            "difference_in_differences"
+                        ],
+                        field=f"sensitivity.variants[{index}].difference_in_differences",
+                    ),
+                    device=delta_cube.device,
+                )
+                for index, value in enumerate(variant_documents)
+            )
+        )
+        _require_reconstructed_intervals("reconstructed base intervals", base, reported_base)
+        _require_reconstructed_intervals(
+            "reconstructed controller means",
+            controller_means,
+            reported_controller_means,
+        )
+        _require_reconstructed_intervals(
+            "reconstructed power-balance maximum",
+            maximum_power_balance,
+            reported_maximum_power_balance,
+        )
+        _require_reconstructed_intervals(
+            "reconstructed sensitivity intervals",
+            variants,
+            reported_variants,
+        )
+        _require_reconstructed_intervals(
+            "reconstructed difference-in-differences intervals",
+            differences,
+            reported_differences,
+        )
+        _require_reconstructed_intervals(
+            "reconstructed forecast summaries",
+            reconstructed_forecast,
+            reported_forecast,
+        )
+    except RuntimeError as error:
+        raise RobustnessArtifactError(f"CUDA report comparison failed: {error}") from error
+    return {
+        "parameterization_count": len(contract.parameterization_order),
+        "reconstructed_interval_set_count": 1 + 2 * (len(contract.parameterization_order) - 1),
+        "forecast_trace_count": len(ROBUSTNESS_SEEDS) * ROBUSTNESS_BATCH_SIZE,
+        "reconstructed_forecast_summary_count": 2 * len(ROBUSTNESS_SEEDS) * 2,
+    }
+
+
+def _write_canonical_robustness_bytes(encoded: bytes, path: str | Path) -> str:
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(f".{output.name}.tmp")
@@ -1472,13 +2150,49 @@ def write_robustness_supplement(payload: Mapping[str, object], path: str | Path)
     return hashlib.sha256(encoded).hexdigest()
 
 
-def verify_robustness_supplement(
+def _require_current_robustness_schema(payload: Mapping[str, object]) -> None:
+    schema = _require_mapping(payload["schema"], field="schema")
+    if schema["version"] != ROBUSTNESS_SCHEMA_VERSION:
+        raise RobustnessArtifactError(
+            f"candidate and release verification require robustness schema version "
+            f"{ROBUSTNESS_SCHEMA_VERSION}"
+        )
+
+
+def write_robustness_supplement_candidate(
+    payload: Mapping[str, object],
+    path: str | Path,
+) -> str:
+    """Write a canonical schema-v2 candidate without granting release trust."""
+
+    validated = validate_robustness_supplement_payload(payload)
+    _require_current_robustness_schema(validated)
+    return _write_canonical_robustness_bytes(
+        canonical_robustness_json_bytes(validated),
+        path,
+    )
+
+
+def write_robustness_supplement(payload: Mapping[str, object], path: str | Path) -> str:
+    """Write schema-v2 evidence only when it matches the project trust anchor."""
+
+    validated = validate_robustness_supplement_payload(payload)
+    _require_current_robustness_schema(validated)
+    encoded = canonical_robustness_json_bytes(validated)
+    actual_digest = hashlib.sha256(encoded).hexdigest()
+    if actual_digest != ROBUSTNESS_SUPPLEMENT_SHA256:
+        raise RobustnessArtifactError(
+            "robustness supplement does not match the project trust anchor: "
+            f"expected {ROBUSTNESS_SUPPLEMENT_SHA256}, found {actual_digest}"
+        )
+    return _write_canonical_robustness_bytes(encoded, path)
+
+
+def _verify_robustness_supplement_bytes(
     path: str | Path,
     *,
     expected_sha256: str,
 ) -> dict[str, Any]:
-    """Verify canonical bytes, the pinned digest, and all scientific invariants on host."""
-
     if type(expected_sha256) is not str or not _SHA256_PATTERN.fullmatch(expected_sha256):
         raise RobustnessArtifactError("expected_sha256 must be a lowercase SHA-256 digest")
     artifact_path = Path(path)
@@ -1507,6 +2221,47 @@ def verify_robustness_supplement(
     validated = validate_robustness_supplement_payload(payload)
     if canonical_robustness_json_bytes(validated) != encoded:
         raise RobustnessArtifactError("robustness supplement is not canonical JSON")
+    return validated
+
+
+def verify_robustness_supplement_candidate(
+    path: str | Path,
+    *,
+    expected_sha256: str,
+) -> dict[str, Any]:
+    """Verify canonical schema-v2 candidate bytes without granting release trust."""
+
+    validated = _verify_robustness_supplement_bytes(
+        path,
+        expected_sha256=expected_sha256,
+    )
+    _require_current_robustness_schema(validated)
+    return validated
+
+
+def verify_robustness_supplement(path: str | Path) -> dict[str, Any]:
+    """Verify canonical schema-v2 bytes against the project trust anchor."""
+
+    return verify_robustness_supplement_candidate(
+        path,
+        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
+    )
+
+
+def verify_legacy_robustness_supplement_host(
+    path: str | Path,
+    *,
+    expected_sha256: str,
+) -> dict[str, Any]:
+    """Read a pinned schema-v1 artifact on host without satisfying the release gate."""
+
+    validated = _verify_robustness_supplement_bytes(
+        path,
+        expected_sha256=expected_sha256,
+    )
+    schema = _require_mapping(validated["schema"], field="schema")
+    if schema["version"] != ROBUSTNESS_LEGACY_SCHEMA_VERSION:
+        raise RobustnessArtifactError("legacy host reader requires robustness schema version 1")
     return validated
 
 
@@ -1633,8 +2388,24 @@ def forecast_error_sufficient_statistics(demand_traces: torch.Tensor) -> torch.T
 
     demand_traces = _validate_forecast_trace_metadata(demand_traces)
 
+    seed_count, batch_size = demand_traces.shape[:2]
+    flattened_demand = demand_traces.reshape(
+        seed_count * batch_size,
+        HORIZON_HOURS,
+        len(LOCALITIES),
+        len(SECTORS),
+    )
+    flattened_trailing_mean = causal_demand_projection(
+        flattened_demand,
+        window_hours=3,
+        horizon_hours=1,
+    )
+    trailing_mean = flattened_trailing_mean.reshape(
+        seed_count,
+        batch_size,
+        *flattened_trailing_mean.shape[1:],
+    )
     targets = demand_traces[:, :, 3:HORIZON_HOURS]
-    trailing_mean = demand_traces.unfold(dimension=2, size=3, step=1)[:, :, :21].mean(dim=-1)
     persistence = demand_traces[:, :, 2 : HORIZON_HOURS - 1]
     methods: list[torch.Tensor] = []
     for predictions in (trailing_mean, persistence):

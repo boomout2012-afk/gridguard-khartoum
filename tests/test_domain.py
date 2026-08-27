@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import FrozenInstanceError
 
 import pytest
@@ -10,6 +11,7 @@ from gridguard.domain import (
     CRITICAL_SECTORS,
     LOCALITIES,
     LOCALITY_DEMAND_WEIGHTS,
+    NUMERIC_EPSILON,
     SECTOR_SHARES,
     SECTORS,
     ControllerName,
@@ -20,6 +22,7 @@ from gridguard.domain import (
     ServiceTier,
     ShortageLevel,
     SimulationResult,
+    canonical_reward_trace,
 )
 
 
@@ -84,6 +87,147 @@ def test_scenario_is_an_immutable_validated_24_hour_batch() -> None:
     assert scenario.available_supply_mw is scenario.supply
     with pytest.raises(FrozenInstanceError):
         scenario.seed = 18  # type: ignore[misc]
+
+
+def test_scenario_rejects_supply_above_total_demand_in_any_batch_hour() -> None:
+    demand = torch.ones((3, 24, 7, 5), dtype=torch.float32)
+    supply = demand.sum(dim=(-1, -2))
+    supply[2, 17] += 0.01
+
+    with pytest.raises(ValueError, match="supply must not exceed total demand"):
+        Scenario(
+            demand=demand,
+            supply=supply,
+            shortage_level=ShortageLevel.MILD,
+            seed=17,
+        )
+
+
+def test_scenario_accepts_supply_equal_to_total_demand() -> None:
+    demand = torch.ones((2, 24, 7, 5), dtype=torch.float32)
+
+    scenario = Scenario(
+        demand=demand,
+        supply=demand.sum(dim=(-1, -2)),
+        shortage_level=ShortageLevel.MILD,
+        seed=17,
+    )
+
+    assert scenario.batch_size == 2
+
+
+@pytest.mark.gpu
+def test_scenario_rejects_batched_cuda_supply_above_total_demand() -> None:
+    assert torch.cuda.is_available(), "the presentation CUDA runtime is required"
+    demand = torch.ones((3, 24, 7, 5), dtype=torch.float32, device="cuda:0")
+    supply = demand.sum(dim=(-1, -2))
+    supply[1, 9] += 0.01
+
+    with pytest.raises(ValueError, match="supply must not exceed total demand"):
+        Scenario(
+            demand=demand,
+            supply=supply,
+            shortage_level=ShortageLevel.SEVERE,
+            seed=17,
+        )
+
+
+def test_canonical_scenario_sha256_binds_trace_and_ordered_identity() -> None:
+    from gridguard.domain import canonical_scenario_sha256
+
+    scenario = _scenario()
+    first = canonical_scenario_sha256(scenario, batch_index=0)
+    changed_demand = scenario.demand.clone()
+    changed_demand[0, 0, 0, 0] += 0.25
+    changed_supply = scenario.supply.clone()
+    changed_supply[0, 0] += 0.25
+    variants = (
+        canonical_scenario_sha256(scenario, batch_index=1),
+        canonical_scenario_sha256(
+            Scenario(
+                demand=changed_demand,
+                supply=scenario.supply.clone(),
+                shortage_level=scenario.shortage_level,
+                seed=scenario.seed,
+            ),
+            batch_index=0,
+        ),
+        canonical_scenario_sha256(
+            Scenario(
+                demand=scenario.demand.clone(),
+                supply=changed_supply,
+                shortage_level=scenario.shortage_level,
+                seed=scenario.seed,
+            ),
+            batch_index=0,
+        ),
+        canonical_scenario_sha256(
+            Scenario(
+                demand=scenario.demand.clone(),
+                supply=scenario.supply.clone(),
+                shortage_level=ShortageLevel.MILD,
+                seed=scenario.seed,
+            ),
+            batch_index=0,
+        ),
+        canonical_scenario_sha256(
+            Scenario(
+                demand=scenario.demand.clone(),
+                supply=scenario.supply.clone(),
+                shortage_level=scenario.shortage_level,
+                seed=scenario.seed + 1,
+            ),
+            batch_index=0,
+        ),
+    )
+
+    assert re.fullmatch(r"[0-9a-f]{64}", first)
+    assert first == "2571b8dea51eb92df4941939d006ddc6f8a6acd93c1f765c79413b45eab58eee"
+    assert len({first, *variants}) == 6
+
+
+def test_scenario_mutation_guard_detects_bitwise_power_changes_on_its_device() -> None:
+    scenario = _scenario()
+    guard = scenario.capture_mutation_guard()
+
+    assert guard.device == scenario.demand.device
+    scenario.supply[0, 0] = -0.0
+
+    assert guard.changed_fields(scenario) == ("supply",)
+
+
+def test_scenario_mutation_guard_detects_write_then_restore_from_version_history() -> None:
+    scenario = _scenario()
+    guard = scenario.capture_mutation_guard()
+    original = scenario.demand.clone()
+
+    scenario.demand.add_(1.0)
+    scenario.demand.copy_(original)
+
+    assert torch.equal(scenario.demand, original)
+    assert guard.changed_fields(scenario) == ("demand",)
+
+
+def test_scenario_mutation_guard_detects_identical_tensor_replacement() -> None:
+    scenario = _scenario()
+    guard = scenario.capture_mutation_guard()
+
+    object.__setattr__(scenario, "supply", scenario.supply.clone())
+
+    assert guard.changed_fields(scenario) == ("supply",)
+
+
+def test_scenario_mutation_guard_detects_same_object_storage_replacement() -> None:
+    scenario = _scenario()
+    guard = scenario.capture_mutation_guard()
+    original_tensor = scenario.supply
+    original_bytes = scenario.supply.clone()
+
+    scenario.supply.data = scenario.supply.clone()
+
+    assert scenario.supply is original_tensor
+    assert torch.equal(scenario.supply, original_bytes)
+    assert guard.changed_fields(scenario) == ("supply",)
 
 
 @pytest.mark.parametrize(
@@ -157,13 +301,23 @@ def test_scenario_rejects_invalid_seed(seed: object) -> None:
 
 def test_simulation_result_validates_tiers_power_and_batch_shapes() -> None:
     scenario = _scenario()
+    requested = torch.zeros_like(scenario.demand)
+    requested[..., :CRITICAL_SECTOR_COUNT] = scenario.demand[..., :CRITICAL_SECTOR_COUNT]
+    scale = scenario.supply / requested.sum(dim=(-1, -2))
+    tiers = torch.full((2, 24, 7), ServiceTier.CRITICAL_ONLY, dtype=torch.long)
+    served = requested * scale[..., None, None]
     result = SimulationResult(
         controller_name=ControllerName.PPO,
         scenario=scenario,
-        service_tiers=torch.full((2, 24, 7), ServiceTier.CRITICAL_ONLY, dtype=torch.long),
-        requested=torch.full((2, 24, 7, 5), 0.5),
-        served=torch.full((2, 24, 7, 5), 0.5),
-        reward=torch.zeros((2, 24)),
+        service_tiers=tiers,
+        requested=requested,
+        served=served,
+        reward=canonical_reward_trace(
+            scenario=scenario,
+            service_tiers=tiers,
+            requested=requested,
+            served=served,
+        ),
     )
 
     assert result.controller_name is ControllerName.PPO
@@ -192,6 +346,130 @@ def test_simulation_result_validates_tiers_power_and_batch_shapes() -> None:
             requested=result.requested,
             served=negative_served,
             reward=result.reward,
+        )
+
+
+@pytest.mark.parametrize(
+    ("tier", "sector_index", "tampered_request_mw"),
+    (
+        (ServiceTier.OFF, 0, 1.0),
+        (ServiceTier.CRITICAL_ONLY, CRITICAL_SECTOR_COUNT, 1.0),
+        (ServiceTier.FULL_SERVICE, len(SECTORS) - 1, 0.0),
+    ),
+)
+def test_simulation_result_rejects_requested_power_inconsistent_with_service_tiers(
+    tier: ServiceTier,
+    sector_index: int,
+    tampered_request_mw: float,
+) -> None:
+    scenario = _scenario()
+    tiers = torch.full((2, 24, 7), tier, dtype=torch.long)
+    requested = torch.zeros_like(scenario.demand)
+    if tier >= ServiceTier.CRITICAL_ONLY:
+        requested[..., :CRITICAL_SECTOR_COUNT] = scenario.demand[..., :CRITICAL_SECTOR_COUNT]
+    if tier >= ServiceTier.FULL_SERVICE:
+        requested[..., CRITICAL_SECTOR_COUNT:] = scenario.demand[..., CRITICAL_SECTOR_COUNT:]
+    requested[..., sector_index] = tampered_request_mw
+    scale = torch.minimum(
+        torch.ones_like(scenario.supply),
+        scenario.supply / requested.sum(dim=(-1, -2)).clamp_min(NUMERIC_EPSILON),
+    )
+
+    with pytest.raises(ValueError, match="service-tier requests"):
+        SimulationResult(
+            controller_name=ControllerName.PPO,
+            scenario=scenario,
+            service_tiers=tiers,
+            requested=requested,
+            served=requested * scale[..., None, None],
+            reward=torch.zeros((2, 24)),
+        )
+
+
+def test_simulation_result_rejects_below_tolerance_off_tier_request_forgery() -> None:
+    scenario = _scenario()
+    tiers = torch.full((2, 24, 7), ServiceTier.OFF, dtype=torch.long)
+    requested = torch.zeros_like(scenario.demand)
+    requested[0, 0, 0, 0] = 5e-5
+    served = requested.clone()
+    reward = canonical_reward_trace(
+        scenario=scenario,
+        service_tiers=tiers,
+        requested=requested,
+        served=served,
+    )
+
+    with pytest.raises(ValueError, match="service-tier requests"):
+        SimulationResult(
+            controller_name=ControllerName.PPO,
+            scenario=scenario,
+            service_tiers=tiers,
+            requested=requested,
+            served=served,
+            reward=reward,
+        )
+
+
+def test_simulation_result_rejects_nonproportional_served_power() -> None:
+    scenario = _scenario()
+    tiers = torch.full((2, 24, 7), ServiceTier.FULL_SERVICE, dtype=torch.long)
+    requested = scenario.demand.clone()
+    scale = scenario.supply / requested.sum(dim=(-1, -2))
+    served = requested * scale[..., None, None]
+    served[0, 0, 0, 0] = 0.0
+
+    with pytest.raises(ValueError, match="proportional dispatch"):
+        SimulationResult(
+            controller_name=ControllerName.FIXED_ROTATION,
+            scenario=scenario,
+            service_tiers=tiers,
+            requested=requested,
+            served=served,
+            reward=torch.zeros((2, 24)),
+        )
+
+
+def test_simulation_result_rejects_below_tolerance_proportional_dispatch_forgery() -> None:
+    scenario = _scenario()
+    tiers = torch.full((2, 24, 7), ServiceTier.FULL_SERVICE, dtype=torch.long)
+    requested = scenario.demand.clone()
+    scale = scenario.supply / requested.sum(dim=(-1, -2))
+    served = requested * scale[..., None, None]
+    served[0, 0, 0, 0] += 5e-5
+    served[0, 0, 0, 1] -= 5e-5
+    reward = canonical_reward_trace(
+        scenario=scenario,
+        service_tiers=tiers,
+        requested=requested,
+        served=served,
+    )
+
+    with pytest.raises(ValueError, match="proportional dispatch"):
+        SimulationResult(
+            controller_name=ControllerName.FIXED_ROTATION,
+            scenario=scenario,
+            service_tiers=tiers,
+            requested=requested,
+            served=served,
+            reward=reward,
+        )
+
+
+def test_simulation_result_rejects_forged_finite_reward_trace() -> None:
+    scenario = _scenario()
+    tiers = torch.full((2, 24, 7), ServiceTier.CRITICAL_ONLY, dtype=torch.long)
+    requested = torch.zeros_like(scenario.demand)
+    requested[..., :CRITICAL_SECTOR_COUNT] = scenario.demand[..., :CRITICAL_SECTOR_COUNT]
+    scale = scenario.supply / requested.sum(dim=(-1, -2))
+
+    with pytest.raises(ValueError, match="canonical training-objective reward"):
+        SimulationResult(
+            controller_name=ControllerName.PPO,
+            scenario=scenario,
+            service_tiers=tiers,
+            requested=requested,
+            served=requested * scale[..., None, None],
+            reward=torch.full((2, 24), 0.12345),
         )
 
 

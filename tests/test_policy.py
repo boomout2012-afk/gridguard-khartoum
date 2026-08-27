@@ -304,11 +304,21 @@ def test_bundled_manifest_hash_matches_committed_actor() -> None:
     assert artifact.stat().st_size == manifest["artifact"]["size_bytes"]
     assert manifest["schema_version"] == 2
     assert manifest["training_provenance"]["schema"] == ("gridguard.ppo_training_provenance")
+    assert manifest["training_provenance"]["schema_version"] == 3
     assert (
         hashlib.sha256(training_provenance.read_bytes()).hexdigest()
         == (manifest["training_provenance"]["sha256"])
     )
     assert training_provenance.stat().st_size == manifest["training_provenance"]["size_bytes"]
+
+
+def test_host_verifier_accepts_bundled_schema_v2_training_provenance() -> None:
+    verified = verify_ppo_artifact(
+        BUNDLED_MANIFEST_PATH,
+        expected_artifact_sha256=BUNDLED_ARTIFACT_SHA256,
+    )
+
+    assert verified.manifest_path == BUNDLED_MANIFEST_PATH.resolve()
 
 
 def test_host_verifier_rejects_tampered_training_provenance_bytes(tmp_path: Path) -> None:

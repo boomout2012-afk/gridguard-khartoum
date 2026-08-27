@@ -15,7 +15,10 @@ from gridguard.evaluation import (
     canonical_paired_json_bytes,
     run_full_paired_evaluation,
     verify_paired_benchmark,
+    verify_paired_benchmark_candidate,
+    verify_paired_inference_on_cuda,
     write_paired_benchmark,
+    write_paired_benchmark_candidate,
 )
 from gridguard.gpu import GpuPreflightError, GpuRuntimeInfo, run_gpu_preflight
 from gridguard.policy import (
@@ -28,13 +31,17 @@ from gridguard.policy import (
 from gridguard.provenance import ProvenanceError, verify_project_source_manifest
 from gridguard.resources import ResourceLocationError, runtime_root
 from gridguard.robustness import (
+    ROBUSTNESS_SCHEMA_VERSION,
     ROBUSTNESS_SUPPLEMENT_SHA256,
     RobustnessArtifactError,
     canonical_robustness_json_bytes,
     run_full_robustness_evaluation,
     verify_robustness_implementation_sources,
+    verify_robustness_inference_on_cuda,
     verify_robustness_supplement,
+    verify_robustness_supplement_candidate,
     write_robustness_supplement,
+    write_robustness_supplement_candidate,
 )
 
 
@@ -55,6 +62,7 @@ def run_project_preflight(repository_root: Path | None = None) -> ProjectPreflig
     gpu = run_gpu_preflight()
     verified = _verify_repository_sources(root)
     paired = _verify_paired_evidence(root)
+    verify_paired_inference_on_cuda(paired)
     if ROBUSTNESS_SUPPLEMENT_SHA256:
         _verify_robustness_evidence(root)
     action = _verify_ppo_and_smoke(root)
@@ -117,7 +125,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--verify-evidence", action="store_true")
     action.add_argument("--reproduce-paired", action="store_true")
+    action.add_argument("--reproduce-paired-candidate", action="store_true")
     action.add_argument("--reproduce-robustness", action="store_true")
+    action.add_argument("--reproduce-robustness-candidate", action="store_true")
     parser.add_argument(
         "--output",
         type=Path,
@@ -149,6 +159,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Paired reproduction: PASS - byte-identical SHA-256 {digest}")
         return 0
 
+    if args.reproduce_paired_candidate:
+        if args.output is None:
+            parser.error("--output is required with --reproduce-paired-candidate")
+        try:
+            repository_root = args.repository_root or _source_repository_root()
+            digest = _reproduce_paired_candidate(repository_root, args.output)
+        except (
+            EvaluationArtifactError,
+            GpuPreflightError,
+            PolicyArtifactError,
+            ProvenanceError,
+            ResourceLocationError,
+        ) as error:
+            print(f"Paired untrusted candidate: FAIL - {error}", file=sys.stderr)
+            return 1
+        print(f"Paired untrusted candidate: PASS - SHA-256 {digest}")
+        return 0
+
     if args.reproduce_robustness:
         if args.output is None:
             parser.error("--output is required with --reproduce-robustness")
@@ -168,13 +196,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Robustness reproduction: PASS - byte-identical SHA-256 {digest}")
         return 0
 
+    if args.reproduce_robustness_candidate:
+        if args.output is None:
+            parser.error("--output is required with --reproduce-robustness-candidate")
+        try:
+            repository_root = args.repository_root or _source_repository_root()
+            digest = _reproduce_robustness_candidate(repository_root, args.output)
+        except (
+            EvaluationArtifactError,
+            GpuPreflightError,
+            PolicyArtifactError,
+            ProvenanceError,
+            ResourceLocationError,
+            RobustnessArtifactError,
+        ) as error:
+            print(f"Robustness untrusted candidate: FAIL - {error}", file=sys.stderr)
+            return 1
+        print(f"Robustness untrusted candidate: PASS - SHA-256 {digest}")
+        return 0
+
     if args.output is not None:
         parser.error("--output is only valid with a reproduction action")
 
     try:
         repository_root = args.repository_root or _source_repository_root()
+        run_gpu_preflight()
         verified = _verify_repository_sources(repository_root)
         paired = _verify_paired_evidence(repository_root)
+        verify_paired_inference_on_cuda(paired)
         robustness_verified = False
         if ROBUSTNESS_SUPPLEMENT_SHA256:
             _verify_robustness_evidence(repository_root)
@@ -182,6 +231,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         _verify_ppo_host(repository_root)
     except (
         EvaluationArtifactError,
+        GpuPreflightError,
         PolicyArtifactError,
         ProvenanceError,
         ResourceLocationError,
@@ -208,7 +258,6 @@ def _verify_repository_sources(repository_root: Path) -> tuple:
 def _verify_paired_evidence(repository_root: Path) -> dict:
     return verify_paired_benchmark(
         repository_root / "data" / "evidence" / "paired-benchmark.json",
-        expected_sha256=PAIRED_BENCHMARK_SHA256,
         frozen_benchmark_path=(repository_root / "data" / "evidence" / "frozen-benchmark.json"),
     )
 
@@ -224,13 +273,38 @@ def _verify_robustness_evidence(repository_root: Path) -> dict:
     if not ROBUSTNESS_SUPPLEMENT_SHA256:
         raise RobustnessArtifactError("robustness supplement trust anchor is not finalized")
     verify_robustness_implementation_sources(repository_root)
-    return verify_robustness_supplement(
+    payload = verify_robustness_supplement(
         repository_root / "data" / "evidence" / "robustness-supplement.json",
-        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
     )
+    schema = payload.get("schema")
+    if not isinstance(schema, dict) or schema.get("version") != ROBUSTNESS_SCHEMA_VERSION:
+        raise RobustnessArtifactError(
+            f"release verification requires schema version {ROBUSTNESS_SCHEMA_VERSION}"
+        )
+    verify_robustness_inference_on_cuda(payload)
+    return payload
 
 
 def _reproduce_paired_evidence(repository_root: Path, output_path: Path) -> str:
+    return _run_paired_reproduction(
+        repository_root,
+        output_path,
+        expected_sha256=PAIRED_BENCHMARK_SHA256,
+    )
+
+
+def _reproduce_paired_candidate(repository_root: Path, output_path: Path) -> str:
+    """Write and semantically verify a v3 candidate before trust-anchor promotion."""
+
+    return _run_paired_reproduction(repository_root, output_path, expected_sha256=None)
+
+
+def _run_paired_reproduction(
+    repository_root: Path,
+    output_path: Path,
+    *,
+    expected_sha256: str | None,
+) -> str:
     trusted_path = (repository_root / "data" / "evidence" / "paired-benchmark.json").resolve()
     resolved_output = output_path.expanduser().resolve()
     if resolved_output == trusted_path:
@@ -239,7 +313,10 @@ def _reproduce_paired_evidence(repository_root: Path, output_path: Path) -> str:
         )
 
     run_gpu_preflight()
-    _verify_repository_sources(repository_root)
+    if expected_sha256 is not None:
+        if not expected_sha256:
+            raise EvaluationArtifactError("paired benchmark trust anchor is not finalized")
+        _verify_repository_sources(repository_root)
     payload = run_full_paired_evaluation(
         ppo_manifest_path=repository_root / "data" / "model" / "manifest.json",
         expected_ppo_artifact_sha256=BUNDLED_ARTIFACT_SHA256,
@@ -248,34 +325,67 @@ def _reproduce_paired_evidence(repository_root: Path, output_path: Path) -> str:
     )
     encoded = canonical_paired_json_bytes(payload)
     digest = hashlib.sha256(encoded).hexdigest()
-    if digest != PAIRED_BENCHMARK_SHA256:
+    if expected_sha256 is not None and digest != expected_sha256:
         raise EvaluationArtifactError(
             "reproduced paired evidence differs from the project trust anchor: "
-            f"expected {PAIRED_BENCHMARK_SHA256}, found {digest}"
+            f"expected {expected_sha256}, found {digest}"
         )
-    written_digest = write_paired_benchmark(payload, resolved_output)
+    if expected_sha256 is None:
+        written_digest = write_paired_benchmark_candidate(payload, resolved_output)
+    else:
+        written_digest = write_paired_benchmark(
+            payload,
+            resolved_output,
+            frozen_benchmark_path=(repository_root / "data" / "evidence" / "frozen-benchmark.json"),
+        )
     if written_digest != digest:
         raise EvaluationArtifactError("paired evidence changed while it was written")
-    verify_paired_benchmark(
-        resolved_output,
-        expected_sha256=PAIRED_BENCHMARK_SHA256,
-        frozen_benchmark_path=(repository_root / "data" / "evidence" / "frozen-benchmark.json"),
-    )
+    if expected_sha256 is None:
+        verified = verify_paired_benchmark_candidate(
+            resolved_output,
+            expected_sha256=digest,
+        )
+    else:
+        verified = verify_paired_benchmark(
+            resolved_output,
+            frozen_benchmark_path=(repository_root / "data" / "evidence" / "frozen-benchmark.json"),
+        )
+    verify_paired_inference_on_cuda(verified)
     return digest
 
 
 def _reproduce_robustness_evidence(repository_root: Path, output_path: Path) -> str:
+    return _run_robustness_reproduction(
+        repository_root,
+        output_path,
+        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
+    )
+
+
+def _reproduce_robustness_candidate(repository_root: Path, output_path: Path) -> str:
+    """Write and semantically verify a v2 candidate before trust-anchor promotion."""
+
+    return _run_robustness_reproduction(repository_root, output_path, expected_sha256=None)
+
+
+def _run_robustness_reproduction(
+    repository_root: Path,
+    output_path: Path,
+    *,
+    expected_sha256: str | None,
+) -> str:
     trusted_path = (repository_root / "data" / "evidence" / "robustness-supplement.json").resolve()
     resolved_output = output_path.expanduser().resolve()
     if resolved_output == trusted_path:
         raise RobustnessArtifactError(
             "robustness reproduction refuses to overwrite the trusted evidence artifact"
         )
-    if not ROBUSTNESS_SUPPLEMENT_SHA256:
+    if expected_sha256 is not None and not expected_sha256:
         raise RobustnessArtifactError("robustness supplement trust anchor is not finalized")
 
     run_gpu_preflight()
-    _verify_repository_sources(repository_root)
+    if expected_sha256 is not None:
+        _verify_repository_sources(repository_root)
     payload = run_full_robustness_evaluation(
         ppo_manifest_path=repository_root / "data" / "model" / "manifest.json",
         expected_ppo_artifact_sha256=BUNDLED_ARTIFACT_SHA256,
@@ -283,18 +393,25 @@ def _reproduce_robustness_evidence(repository_root: Path, output_path: Path) -> 
     )
     encoded = canonical_robustness_json_bytes(payload)
     digest = hashlib.sha256(encoded).hexdigest()
-    if digest != ROBUSTNESS_SUPPLEMENT_SHA256:
+    if expected_sha256 is not None and digest != expected_sha256:
         raise RobustnessArtifactError(
             "reproduced robustness evidence differs from the project trust anchor: "
-            f"expected {ROBUSTNESS_SUPPLEMENT_SHA256}, found {digest}"
+            f"expected {expected_sha256}, found {digest}"
         )
-    written_digest = write_robustness_supplement(payload, resolved_output)
+    if expected_sha256 is None:
+        written_digest = write_robustness_supplement_candidate(payload, resolved_output)
+    else:
+        written_digest = write_robustness_supplement(payload, resolved_output)
     if written_digest != digest:
         raise RobustnessArtifactError("robustness evidence changed while it was written")
-    verify_robustness_supplement(
-        resolved_output,
-        expected_sha256=ROBUSTNESS_SUPPLEMENT_SHA256,
-    )
+    if expected_sha256 is None:
+        verified = verify_robustness_supplement_candidate(
+            resolved_output,
+            expected_sha256=digest,
+        )
+    else:
+        verified = verify_robustness_supplement(resolved_output)
+    verify_robustness_inference_on_cuda(verified)
     return digest
 
 
@@ -305,8 +422,13 @@ def _verify_ppo_and_smoke(repository_root: Path) -> tuple[int, ...]:
         repository_root / "data" / "model" / "manifest.json",
         expected_artifact_sha256=BUNDLED_ARTIFACT_SHA256,
     )
-    observation = torch.zeros(OBSERVATION_DIM, dtype=torch.float32, device="cuda:0")
-    action = tuple(int(tier) for tier in actor.act(observation).tolist())
+    try:
+        observation = torch.zeros(OBSERVATION_DIM, dtype=torch.float32, device="cuda:0")
+        action = tuple(int(tier) for tier in actor.act(observation).tolist())
+    except PolicyArtifactError:
+        raise
+    except RuntimeError as error:
+        raise PolicyArtifactError(f"PPO CUDA smoke inference failed: {error}") from error
     expected = (1, 1, 1, 1, 1, 1, 1)
     if action != expected:
         raise PolicyArtifactError(
