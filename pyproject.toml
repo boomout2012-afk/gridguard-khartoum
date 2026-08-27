@@ -37,21 +37,37 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gridguard"]
+exclude = ["src/gridguard/assets/**"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/RELEASE_MANIFEST.json"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"data/evidence" = "gridguard/_bundled/data/evidence"
-"data/model" = "gridguard/_bundled/data/model"
+"data/evidence/frozen-benchmark.json" = "gridguard/_bundled/data/evidence/frozen-benchmark.json"
+"data/evidence/paired-benchmark.json" = "gridguard/_bundled/data/evidence/paired-benchmark.json"
+"data/evidence/robustness-supplement.json" = "gridguard/_bundled/data/evidence/robustness-supplement.json"
+"data/evidence/source-manifest.json" = "gridguard/_bundled/data/evidence/source-manifest.json"
+"data/model/manifest.json" = "gridguard/_bundled/data/model/manifest.json"
+"data/model/ppo-policy.npz" = "gridguard/_bundled/data/model/ppo-policy.npz"
+"data/model/training-provenance.yaml" = "gridguard/_bundled/data/model/training-provenance.yaml"
 "docs/source/graduation-project-proposal.pdf" = "gridguard/_bundled/docs/source/graduation-project-proposal.pdf"
-"src/gridguard/controllers.py" = "gridguard/_bundled/src/gridguard/controllers.py"
-"src/gridguard/domain.py" = "gridguard/_bundled/src/gridguard/domain.py"
-"src/gridguard/evaluation.py" = "gridguard/_bundled/src/gridguard/evaluation.py"
-"src/gridguard/metrics.py" = "gridguard/_bundled/src/gridguard/metrics.py"
-"src/gridguard/policy.py" = "gridguard/_bundled/src/gridguard/policy.py"
-"src/gridguard/robustness.py" = "gridguard/_bundled/src/gridguard/robustness.py"
-"src/gridguard/robustness_provenance.py" = "gridguard/_bundled/src/gridguard/robustness_provenance.py"
-"src/gridguard/scenarios.py" = "gridguard/_bundled/src/gridguard/scenarios.py"
-"src/gridguard/simulation.py" = "gridguard/_bundled/src/gridguard/simulation.py"
-"src/gridguard/statistics.py" = "gridguard/_bundled/src/gridguard/statistics.py"
+"src/gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf" = "gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf"
+"src/gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf" = "gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf"
+"src/gridguard/assets/fonts/IBMPlexMono-Regular.ttf" = "gridguard/assets/fonts/IBMPlexMono-Regular.ttf"
+"src/gridguard/assets/fonts/IBMPlexMono-SemiBold.ttf" = "gridguard/assets/fonts/IBMPlexMono-SemiBold.ttf"
+"src/gridguard/assets/fonts/SourceSerif4-Regular.ttf" = "gridguard/assets/fonts/SourceSerif4-Regular.ttf"
+"src/gridguard/assets/fonts/SourceSerif4-Semibold.ttf" = "gridguard/assets/fonts/SourceSerif4-Semibold.ttf"
+"src/gridguard/assets/fonts/THIRD_PARTY_FONTS.md" = "gridguard/assets/fonts/THIRD_PARTY_FONTS.md"
+"src/gridguard/assets/fonts/licenses/AtkinsonHyperlegible-OFL.txt" = "gridguard/assets/fonts/licenses/AtkinsonHyperlegible-OFL.txt"
+"src/gridguard/assets/fonts/licenses/IBMPlexMono-license.txt" = "gridguard/assets/fonts/licenses/IBMPlexMono-license.txt"
+"src/gridguard/assets/fonts/licenses/SourceSerif4-LICENSE.md" = "gridguard/assets/fonts/licenses/SourceSerif4-LICENSE.md"
+"src/gridguard/assets/map/THIRD_PARTY_DATA.md" = "gridguard/assets/map/THIRD_PARTY_DATA.md"
+"src/gridguard/assets/map/khartoum-localities.geojson" = "gridguard/assets/map/khartoum-localities.geojson"
+"src/gridguard/assets/map/khartoum-nile.geojson" = "gridguard/assets/map/khartoum-nile.geojson"
+"src/gridguard/assets/map/map-provenance.json" = "gridguard/assets/map/map-provenance.json"
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }

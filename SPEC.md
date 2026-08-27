@@ -1,9 +1,9 @@
 # Specification: GridGuard Khartoum
 
-Status: Approved implementation contract; Phase 6 remediation in progress
+Status: Approved implementation contract; Phase 6 remediation complete
 Date: 2026-08-15
-Revision: 2026-08-26 (target release 1.2.0 audit contract)
-Target release: 1.2.0 (unreleased)
+Revision: 2026-08-27 (release 1.2.0)
+Release: 1.2.0 (2026-08-27)
 Released baseline: 1.1.0 (2026-08-26)
 Source proposal: `docs/source/graduation-project-proposal.pdf`
 Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48`
@@ -18,15 +18,16 @@ Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d3
   architecture, behavior-cloning initialization, PPO hyperparameters, workload, seeds,
   validation and selection, hardware, source bindings, and convergence in one reviewer-facing
   YAML file.
-- Release 1.2.0 remains unreleased until every ledger row is closed with current evidence and the
-  final reviewed commit is published to the approved private remote.
+- Release 1.2.0 closes every ledger row with current evidence. The final handoff separately reports
+  exact local/private-remote branch SHA equality because a Git branch cannot record its own future
+  head SHA without changing that SHA.
 
 ## Assumptions
 
 1. The presentation target is a Windows laptop.
 2. The primary application and benchmark run on the presentation laptop's NVIDIA GPU and require a successful CUDA preflight; internet access is never required.
 3. The public scientific claim is limited to the hash-pinned evidence roles: the accepted
-   reproduction preserves historical parity, while the untouched confirmatory supplement reports
+   reproduction preserves historical parity, while the documented-seed-disjoint holdout reports
    the reviewer-facing comparison of PPO and Fixed Rotation on three primary outcomes inside the
    stated synthetic shortage protocol.
 4. Legacy experiment versions are research history, not part of this clean project.
@@ -93,14 +94,14 @@ The presenter opens a Results view containing the proposal-level comparison and 
 
 Acceptance conditions:
 
-- Headline values are loaded from the committed, hash-verified untouched confirmatory supplement.
+- Headline values are loaded from the committed, hash-verified documented-seed-disjoint holdout.
 - The primary table contains exactly critical-outage locality-hours, Jain fairness, and
   utilization for PPO and Fixed Rotation across seeds 81001-81010: 320 independent base draws,
   960 matched scenario conditions, and 1,920 controller-scenario evaluations.
 - Training-objective score is diagnostic, while power-balance violation rate is shown separately
   as a safety invariant.
 - The accepted reproduction remains available for historical parity but is visibly labeled as
-  not an untouched final test because its three seeds participated in model selection.
+  not an independently custodied final test because its three seeds participated in model selection.
 - The synthetic-data and decision-support-only limitations remain visible.
 - All evidence verification is sign-neutral. Result direction is descriptive and never a release
   gate.
@@ -134,6 +135,11 @@ aspect-fits it into a fixed scene without a GIS or network dependency.
 
 ## Commands
 
+The release test contract has four distinct stages: the portable gate for ordinary development,
+the mandatory presentation-GPU gate for the complete source/runtime suite, the strict post-build
+`release_artifact` gate for the frozen Windows tree, and the optional source-archive parity gate.
+The normal package build does not require the sibling research archive.
+
 ```powershell
 # Install development dependencies
 uv sync --extra dev --extra docs
@@ -141,37 +147,42 @@ uv sync --extra dev --extra docs
 # Run the desktop application
 uv run gridguard-desktop
 
-# Verify the required NVIDIA GPU, CUDA, PyTorch, CuPy, model, and evidence
-uv run gridguard-doctor
-
-# Verify the source-bound accepted and untouched evidence artifacts
-uv run gridguard-evaluate --verify-evidence
-
 # Reproduce the paired benchmark without overwriting the trusted artifact
 uv run gridguard-evaluate --reproduce-paired --output .\paired-benchmark-reproduced.json
 
-# Reproduce the untouched robustness supplement without overwriting the trusted artifact
+# Reproduce the documented-seed-disjoint robustness supplement without overwriting the trusted artifact
 uv run gridguard-evaluate --reproduce-robustness --output .\robustness-supplement-reproduced.json
 
 # Print the validated PPO training summary
 uv run --extra docs python tools/training_provenance.py --path data/model/training-provenance.yaml --model-manifest data/model/manifest.json --summary-json
 
-# Portable unit gate, then mandatory presentation-laptop release gate
-uv run pytest -m "not gpu and not source_archive"
-uv run pytest
+# Portable gate: no GPU, source archive, or built release tree required
+uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
+
+# Mandatory presentation-GPU gate: source/runtime tests and evidence, with zero skips
+uv run --no-sync gridguard-doctor
+uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
+uv run --no-sync gridguard-evaluate --verify-evidence
+
+# Build, then run the strict post-build release_artifact gate
+.\scripts\build-presentation.ps1
+uv run --no-sync pytest -ra -m "release_artifact"
+
+# Optional source-archive parity gate when the read-only research archive is supplied
+.\scripts\build-presentation.ps1 -StrictSourceParity `
+  -SourceRepositoryPath ..\aipower_rl `
+  -SourceCheckpointPath ..\aipower_rl\artifacts\checkpoints\best.pt
 
 # Run lint checks
 uv run ruff check .
 
-# Build the Windows presentation application
-uv run pyinstaller --noconfirm packaging/gridguard.spec
 ```
 
 ## Project structure
 
 ```text
 data/
-  evidence/                     accepted reproduction, untouched robustness, and provenance
+  evidence/                     accepted reproduction, seed-disjoint robustness, and provenance
   model/                        PPO actor, manifest, and training-provenance.yaml
 docs/
   source/                       accepted proposal PDF
@@ -186,11 +197,11 @@ src/gridguard/
   scenarios.py                  synthetic demand/supply generation
   forecast.py                   separate display-only causal demand projection
   simulation.py                 24-hour load-shedding state transitions
-  controllers.py                fixed rotation and learned-policy adapters
+  controllers.py                Fixed Rotation and learned-policy adapters
   policy.py                     inference-only PPO network and loader
   metrics.py                    proposal-aligned outcome calculations
   evaluation.py                 matched evaluation and evidence verification
-  robustness.py                 untouched evaluation, sensitivity, and forecast evidence
+  robustness.py                 seed-disjoint evaluation, sensitivity, and forecast evidence
   cli.py                        reproducibility command
   ui/                           native desktop views and presentation state
 tasks/                          reviewed plan and completion checklist
@@ -206,7 +217,8 @@ def run_matched_scenario(
     scenario: Scenario,
     controllers: tuple[Controller, ...],
 ) -> dict[ControllerName, SimulationResult]:
-    """Evaluate every controller against the same immutable scenario."""
+    """Evaluate every controller against the same guarded scenario;
+    detected demand/supply mutation fails closed."""
     return {
         controller.name: simulate(scenario=scenario, controller=controller)
         for controller in controllers
@@ -236,7 +248,7 @@ Canonical public metrics have one definition and aggregation path:
 - power-balance violation rate is a separate safety invariant; and
 - aggregate controller results are equally weighted arithmetic means of episode metrics. In the
   accepted reproduction, nine shortage-by-seed cell means give the same aggregate because every
-  cell contains 32 episodes; the untouched supplement applies the same rule across 30 equal-size
+  cell contains 32 episodes; the documented-seed-disjoint supplement applies the same rule across 30 equal-size
   shortage-by-seed cells per controller.
 
 `validate_paired_benchmark_payload` is a neutral integrity validator. It enforces closed schema,
@@ -252,10 +264,15 @@ result is required for writing, verification, packaging, display, or release.
 
 [data/model/training-provenance.yaml](data/model/training-provenance.yaml) is the canonical
 historical training record. Its SHA-256 is
-`2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`; the model manifest binds it.
-It records the actor architecture, behavior-cloning initialization, 600 PPO iterations, 153,600
-episodes, 3,686,400 transitions, Adam settings, validation and selection, seed roles, hardware,
-source lineage, and convergence. It is not an executable bitwise-retraining configuration.
+`d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8`; the model manifest binds it.
+It records the actor architecture, behavior-cloning initialization, Adam settings, validation and
+selection, seed roles, source lineage, and the provenance class of every recovered field. The
+selected seed-43 run used 600 PPO iterations, 153,600 episodes, and 3,686,400 transitions; the
+three-seed candidate experiment totaled 1,800 iterations, 460,800 episodes, and 11,059,200
+transitions. Runtime, hardware, and convergence values are scoped to selected seed 43. Historical
+promotion gates are model-selection facts, not independent headline evidence. The record explicitly
+labels unavailable historical environment facts and is not an executable bitwise-retraining
+configuration.
 
 ## Testing strategy
 
@@ -278,7 +295,7 @@ Golden cases generated from the accepted source implementation must prove that t
 - Same scenario is passed to both controllers
 - All three shortage levels run end to end
 - Accepted-reproduction reconstruction matches the frozen benchmark's 18 committed cell summaries
-- Untouched reviewer-facing headline values verify independently from the robustness supplement
+- Documented-seed-disjoint reviewer-facing headline values verify independently from the robustness supplement
 - Desktop presentation model loads offline after the CUDA/PyTorch/CuPy preflight
 
 ### GUI tests
@@ -305,9 +322,17 @@ Supported:
 
 - The accepted reproduction preserves 96 independent base draws, 288 matched scenario conditions,
   and 576 controller-scenario evaluations, but its seeds were involved in model selection.
-- The untouched confirmatory evaluation covers seeds 81001-81010, 320 independent base draws, 960
+- The documented-seed-disjoint holdout covers seeds 81001-81010, 320 independent base draws, 960
   matched scenario conditions, and 1,920 controller-scenario evaluations under Mild, Moderate,
   and Severe shortage-only operation.
+- Seed disjointness is established only against every documented training, validation, and
+  model-selection seed in `data/model/training-provenance.yaml`. The holdout was not preregistered
+  or independently custodied and cannot rule out undocumented activity.
+- Sensitivity intervals are descriptive, pointwise 95%, and unadjusted for multiple comparisons;
+  they do not support family-wide significance claims.
+- No behavior-cloning-only ablation was run, so this comparison cannot isolate the
+  incremental effect of PPO fine-tuning.
+- Fixed Rotation is supply-blind, limited to Off and Full Service, and cannot select Critical Only.
 - Descriptive comparison of critical-outage locality-hours, fairness, utilization, and the
   separate zero-tolerance power-balance safety invariant under the locked synthetic protocol.
 - The software demonstrates how AI can support load-shedding decisions under simplified shortage scenarios.
@@ -359,7 +384,7 @@ Not supported:
 - Every proposal objective and expected deliverable has an explicit implementation or document reference in `docs/PROPOSAL_TRACEABILITY.md`.
 - The repository contains only proposal-relevant product code, tests, frozen evidence, final documents, and presentation assets.
 - PPO versus Fixed Rotation can be reproduced on CUDA across Mild, Moderate, and Severe matched scenarios.
-- Both the accepted 96-base-draw / 288-condition / 576-evaluation reproduction and the untouched
+- Both the accepted 96-base-draw / 288-condition / 576-evaluation reproduction and the documented-seed-disjoint
   320-base-draw / 960-condition / 1,920-evaluation supplement are verified from committed artifacts.
 - Reviewers can find every historical training parameter in the strict, hash-bound
   `data/model/training-provenance.yaml` record.

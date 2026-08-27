@@ -42,6 +42,8 @@ jobs:
         run: uv run --no-sync ruff format --check .
 
       - name: Run portable tests
+        env:
+          CUDA_VISIBLE_DEVICES: "-1"
         run: uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
 
       - name: Build wheel and source archive

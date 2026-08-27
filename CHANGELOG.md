@@ -1,10 +1,9 @@
 # Changelog
 
-## 1.2.0 - Unreleased
+## 1.2.0 - 2026-08-27
 
-This section tracks the active adversarial-remediation release. It is not completed release
-evidence: each A01-A24 row must be closed against current artifacts and the exact reviewed commit
-before 1.2.0 is promoted.
+This release closes the A01-A24 adversarial-remediation register against the reviewed evidence,
+academic artifacts, offline Windows package, and private-branch handoff.
 
 ### Added
 
@@ -12,13 +11,32 @@ before 1.2.0 is promoted.
   disposition, implementation owner, live status, and closure-evidence slot per finding.
 - Made the canonical, strict `data/model/training-provenance.yaml` record conspicuous from both the
   README and specification without claiming that excluded optimizer state or raw runs exist.
+- Added persisted per-draw robustness inputs, CUDA endpoint reconstruction, candidate/trusted API
+  separation, and fail-closed source bindings for the exact implementation bundle.
+- Added canonical matched-scenario fingerprints, controller mutation guards, and exact reuse of the
+  base available-supply trace during demand-allocation sensitivity.
+- Added deterministic screenshot regeneration and hash-bound visual validation for all report
+  pages, slides, and speaker-note slides.
 
-### In progress
+### Changed
 
-- Correct scientific interval, scenario-identity, sensitivity, seed-role, and attribution
-  semantics while preserving the approved proposal boundary.
-- Rebuild claim surfaces, release validation, Windows packaging, and the manifest, then publish
-  the exact reviewed branch SHA privately.
+- Reframed the reviewer-facing result as a documented-seed-disjoint holdout with explicit
+  preregistration, custody, undocumented-activity, multiplicity, attribution, baseline, and
+  synthetic-only limitations.
+- Kept critical-outage locality-hours, Jain fairness, and utilization as the three primary
+  outcomes; kept the Training-objective score diagnostic and power balance a separate invariant.
+- Split oversized desktop coordinators into focused tested components while preserving keyboard,
+  accessibility, live/frozen separation, and 1366x768 behavior.
+- Made the normal release build hermetic and archive-independent; source-archive parity is now an
+  explicit optional audit.
+
+### Fixed
+
+- Removed stale 1.0.0 distribution outputs, duplicate CUDA DLL copies, the ambient smoke switch,
+  and conditional release-artifact skips.
+- Corrected report/deck/UI terminology, citation and module maps, baseline disclosure, slide
+  vocabulary, screenshot claims, sensitivity counts, and package-source completeness.
+- Rebuilt and inspected the 38-page report and 13-slide deck, including all 13 speaker-note slides.
 
 ## 1.1.0 - 2026-08-26
 
@@ -30,8 +48,10 @@ before 1.2.0 is promoted.
 - Added a strict, model-manifest-bound `data/model/training-provenance.yaml` record containing the
   network, behavior-cloning initialization, PPO hyperparameters, workload, seeds, selection,
   hardware, convergence, and source hashes.
-- Added untouched confirmatory evidence over ten new seeds, 24 one-factor-at-a-time sensitivity
-  variants, and a causal trailing-mean forecast comparison against persistence.
+- Added the ten-seed robustness evidence, originally labeled "untouched confirmatory" in 1.1.0;
+  1.2.0 corrects that label to documented-seed-disjoint holdout and adds its custody boundary.
+- Added 24 one-factor-at-a-time sensitivity variants and a causal trailing-mean forecast
+  comparison against persistence.
 - Added domain Related Work, a criticism disposition ledger, explicit baseline/dispatch/scaling/
   optimum/shortage limitations, and reviewer-facing training/evidence summaries.
 

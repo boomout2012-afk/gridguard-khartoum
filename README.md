@@ -13,9 +13,9 @@ and supply no scientific input.
 
 ## Reviewer start here
 
-Current development target: **1.2.0 (unreleased)**. Release 1.1.0 remains the historical baseline;
-the target version and its changelog are not a claim that final validation or publication has
-already occurred.
+Current release: **1.2.0 (2026-08-27)**. Release 1.1.0 remains the historical baseline. The 1.2.0
+release is bound to the final evidence, report, deck, Windows package, validation record, release
+manifest, and reviewed private-branch handoff described below.
 
 - Read the approved implementation contract in [SPEC.md](SPEC.md).
 - Track every confirmed remediation finding in the
@@ -44,18 +44,26 @@ The GPU runtime rationale and trade-offs are recorded in `docs/decisions/ADR-001
 
 The evidence package has two deliberately different roles. The accepted reproduction at
 `data/evidence/paired-benchmark.json` (SHA-256
-`6052e9e47d92e82a0f1db0d3643a2e9be6edc5f3e9fc615b0b185964b54c1677`) preserves the historical
+`7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5`) preserves the historical
 comparison: 96 independent synthetic base draws crossed with Mild, Moderate, and Severe shortages,
 giving 288 matched scenario conditions and 576 controller-scenario evaluations. Seeds
 `50001-50003` were gradient-disjoint, but the archived promotion process reused them during model
-selection. This layer is therefore accepted reproduction evidence, not an untouched final test.
+selection. This layer is therefore accepted reproduction evidence, not an independently custodied final test.
 
-The untouched confirmatory supplement at `data/evidence/robustness-supplement.json` (SHA-256
-`c89e04b1bdca371e1728f6b4cb19f4e899261ab805c2e400c15e835eaf75a30b`) uses seeds 81001-81010: 320 independent base draws, 960 matched scenario
+The documented-seed-disjoint holdout at `data/evidence/robustness-supplement.json` (SHA-256
+`fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1`) uses seeds 81001-81010: 320 independent base draws, 960 matched scenario
 conditions, and 1,920 controller-scenario evaluations. It also evaluates 24 one-factor-at-a-time
 locality-weight and sector-share perturbations, for 25 parameterizations including the base, and
 compares the display-only three-hour trailing-mean forecast with one-hour persistence on common
-target hours. PPO and Fixed Rotation always receive identical scenario tensors within a pair.
+target hours. Those seeds are disjoint only from every documented training, validation, and
+model-selection seed in `data/model/training-provenance.yaml`. The holdout was not preregistered or
+independently custodied and cannot rule out undocumented activity. PPO and Fixed Rotation use the same validated
+scenario within each pair; device-side guards reject detected demand or supply mutation.
+
+Sensitivity intervals are descriptive, pointwise 95%, and unadjusted for multiple comparisons;
+they do not support family-wide significance claims. No behavior-cloning-only ablation was run, so
+this comparison cannot isolate the incremental effect of PPO fine-tuning. Fixed Rotation is
+supply-blind, limited to Off and Full Service, and cannot select Critical Only.
 
 The public primary outcomes are critical-outage locality-hours, Jain fairness, and utilization.
 Power-balance violation rate is a separate safety invariant. The episode reward is labeled
@@ -72,14 +80,18 @@ simulation results for decision-support research, not measurements from Sudan's 
 
 ## PPO training parameters
 
-The complete reviewer-facing historical record is
+The canonical reviewer-facing historical record is
 [data/model/training-provenance.yaml](data/model/training-provenance.yaml) (SHA-256
-`2cfa158a4b26596fd1f155c57fa79a88dc1c41ce8df946792c559184a815128a`). It records the
+`d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8`). It records the
 32 -> 512 -> 512 -> 2,187 actor, behavior-cloning initialization, PPO optimizer and loss
-parameters, all seeds, validation and checkpoint-selection rules, hardware, source hashes, and the
-full convergence series. Historical PPO training ran for 600 iterations, 153,600 episodes, and
-3,686,400 transitions; the selected seed-43 checkpoint is iteration 510 after 6,120 optimizer
-updates. Adam optimized network parameters during training. CUDA accelerates training, inference,
+parameters, all seeds, validation and checkpoint-selection rules, source hashes, and the selected
+run's hardware and convergence series. The selected seed-43 run used 600 iterations, 153,600
+episodes, and 3,686,400 transitions; its checkpoint is iteration 510 after 6,120 optimizer updates.
+The three-seed candidate experiment totaled 1,800 iterations, 460,800 episodes, and 11,059,200
+transitions. Historical promotion gates selected the actor; they are not independent headline
+evidence. Schema v3 classifies each historical field as directly recorded, source-reconstructed
+(including named PyTorch defaults), arithmetic-derived, or an unavailable historical environment
+fact. Adam optimized network parameters during training. CUDA accelerates training, inference,
 simulation, and statistics; it is not a mathematical dispatch optimizer, and the shipped desktop
 performs no online optimization.
 
@@ -106,7 +118,7 @@ alternatives are recorded in `docs/decisions/ADR-002-geographic-boundary-map.md`
 3. Inspect service tiers and sector outcomes on the interactive administrative map or synchronized
    keyboard-accessible locality list.
 4. Compare the live demonstration's matched episode aggregates with the separately verified
-   untouched robustness supplement; live values never replace reviewer-facing frozen evidence.
+   documented-seed-disjoint holdout; live values never replace reviewer-facing frozen evidence.
 5. Review methodology, implementation, limitations, and evidence provenance offline.
 
 ## Development
@@ -116,22 +128,37 @@ CPU-only CI:
 
 ```powershell
 uv sync --extra dev --extra docs
-uv run pytest -m "not gpu and not source_archive"
-uv run ruff check .
+uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
+uv run --no-sync ruff check .
 ```
 
-That portable gate is useful feedback, but it does not certify a presentation release. The
-mandatory release gate runs on the presentation laptop with the trusted source archive available:
+That portable gate is useful feedback, but it does not certify a presentation release. The gate
+contract is deliberately separated: the mandatory presentation-GPU gate validates all source and
+GPU tests from committed, hash-bound inputs; the strict post-build `release_artifact` gate validates
+the completed Windows tree; and the optional source-archive parity gate audits the supplied
+read-only research archive. The normal package build does not require the sibling research archive.
 
 ```powershell
-uv run gridguard-doctor
-uv run pytest
-uv run gridguard-evaluate --verify-evidence
-uv run gridguard-desktop
+uv run --no-sync gridguard-doctor
+uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
+uv run --no-sync gridguard-evaluate --verify-evidence
+
+# Run only after the Windows package and release manifest are final.
+uv run --no-sync pytest -ra -m "release_artifact"
 ```
 
-The unfiltered release command intentionally fails when CUDA, CuPy, the PPO source archive, or the
-packaged evidence is unavailable. Tests are not silently skipped in a release rehearsal.
+Both mandatory gates intentionally fail when their required GPU, CUDA stack, evidence, or packaged
+outputs are unavailable, and both require zero skipped selected tests. When the read-only archive
+is available, enable the optional parity audit explicitly with:
+
+```powershell
+.\scripts\build-presentation.ps1 -StrictSourceParity `
+  -SourceRepositoryPath ..\aipower_rl `
+  -SourceCheckpointPath ..\aipower_rl\artifacts\checkpoints\best.pt
+```
+
+Strict parity validates the supplied archive and checkpoint and includes `source_archive` tests;
+the normal package build never probes the sibling repository or ambient source-path variables.
 
 To reproduce the paired artifact without overwriting the trusted copy:
 
@@ -139,7 +166,7 @@ To reproduce the paired artifact without overwriting the trusted copy:
 uv run gridguard-evaluate --reproduce-paired --output .\paired-benchmark-reproduced.json
 ```
 
-To reproduce the untouched robustness artifact without overwriting the trusted copy:
+To reproduce the documented-seed-disjoint robustness artifact without overwriting the trusted copy:
 
 ```powershell
 uv run gridguard-evaluate --reproduce-robustness --output .\robustness-supplement-reproduced.json
@@ -164,6 +191,13 @@ powershell -NoProfile -File .\tools\build_presentation.ps1
 
 The final PDF, deck, evidence, model, proposal, map, and Windows executable are bound by size and
 SHA-256 in `RELEASE_MANIFEST.json`.
+
+The unsigned release manifest proves internal byte consistency against its pinned inventory, but
+it does not authenticate authorship. A coherent rewrite could replace both artifacts and their
+hashes. Reviewers must therefore compare the published private Git branch with the exact commit SHA
+recorded in the manifest and reported at handoff. Artifact signing remains optional unless the
+project team supplies a signing identity; this release does not claim signature-backed
+authenticity.
 
 ## Build the Windows presentation package
 

@@ -8,17 +8,65 @@ import os
 import sys
 from pathlib import Path
 
-_SMOKE_REPORT_ENV = "GRIDGUARD_SMOKE_REPORT"
+_PRIVATE_SMOKE_OPTION = "--_gridguard-frozen-smoke-report"
 
-if os.environ.get(_SMOKE_REPORT_ENV):
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+def _frozen_smoke_report_root() -> Path:
+    """Resolve the build-owned smoke directory from the frozen executable layout."""
+
+    try:
+        executable = Path(sys.executable).resolve(strict=True)
+    except OSError as error:
+        raise ValueError("frozen executable path cannot be resolved") from error
+    distribution_root = executable.parent
+    dist_root = distribution_root.parent
+    if (
+        executable.name.casefold() != "gridguard khartoum.exe"
+        or distribution_root.name.casefold() != "gridguard khartoum"
+        or dist_root.name.casefold() != "dist"
+    ):
+        raise ValueError("frozen executable is outside the expected release layout")
+
+    expected_root = dist_root.parent / "build" / "gridguard"
+    try:
+        resolved_root = expected_root.resolve(strict=True)
+    except OSError as error:
+        raise ValueError("build-owned frozen smoke root must already exist") from error
+    if resolved_root != expected_root or not resolved_root.is_dir():
+        raise ValueError("build-owned frozen smoke root must be an unredirected directory")
+    return resolved_root
+
+
+def _validated_smoke_report_path(raw_path: str, *, allowed_root: Path) -> Path:
+    report_path = Path(raw_path)
+    if not report_path.is_absolute():
+        raise ValueError("frozen smoke report path must be absolute")
+    if report_path.name != "frozen-smoke.json":
+        raise ValueError("frozen smoke report must be named frozen-smoke.json")
+    try:
+        report_root = Path(allowed_root).resolve(strict=True)
+        report_parent = report_path.parent.resolve(strict=True)
+    except OSError as error:
+        raise ValueError("frozen smoke report root and parent must already exist") from error
+    if not report_root.is_dir() or report_parent != report_root:
+        raise ValueError("frozen smoke report must remain inside the build-owned root")
+
+    validated_path = report_root / report_path.name
+    if validated_path.is_symlink() or validated_path.exists():
+        raise ValueError("frozen smoke report must not already exist")
+    return validated_path
+
+
+def _remove_ambient_offscreen_platform() -> None:
+    os.environ.pop("QT_QPA_PLATFORM", None)
 
 
 def _write_smoke_report(report_path: Path, payload: dict[str, object]) -> None:
-    report_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    encoded = (json.dumps(payload, allow_nan=False, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
     )
+    with report_path.open("xb") as report_file:
+        report_file.write(encoded)
 
 
 def _exception_summary(error: BaseException | None) -> dict[str, object] | None:
@@ -98,6 +146,7 @@ def _live_smoke_facts(comparison: object) -> dict[str, object]:
 def _run_frozen_smoke(report_path: Path) -> int:
     from PySide6.QtWidgets import QApplication
 
+    from gridguard import __version__
     from gridguard.ui.app import format_runtime_label, prepare_startup
     from gridguard.ui.live_runner import run_live_scenario
     from gridguard.ui.window import PresentationWindow
@@ -146,6 +195,7 @@ def _run_frozen_smoke(report_path: Path) -> int:
         _write_smoke_report(
             report_path,
             {
+                "release_id": f"gridguard-khartoum-v{__version__}",
                 "status": "PASS",
                 "window_title": window.windowTitle(),
                 "gpu": {
@@ -181,8 +231,21 @@ def _run_desktop() -> None:
     raise SystemExit(main())
 
 
+def _run_launcher(arguments: list[str]) -> int:
+    if _PRIVATE_SMOKE_OPTION not in arguments:
+        _remove_ambient_offscreen_platform()
+        _run_desktop()
+        return 0
+
+    if len(arguments) != 2 or arguments[0] != _PRIVATE_SMOKE_OPTION:
+        raise ValueError("invalid private frozen-smoke invocation")
+    smoke_report = _validated_smoke_report_path(
+        arguments[1],
+        allowed_root=_frozen_smoke_report_root(),
+    )
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    return _run_frozen_smoke(smoke_report)
+
+
 if __name__ == "__main__":
-    smoke_report = os.environ.get(_SMOKE_REPORT_ENV)
-    if smoke_report:
-        raise SystemExit(_run_frozen_smoke(Path(smoke_report)))
-    _run_desktop()
+    raise SystemExit(_run_launcher(sys.argv[1:]))

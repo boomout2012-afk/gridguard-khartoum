@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this project, please cite it using this metadata."
 title: "GridGuard Khartoum: PPO-Assisted Load Shedding and Energy Management"
 type: software
-version: 1.0.0
-date-released: 2026-08-15
+version: 1.2.0
+date-released: 2026-08-27
 authors:
   - family-names: Bakhit
     given-names: Murtada Asim Ibrahim
