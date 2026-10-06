@@ -111,6 +111,28 @@ only the level's shortage fraction and additional shortage window. For a fixed
 across all three variants. The design contains 96 base-draw clusters, each observed under three
 shortage levels, rather than 288 independent random draws.
 
+### Why synthetic data
+
+Synthetic data is a deliberate methodological choice, not only a limitation to be disclosed.
+Three reasons support it:
+
+1. **Necessity.** Hourly feeder- and locality-level operating records from Sudan's national
+   electricity utility are not publicly available, and current conditions in Sudan prevent
+   obtaining them. This is a documented practical constraint, not an excuse for avoiding data.
+2. **Methodological fit.** The accepted proposal defines the project as a software-based
+   simulation rather than a control system for the real grid. Reinforcement learning also needs a
+   resettable, repeatable environment with very many interactions; even with real records, a
+   simulator calibrated from those records would still be required to train and compare
+   controllers.
+3. **A bounded, relative claim.** The study claims only that one controller behaves differently
+   from another on identical matched scenarios. Because both controllers receive the same
+   `Scenario` object, generator assumptions apply equally to both and largely cancel in the paired
+   difference. Internal validity of the controller comparison is therefore preserved; the
+   limitation falls on external validity, which this study does not claim.
+
+The choice remains conditional on the generator: shared misspecification is not removed by
+matching, and the illustrative parameters above still require calibration before any field use.
+
 ## Controller decisions and dispatch
 
 At every hour, each controller chooses one service tier for each locality:
@@ -339,7 +361,7 @@ performance on Sudan's real grid.
 
 The reproduced critical-service estimand first calculates a ratio for each episode and then
 averages those episode ratios. The accepted cell summaries used pooled critical energy. Their
-maximum cell difference is `0.0000012684613466262817`, which is below the locked `0.000002`
+maximum cell difference is approximately `1.27e-6`, which is below the locked `2e-6`
 tolerance. The new rows should therefore be understood as a source-compatible episode-level
 reproduction, not reconstructed historical episode data.
 
@@ -483,7 +505,9 @@ identities, and result classifications. No favorable-result release gate exists.
 - Performance relative to the global optimum is unknown; no episode-level optimization or valid
   upper-bound comparator is included.
 - The PPO joint-action head has `3^N` scaling (`3^7 = 2,187` here), limiting architectural
-  scalability beyond the accepted seven-locality scope.
+  scalability beyond the accepted seven-locality scope. The network also learns each joint action
+  as an independent class, so it cannot transfer to a different locality count without being
+  rebuilt and retrained. Factored, autoregressive, or shared per-locality policies are future work.
 - Both designs remain conditional on fixed synthetic seed strata and shortage construction, even
   though the documented-seed-disjoint supplement expands coverage to ten seeds and adds local sensitivity.
 - Power-balance compliance is an invariant of this simulator, not evidence of real-grid
