@@ -21,6 +21,17 @@ from gridguard.claim_contract import (
 from gridguard.ui.components import CardFrame, page_intro
 from gridguard.ui.presentation_model import HistoricalTrainingRecord, PresentationSnapshot
 
+MODEL_SCOPE_LIMITATIONS = (
+    "Proportional dispatch scales critical and non-critical requests together when requests "
+    "exceed supply; critical priority acts only through service-tier selection.",
+    "The PPO joint-action head enumerates 3^N actions (3^7 = 2,187 here), limiting scaling "
+    "beyond seven localities.",
+    "The evaluated operating domain is shortage-only; surplus, recovery, and normal operation "
+    "are not covered.",
+    "Performance relative to the global optimum is unknown; no optimization-based dispatch "
+    "comparator is included.",
+)
+
 
 class HistoricalTrainingRecordCard(CardFrame):
     """Compact renderer for the immutable reviewer-facing training projection."""
@@ -265,6 +276,12 @@ class MethodologyPage(QWidget):
             missing.setWordWrap(True)
             missing.setAccessibleName("Evidence limitation metadata is unavailable")
             limits.content.addWidget(missing)
+        for limitation in MODEL_SCOPE_LIMITATIONS:
+            label = QLabel(f"• {limitation}")
+            label.setWordWrap(True)
+            label.setProperty("muted", True)
+            label.setAccessibleName(f"Model limitation: {limitation}")
+            limits.content.addWidget(label)
         boundary = QLabel(
             "Decision support only: the study does not establish real-grid operational "
             "readiness, field causality, or superiority over every alternative controller."
