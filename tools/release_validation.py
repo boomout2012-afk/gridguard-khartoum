@@ -28,7 +28,7 @@ else:
 SCHEMA_NAME = "gridguard.release_visual_review"
 SCHEMA_VERSION = 2
 RECORD_ROLE = "ai_agent_visual_and_content_inspection_attestation"
-EXPECTED_PDF_PAGE_COUNT = 38
+EXPECTED_PDF_PAGE_COUNT = 39
 EXPECTED_PRESENTATION_SLIDE_COUNT = 13
 EXPECTED_SPEAKER_NOTE_SLIDE_COUNT = 13
 EXPECTED_APPLICATION_SCREENSHOT_COUNT = 4
@@ -912,9 +912,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 presentation_path=args.presentation_path,
             )
             print(
-                "Release visual-review hashes, paths, structure, counts, and recorded statuses "
-                "verified; automated verification does not independently repeat content or "
-                "visual inspection."
+                "Historical record/artifact verification: release visual-review hashes, paths, "
+                "structure, counts, and recorded statuses verified; automated verification does "
+                "not independently repeat content or visual inspection; current-source release "
+                "requires scripts/build-presentation.ps1 -VerifyOnly."
             )
     except ReleaseVisualReviewError as error:
         print(f"Release visual-review validation failed: {error}", file=sys.stderr)

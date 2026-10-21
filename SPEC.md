@@ -1,8 +1,8 @@
 # Specification: GridGuard Khartoum
 
-Status: Approved implementation contract; Phase 6 remediation complete
+Status: Approved implementation contract; October source refresh under readiness review
 Date: 2026-08-15
-Revision: 2026-08-27 (release 1.2.0)
+Revision: 2026-10-21 (source refresh; final release verification pending)
 Release: 1.2.0 (2026-08-27)
 Released baseline: 1.1.0 (2026-08-26)
 Source proposal: `docs/source/graduation-project-proposal.pdf`
@@ -10,17 +10,19 @@ Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d3
 
 ## Reviewer start here
 
-- The A01-A24 remediation contract and live closure state are in
-  [docs/DEVILS_ADVOCATE_AUDIT.md](docs/DEVILS_ADVOCATE_AUDIT.md). An open ledger row is not release
-  evidence.
+- The historical A01-A24 remediation contract is in
+  [docs/DEVILS_ADVOCATE_AUDIT.md](docs/DEVILS_ADVOCATE_AUDIT.md). Current findings and closure gates
+  are in [docs/GRADUATION_REVIEW.md](docs/GRADUATION_REVIEW.md). An open ledger row is not release
+  evidence, and a historical closure does not certify later source changes.
 - The canonical, strict historical training record is
   [data/model/training-provenance.yaml](data/model/training-provenance.yaml). It exposes the actor
   architecture, behavior-cloning initialization, PPO hyperparameters, workload, seeds,
   validation and selection, hardware, source bindings, and convergence in one reviewer-facing
   YAML file.
-- Release 1.2.0 closes every ledger row with current evidence. The final handoff separately reports
-  exact local/private-remote branch SHA equality because a Git branch cannot record its own future
-  head SHA without changing that SHA.
+- The August release records identify their own tested source snapshot. The October source
+  refresh needs a new tested snapshot, reviewed artifacts, and final package verification before
+  handoff. The final handoff separately reports exact local/private-remote branch SHA equality
+  because a Git branch cannot record its own future head SHA without changing that SHA.
 
 ## Assumptions
 

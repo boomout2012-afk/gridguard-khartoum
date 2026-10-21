@@ -13,11 +13,15 @@ and supply no scientific input.
 
 ## Reviewer start here
 
-Current release: **1.2.0 (2026-08-27)**. Release 1.1.0 remains the historical baseline. The 1.2.0
-release is bound to the final evidence, report, deck, Windows package, validation record, release
-manifest, and reviewed private-branch handoff described below.
+Current release: **1.2.0 (2026-08-27)** identifies the historical packaged release. Release 1.1.0
+remains the earlier baseline. The October 2026 source refresh is under graduation-readiness
+review; the August package and its validation records do not certify these changes. Final
+screenshots, report, deck, Windows build, machine validation, and manifest must be regenerated
+and verified before this source refresh is handed over as presentation-ready.
 
 - Read the approved implementation contract in [SPEC.md](SPEC.md).
+- Follow current findings and remaining release gates in the
+  [October graduation-readiness review](docs/GRADUATION_REVIEW.md).
 - Track every confirmed remediation finding in the
   [devil's-advocate audit register](docs/DEVILS_ADVOCATE_AUDIT.md).
 - Find all historical PPO training parameters in the
@@ -51,7 +55,7 @@ giving 288 matched scenario conditions and 576 controller-scenario evaluations. 
 selection. This layer is therefore accepted reproduction evidence, not an independently custodied final test.
 
 The documented-seed-disjoint holdout at `data/evidence/robustness-supplement.json` (SHA-256
-`fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1`) uses seeds 81001-81010: 320 independent base draws, 960 matched scenario
+`6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48`) uses seeds 81001-81010: 320 independent base draws, 960 matched scenario
 conditions, and 1,920 controller-scenario evaluations. It also evaluates 24 one-factor-at-a-time
 locality-weight and sector-share perturbations, for 25 parameterizations including the base, and
 compares the display-only three-hour trailing-mean forecast with one-hour persistence on common
@@ -198,6 +202,11 @@ hashes. Reviewers must therefore compare the published private Git branch with t
 recorded in the manifest and reported at handoff. Artifact signing remains optional unless the
 project team supplies a signing identity; this release does not claim signature-backed
 authenticity.
+
+Historical visual-record or machine-record verification alone does not establish that changed
+source has been released. For a source refresh, follow the source freeze, fresh test/evidence
+commands, visual review, machine-record refresh, and final package sequence in
+`docs/GRADUATION_REVIEW.md`. The existing build enforces a separate source-snapshot check.
 
 ## Build the Windows presentation package
 

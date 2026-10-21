@@ -1,18 +1,24 @@
 # Devil's Advocate Audit Register
 
-Status: Active pre-freeze technical closure register
+Status: Historical pre-freeze technical closure register; October refresh tracked separately
 
 Audit date: 2026-08-26
 
-Target release: 1.2.0 (unreleased)
+Historical target release: 1.2.0 (2026-08-27)
 
 Released baseline retained for history: 1.1.0 (2026-08-26)
 
-This source-tracked ledger is the pre-freeze technical closure register for the confirmed
-post-1.1.0 adversarial findings. Version 1.2.0 is a target, not a completed release. The ledger is
+This source-tracked ledger preserves the pre-freeze technical closure register for the confirmed
+post-1.1.0 adversarial findings and its original attestation/handoff statuses. The ledger is
 a work register, not proof that an open finding is closed. Neither a task number nor a planned
 command is acceptance evidence. Its final state is part of the tested source snapshot and must
 not be edited after that snapshot is committed.
+
+The October 2026 source refresh is reviewed in [GRADUATION_REVIEW.md](GRADUATION_REVIEW.md).
+The historical closures below do not certify that refresh. Fresh source/GPU tests, reviewed
+academic artifacts, a rebuilt Windows package, and new provenance bindings are still required
+before final handoff. Preserve A01, A02, and A21 as the original deferred attestation/handoff
+statuses; current completion is established only by the new release evidence.
 
 The approved proposal remains the scope authority. Remediation may correct evidence semantics,
 claims, verification, packaging, and maintainability needed for those corrections. It must not add

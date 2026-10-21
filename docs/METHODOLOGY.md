@@ -113,25 +113,25 @@ shortage levels, rather than 288 independent random draws.
 
 ### Why synthetic data
 
-Synthetic data is a deliberate methodological choice, not only a limitation to be disclosed.
-Three reasons support it:
+Synthetic data supports the proposal's simulation study while limiting what its results can show:
 
-1. **Necessity.** Hourly feeder- and locality-level operating records from Sudan's national
-   electricity utility are not publicly available, and current conditions in Sudan prevent
-   obtaining them. This is a documented practical constraint, not an excuse for avoiding data.
-2. **Methodological fit.** The accepted proposal defines the project as a software-based
-   simulation rather than a control system for the real grid. Reinforcement learning also needs a
-   resettable, repeatable environment with very many interactions; even with real records, a
-   simulator calibrated from those records would still be required to train and compare
-   controllers.
-3. **A bounded, relative claim.** The study claims only that one controller behaves differently
-   from another on identical matched scenarios. Because both controllers receive the same
-   `Scenario` object, generator assumptions apply equally to both and largely cancel in the paired
-   difference. Internal validity of the controller comparison is therefore preserved; the
-   limitation falls on external validity, which this study does not claim.
+1. **Available study inputs.** No utility measurements were supplied for this study. Demand
+   weights, sector shares, daily profiles, and shortage parameters are documented illustrative
+   assumptions. This describes the inputs used here; it does not establish that operating records
+   are unavailable elsewhere.
+2. **Methodological fit.** The accepted proposal defines a software-based simulation. A resettable,
+   repeatable environment allows historical controller training and matched evaluation under
+   specified shortage conditions. Calibration against representative utility records would be
+   needed to assess whether those conditions resemble field operation.
+3. **A bounded, relative claim.** Both controllers receive the same `Scenario` object, so the
+   paired difference compares their behavior under identical generated inputs. Matching controls
+   that source of variation; it does not remove generator misspecification. Shared assumptions
+   may affect the controllers differently and can change their relative performance.
 
-The choice remains conditional on the generator: shared misspecification is not removed by
-matching, and the illustrative parameters above still require calibration before any field use.
+The comparison therefore remains conditional on this generator, the selected controllers, and
+the evaluated shortage protocol. It supports within-simulator comparisons, not field-performance
+claims. The sensitivity analysis tests specified local perturbations; it cannot establish the
+validity of all generator assumptions or replace external calibration.
 
 ## Controller decisions and dispatch
 
@@ -425,9 +425,9 @@ manifests. The key final evidence hashes are:
 | Frozen aggregate benchmark | `3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15` |
 | PPO inference artifact | `3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5` |
 | Accepted paired reproduction | `7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5` |
-| Documented-seed-disjoint robustness supplement | `fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1` |
+| Documented-seed-disjoint robustness supplement | `6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48` |
 | PPO training provenance YAML | `d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8` |
-| Project source manifest | `a8377ee96b8c7742f0794776b5752a9553abd0f766b78e457565428d612463e6` |
+| Project source manifest | `3db92467b8bc5d14392a50069fa512608a25f5f78de4226557197efeca381ef2` |
 
 The reviewer contract has four gates: portable development/CPU CI; the mandatory presentation-GPU
 gate for source/runtime/evidence; the strict post-build `release_artifact` gate; and the optional

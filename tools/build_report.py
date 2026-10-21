@@ -49,6 +49,7 @@ from gridguard.claim_contract import (
 from gridguard.evaluation import PAIRED_BENCHMARK_SHA256, verify_paired_benchmark
 from gridguard.robustness import ROBUSTNESS_SUPPLEMENT_SHA256, verify_robustness_supplement
 from tools.report_results_contract import (
+    report_source_metadata,
     validate_methodology_training_claims,
     validate_rendered_report_sources,
     validate_report_numeric_claims,
@@ -1103,6 +1104,7 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
             "Abdalhay Abass Mobarak Abass"
         ),
         subject="PPO-assisted synthetic load-shedding research simulation",
+        keywords=report_source_metadata(rendered_sources),
     )
     document.multiBuild(story, canvasmaker=_report_canvas)
     return output_path.resolve()

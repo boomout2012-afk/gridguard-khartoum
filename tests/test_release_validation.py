@@ -708,12 +708,14 @@ def test_refresh_binds_speaker_notes_by_slide_relationship_order(tmp_path: Path)
     assert verify_release_visual_review(tmp_path) == refreshed
 
 
-@pytest.mark.parametrize("page_count", [37, 39])
+@pytest.mark.parametrize("page_count", [EXPECTED_PDF_PAGE_COUNT - 1, EXPECTED_PDF_PAGE_COUNT + 1])
 def test_refresh_rejects_wrong_pdf_page_count(tmp_path: Path, page_count: int) -> None:
     _write_pdf(tmp_path, page_count=page_count)
     _write_presentation(tmp_path)
 
-    with pytest.raises(ReleaseVisualReviewError, match="exactly 38 PDF pages"):
+    with pytest.raises(
+        ReleaseVisualReviewError, match=f"exactly {EXPECTED_PDF_PAGE_COUNT} PDF pages"
+    ):
         refresh_release_visual_review(tmp_path, inspection_confirmed=True)
 
 
@@ -1254,6 +1256,11 @@ def test_cli_refresh_and_verify_report_limited_scope(
     verify_output = capsys.readouterr().out
     assert "hashes, paths, structure, counts, and recorded statuses verified" in verify_output
     assert "does not independently repeat content or visual inspection" in verify_output
+    assert "Historical record/artifact verification" in verify_output
+    assert (
+        "current-source release requires scripts/build-presentation.ps1 -VerifyOnly"
+        in verify_output
+    )
 
 
 def test_cli_rejects_refresh_only_reviewer_option_in_verify_mode(
@@ -1301,7 +1308,7 @@ def test_cli_rejects_review_confirmation_in_verify_mode(
 def test_committed_release_visual_review_verifies_current_final_artifacts() -> None:
     verified = verify_release_visual_review(REPOSITORY_ROOT)
 
-    assert verified["artifacts"]["pdf"]["detected_page_count"] == 38
+    assert verified["artifacts"]["pdf"]["detected_page_count"] == EXPECTED_PDF_PAGE_COUNT
     assert verified["artifacts"]["presentation"]["detected_slide_count"] == 13
     assert verified["artifacts"]["presentation"]["detected_speaker_note_slide_count"] == 13
     assert len(verified["artifacts"]["presentation"]["speaker_note_slides"]) == 13

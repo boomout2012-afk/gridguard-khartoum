@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from pypdf import PdfReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+
+from tools import report_results_contract
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 BUILDER_PATH = REPOSITORY_ROOT / "tools" / "build_report.py"
@@ -40,6 +44,59 @@ def test_report_builder_uses_verified_evidence_and_committed_chapters() -> None:
     assert '"REFERENCES.md"' in source
     assert "Documented-seed-disjoint holdout SHA-256" in source
     assert "Documented-holdout robustness" not in source
+    assert "keywords=report_source_metadata(rendered_sources)" in source
+
+
+def test_report_source_binding_round_trips_through_pdf_metadata(tmp_path: Path) -> None:
+    builder = _load_builder()
+    sources = builder.load_rendered_markdown_sources()
+    output_path = tmp_path / "bound-report.pdf"
+    document = builder.ReportDocument(
+        str(output_path), keywords=report_results_contract.report_source_metadata(sources)
+    )
+    document.build([builder.Paragraph("Source binding test", builder._styles()["body"])])
+
+    metadata = PdfReader(output_path).metadata
+    report_results_contract.validate_report_source_metadata(metadata, sources)
+    crlf_sources = {path: text.replace("\n", "\r\n") for path, text in sources.items()}
+    report_results_contract.validate_report_source_metadata(metadata, crlf_sources)
+
+
+@pytest.mark.parametrize("metadata", (None, {}, {"/Keywords": ""}, {"/Keywords": 42}))
+def test_report_source_binding_rejects_missing_or_malformed_metadata(metadata: object) -> None:
+    builder = _load_builder()
+
+    with pytest.raises(report_results_contract.ReportResultsClaimError, match="source binding"):
+        report_results_contract.validate_report_source_metadata(
+            metadata, builder.load_rendered_markdown_sources()
+        )
+
+
+def test_updating_source_pins_does_not_certify_an_old_pdf(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    builder = _load_builder()
+    original_sources = builder.load_rendered_markdown_sources()
+    old_metadata = {"/Keywords": report_results_contract.report_source_metadata(original_sources)}
+    updated_sources = dict(original_sources)
+    updated_sources["docs/METHODOLOGY.md"] += "\nReviewed methodological clarification.\n"
+    updated_pins = {
+        path: hashlib.sha256(text.encode("utf-8")).hexdigest()
+        for path, text in updated_sources.items()
+    }
+    monkeypatch.setattr(report_results_contract, "_RENDERED_REPORT_SOURCE_SHA256", updated_pins)
+    report_results_contract.validate_rendered_report_sources(updated_sources)
+
+    with pytest.raises(report_results_contract.ReportResultsClaimError, match="source binding"):
+        report_results_contract.validate_report_source_metadata(old_metadata, updated_sources)
+
+
+def test_final_report_is_bound_to_the_current_rendered_sources() -> None:
+    builder = _load_builder()
+
+    report_results_contract.validate_report_source_metadata(
+        PdfReader(REPORT_PATH).metadata, builder.load_rendered_markdown_sources()
+    )
 
 
 def test_report_builder_direct_entrypoint_is_importable() -> None:
@@ -233,7 +290,7 @@ def test_final_report_contains_no_blank_interior_pages() -> None:
     reader = PdfReader(REPORT_PATH)
     page_text = [" ".join((page.extract_text() or "").split()) for page in reader.pages]
 
-    assert len(page_text) == 38
+    assert len(page_text) == 39
     assert all(text for text in page_text)
     assert all(len(text.split()) >= 20 for text in page_text[1:-1])
     assert any("System at a glance" in text for text in page_text)

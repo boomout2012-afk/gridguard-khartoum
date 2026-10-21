@@ -107,6 +107,23 @@ def test_presentation_protocol_and_training_numbers_are_projected_from_verified_
         assert independent_literal not in source
 
 
+def test_forecast_slide_builder_labels_error_metrics_in_mw() -> None:
+    source = BUILDER_PATH.read_text(encoding="utf-8")
+    forecast_slide = source.split("# 10 - forecast", maxsplit=1)[1].split(
+        "# 11 - accepted reproduction", maxsplit=1
+    )[0]
+
+    assert '"Pooled error metric (MW)"' in forecast_slide
+
+
+def test_final_forecast_slide_labels_error_metrics_in_mw() -> None:
+    with zipfile.ZipFile(DECK_PATH) as archive:
+        root = ElementTree.fromstring(archive.read("ppt/slides/slide10.xml"))
+    labels = [element.text for element in root.iter(f"{{{DRAWING_NS}}}t")]
+
+    assert "Pooled error metric (MW)" in labels
+
+
 def test_final_deck_has_thirteen_slides_notes_and_no_forbidden_controller_name() -> None:
     assert DECK_PATH.is_file()
 

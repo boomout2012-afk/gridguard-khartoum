@@ -6,35 +6,35 @@
         {
           "path": "docs/assets/screenshots/overview.png",
           "screenshot_index": 1,
-          "sha256": "c2965a839bfabd5fbdb4ee71eefc6673ccfffa861bd49425172adf06942baa6a",
-          "size_bytes": 141949,
+          "sha256": "2006fcafef682dd7c8d330ce6391a936d15f50b98213f41277917adef9b2b2c8",
+          "size_bytes": 137965,
           "visual_inspection_status": "agent_inspected_pass"
         },
         {
           "path": "docs/assets/screenshots/live.png",
           "screenshot_index": 2,
-          "sha256": "0f5e8bc5cb1eac0a4411a6ac63bd19cca3ebcfdba7f6f9196f0db72da1b91b28",
-          "size_bytes": 126602,
+          "sha256": "9690a0dfc5850f8d4fe165dda3e4bcbb2da02993152d36644d312f03f4d036ae",
+          "size_bytes": 137455,
           "visual_inspection_status": "agent_inspected_pass"
         },
         {
           "path": "docs/assets/screenshots/results.png",
           "screenshot_index": 3,
-          "sha256": "1662bc4731927850626927ef59c08e37809cff1f9e483892b4cad6df952d0e6c",
-          "size_bytes": 111244,
+          "sha256": "a8d5283efc4980a17e683b3a5cac428853864e5233d5d316715b6679a8ab7f81",
+          "size_bytes": 109821,
           "visual_inspection_status": "agent_inspected_pass"
         },
         {
           "path": "docs/assets/screenshots/methodology.png",
           "screenshot_index": 4,
-          "sha256": "bfddaab2a0476272802620ab4410b0494cccf19ef5bdc994ab9d14dc007d4c61",
-          "size_bytes": 141243,
+          "sha256": "4c1699fa5c057557d1d56bd1819a5e6de1c672915bd42801cab738b765949bee",
+          "size_bytes": 142202,
           "visual_inspection_status": "agent_inspected_pass"
         }
       ]
     },
     "pdf": {
-      "detected_page_count": 38,
+      "detected_page_count": 39,
       "pages": [
         {
           "page_index": 1,
@@ -187,18 +187,22 @@
         {
           "page_index": 38,
           "visual_inspection_status": "agent_inspected_pass"
+        },
+        {
+          "page_index": 39,
+          "visual_inspection_status": "agent_inspected_pass"
         }
       ],
       "path": "output/pdf/gridguard-khartoum-final-report.pdf",
-      "sha256": "de40be34662d0640455bf9838bffe4da49ffed1e057a54564d165168e81114b1",
-      "size_bytes": 713284
+      "sha256": "61a2d186a13e1fe536ec6a0dd32fe89629c75128d4045377963b93998fbebe35",
+      "size_bytes": 728579
     },
     "presentation": {
       "detected_slide_count": 13,
       "detected_speaker_note_slide_count": 13,
       "path": "output/presentation/gridguard-khartoum-defense.pptx",
-      "sha256": "27a2f8866b2b504c2391c2406ab1a40aa28d0bf8d52e6c7ba1710c0faca19774",
-      "size_bytes": 367421,
+      "sha256": "3ed76ea15c4d3dac3f1f112ee6021ec8fd1f36f88847a6dc8421cdc2155ca176",
+      "size_bytes": 374316,
       "slides": [
         {
           "slide_index": 1,
@@ -257,23 +261,23 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide1.xml",
-          "sha256": "9246df8377bea73969e1ac679c0aaa4b543da19f005f6292c87fc6af1ef04b95",
-          "size_bytes": 2056,
+          "sha256": "d635f9e1beca57da96a0c9a209205698f4820775b0ae069e4c5401e72ce07898",
+          "size_bytes": 2055,
           "slide_index": 1,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide2.xml",
-          "sha256": "37260475dd315557710b7d23171c0d9f89a3c28572e764cb59a9e0f3da38fb34",
-          "size_bytes": 2080,
+          "sha256": "b2d753ef563538c574e1344d69d0ce71f2c68b8849e130fadc85aa8e10e54788",
+          "size_bytes": 2081,
           "slide_index": 2,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide3.xml",
-          "sha256": "34fd70e81a59ad4dae114a4a50fdf5381c5c90e1c25e2f727da4a27ab88f320e",
+          "sha256": "caae92248fea0e801fa0ed215c746e8fc4ce802409ca29a54e69aa1530cef49a",
           "size_bytes": 2103,
           "slide_index": 3,
           "structural_inspection_status": "automated_present_nonempty"
@@ -281,7 +285,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide4.xml",
-          "sha256": "e318f52a096d5c89d8b3e237e37c7aaf91d405527b572762e62f4b5a2b37d632",
+          "sha256": "e6008b99ece4d2ff457e3adfe1d510b338e6580a35153fce8d2cf9d02f7623e5",
           "size_bytes": 2224,
           "slide_index": 4,
           "structural_inspection_status": "automated_present_nonempty"
@@ -289,7 +293,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide5.xml",
-          "sha256": "da13893a58132789c394a0285e0c8cd652986d4ab2896220eadc040b58d98d61",
+          "sha256": "faf28c394343d67d9cd2ce1313806c60d8c8274cf4ca8d2a4f9bfd1dc4c54398",
           "size_bytes": 2567,
           "slide_index": 5,
           "structural_inspection_status": "automated_present_nonempty"
@@ -297,15 +301,15 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide6.xml",
-          "sha256": "da0375737c7c3f1adb45d3491d64810d64659d81593456491944d4930e5cebcc",
-          "size_bytes": 2157,
+          "sha256": "bc0b3a2064c068561d25fe603a11740d7f389c21474e1c09533a5a36d974536e",
+          "size_bytes": 2158,
           "slide_index": 6,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide7.xml",
-          "sha256": "0cfac4cec3599ae08d9bc0dd22a07960e58465d066c0a4053340d623b3f23f10",
+          "sha256": "d966c79bb0135c51308b241318cd77c9ef82a71b6b8e26ba31fca4f6c89781fc",
           "size_bytes": 2090,
           "slide_index": 7,
           "structural_inspection_status": "automated_present_nonempty"
@@ -313,7 +317,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide8.xml",
-          "sha256": "896bcd2e750f939df9366ed0d4be9b1daf5a5df150af8cc82e7c1d205fbd3baa",
+          "sha256": "ccecf97f0ecc7485203b762081b0f2995a28b366a4d4a2f31c8bbe8ba6813558",
           "size_bytes": 2446,
           "slide_index": 8,
           "structural_inspection_status": "automated_present_nonempty"
@@ -321,15 +325,15 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide9.xml",
-          "sha256": "02b2ed86ba77e747eb8fca2325284a695d45b205b5a04664548fce60e5ef0bb2",
-          "size_bytes": 2258,
+          "sha256": "606808d0e824b8f8987f90ddd1f67ef979cce2acb4fd98000ccc39bd3c799a33",
+          "size_bytes": 2259,
           "slide_index": 9,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide10.xml",
-          "sha256": "74c052e727d558b525160f1d416a67f4512aa0dab96df079c6ca64e6c80ee396",
+          "sha256": "cb16ef3f541a2a2a74df99ff6ef41389f63993fcb2826d66cc7844f58634a5a7",
           "size_bytes": 2111,
           "slide_index": 10,
           "structural_inspection_status": "automated_present_nonempty"
@@ -337,7 +341,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide11.xml",
-          "sha256": "4caca3a21fcd405d0fd665bef2925d00ed43e1ba120d50b8b281a8ad1db27c80",
+          "sha256": "43c341945860426afac56fac5e8f9e4ca61bfa392e1bd838689dc8b12b7bc2c9",
           "size_bytes": 2284,
           "slide_index": 11,
           "structural_inspection_status": "automated_present_nonempty"
@@ -345,7 +349,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide12.xml",
-          "sha256": "737d9bf0daf09b970b2e81f677146f340b4608834f3515af1d7531d3e644888a",
+          "sha256": "27f0cc37c2948ded56118e15bb1cc65a3b9d3e86231dff2b58c53226f6739573",
           "size_bytes": 2271,
           "slide_index": 12,
           "structural_inspection_status": "automated_present_nonempty"
@@ -353,8 +357,8 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide13.xml",
-          "sha256": "218c2356baf980d92738fd8697e5fcdbad5ac0f8fb842e206ac9b83924d9b5d3",
-          "size_bytes": 2357,
+          "sha256": "89be8277c47ad72f8e10cca20a10807f04d068a17ec4b3dc9d9938e1d696724d",
+          "size_bytes": 2358,
           "slide_index": 13,
           "structural_inspection_status": "automated_present_nonempty"
         }

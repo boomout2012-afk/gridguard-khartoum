@@ -31,11 +31,13 @@ from xml.etree import ElementTree
 
 if __package__:
     from tools.release_validation import (
+        EXPECTED_PDF_PAGE_COUNT,
         ReleaseVisualReviewError,
         verify_release_visual_review,
     )
 else:  # pragma: no cover - exercised by the direct-script CLI in release use
     from release_validation import (  # type: ignore[import-not-found]
+        EXPECTED_PDF_PAGE_COUNT,
         ReleaseVisualReviewError,
         verify_release_visual_review,
     )
@@ -70,7 +72,7 @@ PAIRED_CANONICAL_PATH = Path("data/evidence/paired-benchmark.json")
 ROBUSTNESS_CANONICAL_PATH = Path("data/evidence/robustness-supplement.json")
 UV_LOCK_PATH = Path("uv.lock")
 PAIRED_CANONICAL_SHA256 = "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5"
-ROBUSTNESS_CANONICAL_SHA256 = "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
+ROBUSTNESS_CANONICAL_SHA256 = "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48"
 
 AUTOMATED_SCOPE = (
     "This unsigned AI-generated record validates a closed schema, the tested Git "
@@ -782,7 +784,9 @@ def _validate_visual_facts(value: object) -> Mapping[str, object]:
         {field: pdf[field] for field in ("path", "sha256", "size_bytes")},
         label="visual-review PDF",
     )
-    _require_exact_value(pdf["page_count"], 38, label="visual-review PDF page_count")
+    _require_exact_value(
+        pdf["page_count"], EXPECTED_PDF_PAGE_COUNT, label="visual-review PDF page_count"
+    )
     presentation = _require_exact_fields(
         visual["presentation"],
         {
@@ -1569,14 +1573,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             if args.verify_inputs:
                 print(
-                    "Release machine-validation record, committed artifacts, and "
-                    "fresh/retained transient inputs verified; the record remains unsigned."
+                    "Historical record/artifact verification: release machine-validation record, "
+                    "committed artifacts, and fresh/retained transient inputs verified; "
+                    "the record remains unsigned; current-source release requires "
+                    "scripts/build-presentation.ps1 -VerifyOnly."
                 )
             else:
                 print(
-                    "Release machine-validation record and committed artifacts verified "
+                    "Historical record/artifact verification: release machine-validation record "
+                    "and committed artifacts verified "
                     "in self-contained mode; --verify-inputs compares an exact collection, "
-                    "semantic JUnit facts, and byte-identical reproductions."
+                    "semantic JUnit facts, and byte-identical reproductions; "
+                    "current-source release requires scripts/build-presentation.ps1 -VerifyOnly."
                 )
     except MachineValidationError as error:
         print(f"Release machine-validation failed: {error}", file=sys.stderr)

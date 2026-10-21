@@ -98,12 +98,13 @@ Critical Only. Its rising utilization as shortage worsens is a denominator effec
 behavior. Mean unused supply in the accepted reproduction is 2,158.7 MWh for Fixed Rotation versus
 150.2 MWh for PPO, so part of the utilization contrast reflects baseline design. A supply-aware
 critical-preserving heuristic is necessary future work before making broad claims against
-rule-based control. Performance relative to the global optimum is unknown. The proposal's
-optimization method is intentionally outside the accepted scope: Adam optimized the PPO parameters
-during historical training and CUDA accelerates inference and evaluation, but no online mathematical
-dispatch optimizer is implemented or compared. The confirmatory comparison was deliberately limited
-to a learned controller against a rule-based schedule, and an optimization-based comparator is
-future work.
+rule-based control. Performance relative to the global optimum is unknown. The proposal includes
+optimization among the methods to test where appropriate. In this implementation, Adam optimized
+the PPO parameters during historical training and CUDA accelerates inference and evaluation;
+no online mathematical dispatch optimizer is implemented or compared. Parameter optimization is
+not evidence of a comparison against an optimization-based dispatch method. The documented-seed-disjoint
+comparison evaluates a learned controller against a rule-based schedule; an optimization-based
+dispatch comparator remains future work.
 
 These findings remain about allocation logic in this simulator. The single global supply pool
 omits feeder capacity, voltage, frequency, protection, losses, restoration procedures, operator
@@ -121,8 +122,8 @@ compare the three-hour trailing mean with one-hour persistence on synthetic targ
 establish real-world forecast accuracy. The evaluated operating domain is shortage-only and says
 nothing about surplus, recovery, normal operation, or restoration transients. The PPO actor also
 enumerates `3^N` joint actions (`3^7 = 2,187` here), which limits scaling beyond seven localities.
-Factored, autoregressive, or shared per-locality policies with explicit constraint handling are the
-standard routes to larger systems and remain future work.
+Factored, autoregressive, or shared per-locality policies with explicit constraint handling are
+possible approaches to larger systems and remain future work.
 
 The presentation design reinforces that boundary. The real administrative map is more legible and
 recognizable than the former abstract drawing, but visual realism must not be mistaken for model

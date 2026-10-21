@@ -1,5 +1,31 @@
 # GridGuard Khartoum Completion Checklist
 
+## October 2026 source refresh
+
+Release identity remains 1.2.0. This section records work completed before the new source freeze;
+the older phase checkboxes below preserve their historical planning state. The detailed findings
+and evidence are in [docs/GRADUATION_REVIEW.md](../docs/GRADUATION_REVIEW.md).
+
+- [x] Review the incoming Abdalhay update and identify the stale source/artifact bindings.
+- [x] Correct academic overclaims and disclose partial dispatch-optimization coverage.
+- [x] Reject incorrect integer-metadata types and reproduce the provenance refresh twice on CUDA;
+  preserve all scientific results and persisted arrays.
+- [x] Improve the native presentation interface, timeline playback, and power trace; pass the
+  37 focused UI tests at the supported 1366 x 768 minimum.
+- [x] Capture and inspect all four final pages using a real CUDA scenario.
+- [x] Rebuild and inspect all 39 report pages with the verified PDF source-bundle binding.
+- [x] Inspect all 13 deck slides and their speaker notes; rebuild and visually recheck the
+  final screenshot aspect-ratio correction.
+- [x] Fix startup diagnostic persistence and distinguish historical CLI verification from
+  current-source release acceptance.
+
+Final acceptance occurs after source freeze. Read the actual source/GPU test results, zero-skip
+counts, reproduction identities, and tested source SHA from `docs/release-machine-validation.json`;
+read package, smoke, artifact, and source bindings from `RELEASE_MANIFEST.json`. Require the clean
+current-source `scripts/build-presentation.ps1 -VerifyOnly` gate and final offline rehearsal.
+The final handoff records the exact local/private-remote SHA evidence. These post-freeze records
+establish completion; do not edit source checkboxes afterward merely to restate their results.
+
 ## Phase 0 - Scope and provenance
 
 - [x] Approve `SPEC.md` assumptions, claim boundary, architecture, and deliverables.

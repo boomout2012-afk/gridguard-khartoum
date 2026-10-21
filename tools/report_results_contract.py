@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
@@ -44,18 +45,19 @@ _REPORT_NORMALIZED_CONTENT_SHA256 = {
     "Introduction": "8b3808cb930f4d733f86526c587d3dbf7a6027c2237571253f63e2a51e04fffd",
     "Related Work": "e9cfc8be71a6c400582fbbc185b24d775c92a666f6cae82b480bdf8d7b361313",
     "Background": "56458cf3b6c4484f0ea1e457928c84ce4eafb1c8051a0f83bbcb56beacdab45f",
-    "Discussion": "308277c45f4616f04161d753d0ce4e6ba9e6b55ee5259a0c284d1598ddcf7696",
+    "Discussion": "a95311ca6f5b8699d6c60b0d839da8a44c4fda9deba62a1a64ed9c72e18befc8",
     "Conclusion": "efac841c084a4c9334cdeaf2d94791c789e4b7f9f961799719f359d6060a2597",
     "Assembly": "f6f05c3a9b706a0f141f7260843c6f55631595e0d072cf4723d18a39d455797c",
 }
 _RENDERED_REPORT_SOURCE_SHA256 = {
-    "docs/REPORT.md": "9784a928464cb2308f07a80d12beb333aa36934eccccc8a7a2da3326e01d7d8c",
+    "docs/REPORT.md": "896226702c677a879bc3ed240822fde02316144a5eb62f5194c71693a3664ce6",
     "docs/RELATED_WORK.md": "e45390af42287e5c2315bbef3a93e326155895224c4a151621417df41c93c75a",
-    "docs/METHODOLOGY.md": "38bc0d75c0c7480bf3647b42bbf9a9afcdfba3d1a1f0a33ef9ff49b31f3a2f89",
-    "docs/IMPLEMENTATION.md": "21ef829396aacbbcb3410dbc1407d598c5bfe904089b3e3efcf6b11619c67b4c",
-    "docs/RESULTS.md": "6d9367afe94009b859d997aeee99b5cf9f91cdb620a168ee1cb91665ed4cc07d",
+    "docs/METHODOLOGY.md": "ba7c169f1d896722cc44f3f7f71f57b5a7bb67de0bcfd43070f342f23b7e5038",
+    "docs/IMPLEMENTATION.md": "9e010bc0a5ce54e8e9c24f66819a465bc7a97b77180d3412071bd63a138a8973",
+    "docs/RESULTS.md": "9b8456bf4588b973a4c7e6c4347621f9f964cbfda6092e5e2be47c4c92225030",
     "docs/REFERENCES.md": "4da4f4045e26d60a008fa59de4664c33dd994636c799b0fbf7fefa5b0e4fd2fb",
 }
+_REPORT_SOURCE_METADATA_PREFIX = "gridguard.report-sources.v1.sha256:"
 _NUMBER_WORDS = {
     0: "zero",
     1: "one",
@@ -162,6 +164,16 @@ def validate_report_numeric_claims(
 def validate_rendered_report_sources(sources: Mapping[str, str]) -> None:
     """Require the complete rendered Markdown bundle to match the frozen release text."""
 
+    for path, actual in _rendered_source_digests(sources).items():
+        if actual != _RENDERED_REPORT_SOURCE_SHA256[path]:
+            raise ReportResultsClaimError(
+                f"rendered report source digest: {path} is not the locked release text"
+            )
+
+
+def _rendered_source_digests(sources: Mapping[str, str]) -> dict[str, str]:
+    """Hash the current source bytes, independently of the approved digest values."""
+
     actual_paths = frozenset(sources)
     expected_paths = frozenset(_RENDERED_REPORT_SOURCE_SHA256)
     if actual_paths != expected_paths:
@@ -170,15 +182,37 @@ def validate_rendered_report_sources(sources: Mapping[str, str]) -> None:
         raise ReportResultsClaimError(
             f"rendered report source schema is not closed; missing={missing}, extra={extra}"
         )
-    for path, expected in _RENDERED_REPORT_SOURCE_SHA256.items():
+    digests = {}
+    for path in sorted(expected_paths):
         source = sources[path]
         if not isinstance(source, str):
             raise TypeError(f"rendered report source {path} must be text")
-        actual = _canonical_markdown_sha256(source)
-        if actual != expected:
-            raise ReportResultsClaimError(
-                f"rendered report source digest: {path} is not the locked release text"
-            )
+        digests[path] = _canonical_markdown_sha256(source)
+    return digests
+
+
+def report_source_metadata(sources: Mapping[str, str]) -> str:
+    """Bind a rendered PDF to its exact normalized Markdown source bundle.
+
+    This detects stale output after approved source pins change. It is an internal
+    freshness binding, not proof of authentic authorship or visual correctness.
+    """
+
+    source_digests = json.dumps(
+        _rendered_source_digests(sources), sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return _REPORT_SOURCE_METADATA_PREFIX + hashlib.sha256(source_digests).hexdigest()
+
+
+def validate_report_source_metadata(metadata: object, sources: Mapping[str, str]) -> None:
+    """Reject missing or stale rendered-source metadata even when source pins pass."""
+
+    expected = report_source_metadata(sources)
+    if not isinstance(metadata, Mapping) or metadata.get("/Keywords") != expected:
+        raise ReportResultsClaimError(
+            "rendered report source binding does not match current Markdown; "
+            "rebuild and review the PDF"
+        )
 
 
 def validate_methodology_training_claims(

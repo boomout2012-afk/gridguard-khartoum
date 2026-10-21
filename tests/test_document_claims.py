@@ -147,6 +147,30 @@ def test_current_assurance_surfaces_do_not_claim_a_confirmatory_comparison() -> 
         assert "confirmatory comparison" not in path.read_text(encoding="utf-8").casefold(), path
 
 
+def test_synthetic_rationale_does_not_claim_matching_removes_generator_bias() -> None:
+    methodology = (REPOSITORY_ROOT / "docs" / "METHODOLOGY.md").read_text(encoding="utf-8")
+    rationale = methodology.split("### Why synthetic data", maxsplit=1)[1].split(
+        "## Controller decisions and dispatch", maxsplit=1
+    )[0]
+    normalized = _normalized(rationale).casefold()
+
+    assert "largely cancel" not in normalized
+    assert "internal validity of the controller comparison is therefore preserved" not in normalized
+    assert "not publicly available" not in normalized
+    assert "current conditions in sudan prevent" not in normalized
+    assert "may affect the controllers differently" in normalized
+    assert "no utility measurements were supplied for this study" in normalized
+
+
+def test_optimization_scope_preserves_the_proposal_conditional_method_objective() -> None:
+    for relative_path in ("docs/REPORT.md", "docs/PROPOSAL_TRACEABILITY.md"):
+        text = _normalized((REPOSITORY_ROOT / relative_path).read_text(encoding="utf-8"))
+        assert "where appropriate" in text, relative_path
+        assert "intentionally outside the accepted scope" not in text, relative_path
+        assert "no online mathematical dispatch optimizer" in text, relative_path
+        assert "optimization-based" in text and "future work" in text, relative_path
+
+
 def test_report_references_are_cited_and_extract_without_broken_glyphs() -> None:
     methodology = (REPOSITORY_ROOT / "docs" / "METHODOLOGY.md").read_text(encoding="utf-8")
     related_work = (REPOSITORY_ROOT / "docs" / "RELATED_WORK.md").read_text(encoding="utf-8")
@@ -316,7 +340,8 @@ def test_traceability_exposes_the_complete_training_lineage_and_forecast_horizon
     assert "selected seed-43 run" in _normalized(traceability).casefold()
     assert "three-seed candidate experiment" in _normalized(traceability).casefold()
     assert "11,059,200 transitions" in traceability
-    assert "Revision: 2026-08-27 (release 1.2.0)" in spec
+    assert "Revision: 2026-10-21" in spec
+    assert "Release: 1.2.0 (2026-08-27)" in spec
 
 
 def test_report_summary_uses_canonical_outage_and_percentage_point_units() -> None:

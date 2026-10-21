@@ -48,6 +48,7 @@ recalculating the headline claim.
 | `src/gridguard/ui/map_view.py` and `src/gridguard/ui/map_items.py` | Interactive `QGraphicsView` map and redundant service-state rendering |
 | `src/gridguard/ui/live_models.py`; `src/gridguard/ui/live_runner.py`; `src/gridguard/ui/live_worker.py` | Validated timeline contracts, shared-scenario CUDA execution, one display transfer, and off-GUI-thread worker signals |
 | `src/gridguard/ui/live_components.py`; `src/gridguard/ui/live_controls.py`; `src/gridguard/ui/live_visualization.py`; `src/gridguard/ui/live_page.py` | Stable focused widgets for controls, aggregate results, synchronized map/timeline replay, and locality details |
+| `src/gridguard/ui/power_trace.py` | Display-only demand/supply trace with an hour marker, using already transferred replay values |
 | `src/gridguard/ui/overview_page.py` | Scope, protocol, and locality overview |
 | `src/gridguard/ui/results_page.py` | Artifact-derived controller comparison and paired intervals |
 | `src/gridguard/ui/methodology_page.py` | In-application method and limitation summary |
@@ -287,7 +288,7 @@ Additional safeguards include:
 - frozen parity cannot rely only on a self-declared status;
 - the paired file must match SHA-256
   `7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5`;
-- the robustness supplement must match SHA-256 `fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1`; and
+- the robustness supplement must match SHA-256 `6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48`; and
 - the evaluator refuses devices other than `cuda:0`, bootstrap counts other than 10,000, or a
   protocol-specific bootstrap seed.
 
@@ -341,8 +342,12 @@ then loads the pinned robustness supplement for the Results view and the bundled
 evidence, model, resource, or map failure blocks the presentation instead of opening a partly
 trusted interface.
 
-The main window is designed at 1366 x 768 and contains four pages: Overview, Live Scenario,
-Results, and Methodology. Ctrl+1 through Ctrl+4 select the pages and F11 toggles fullscreen.
+The main window requires a minimum 1366 x 768 viewport and contains four pages: Overview, Live Scenario,
+Results, and Methodology. A cool navy navigation rail, white surfaces, and teal accents frame the
+map as the main view. Atkinson Hyperlegible supplies interface headings and body text, with IBM
+Plex Mono for numeric details; Source Serif remains bundled for the academic artifacts.
+Ctrl+1 through Ctrl+4 select the pages and F11 toggles fullscreen. The minimum size preserves map
+labels, controls, and comparison tables; fullscreen provides more room on the presentation display.
 Controls expose accessible names and descriptions, accept keyboard focus, and use a visible blue
 focus outline. Dynamic run, hour, projection, and service-tier labels emit accessibility value or
 name-change notifications when their text changes.
@@ -372,7 +377,15 @@ supply, system demand, locality demand, and projection values at every paired ho
 A table labeled **Live demonstration** presents Served energy, Critical service, Fairness,
 Curtailed energy, and Power-balance violations for PPO and Fixed Rotation from the selected
 episode. It is explicitly separate from frozen evidence. A controller selector and 24-hour slider
-let the presenter compare tier allocations on that same scenario. The selected-locality panel
+let the presenter compare tier allocations on that same scenario. Play/Pause uses a `QTimer` to
+advance through already computed frames and stops at the end of the day. It does not run the
+simulator again. The display-only `PowerTrace` widget plots the transferred demand and available
+supply values in MW, with distinct solid/dashed lines and a synchronized hour marker. Its
+accessible description reports the selected hour's values. These widgets render replay data;
+scenario generation, inference, forecasting, and scientific metric calculation remain outside
+the widgets.
+
+The selected-locality panel
 derives actual demand MW, served MW, critical-service ratio, and service ratios for Hospital,
 Water, Bakery, Residential, and Commercial from the transferred simulation values. It also labels
 the causal next-hour demand projection as display only and explicitly states that the value is not

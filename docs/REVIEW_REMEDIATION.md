@@ -1,5 +1,10 @@
 # Review Remediation Ledger
 
+This is the historical colleague-review ledger. Its recorded closures describe the August
+remediation and do not certify later source changes. The October 2026 findings, verified source
+fixes, and remaining graduation-readiness gates are tracked in
+[GRADUATION_REVIEW.md](GRADUATION_REVIEW.md); final refreshed artifacts remain subject to that gate.
+
 This ledger gives a clean English disposition for every substantive point in the colleague review.
 The raw review snapshot was `point.md`, 29,537 bytes, with SHA-256
 `1624389a763f283cae828a7bf5f0922b2acb724b8b687c88f19ad9c869cb3701`. It was removed after verified closure of all

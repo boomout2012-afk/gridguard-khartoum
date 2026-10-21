@@ -21,6 +21,7 @@ from tools.machine_validation import (
 )
 from tools.release_validation import (
     APPLICATION_SCREENSHOT_PATHS,
+    EXPECTED_PDF_PAGE_COUNT,
     refresh_release_visual_review,
 )
 
@@ -172,7 +173,7 @@ def test_refresh_writes_canonical_self_contained_release_record(tmp_path: Path) 
     assert record["pytest_collection"]["testcase_ids"] == record["junit"]["testcase_ids"]
     assert record["evidence_reproductions"]["paired"]["byte_identical"] is True
     assert record["evidence_reproductions"]["robustness"]["byte_identical"] is True
-    assert record["visual_review"]["pdf"]["page_count"] == 38
+    assert record["visual_review"]["pdf"]["page_count"] == EXPECTED_PDF_PAGE_COUNT
     assert record["visual_review"]["presentation"]["slide_count"] == 13
     assert record["visual_review"]["presentation"]["speaker_note_slide_count"] == 13
     assert record["assurance_scope"]["cryptographic_authenticity_claimed"] is False
@@ -631,9 +632,21 @@ def test_cli_refresh_and_both_verification_modes(tmp_path: Path, capsys) -> None
     assert main(refresh_args) == 0
     assert "unsigned" in capsys.readouterr().out.lower()
     assert main(["--verify", *common]) == 0
-    assert "self-contained" in capsys.readouterr().out.lower()
+    verify_output = capsys.readouterr().out
+    assert "self-contained" in verify_output
+    assert "Historical record/artifact verification" in verify_output
+    assert (
+        "current-source release requires scripts/build-presentation.ps1 -VerifyOnly"
+        in verify_output
+    )
     assert main(["--verify", "--verify-inputs", *common]) == 0
-    assert "transient" in capsys.readouterr().out.lower()
+    verify_inputs_output = capsys.readouterr().out
+    assert "transient" in verify_inputs_output
+    assert "Historical record/artifact verification" in verify_inputs_output
+    assert (
+        "current-source release requires scripts/build-presentation.ps1 -VerifyOnly"
+        in verify_inputs_output
+    )
 
     paths["junit"].unlink()
     assert main(["--verify", "--verify-inputs", *common]) == 1

@@ -15,7 +15,7 @@ $trainingProvenancePath = Join-Path $projectRoot "data\model\training-provenance
 $modelManifestPath = Join-Path $projectRoot "data\model\manifest.json"
 $trainingToolPath = Join-Path $projectRoot "tools\training_provenance.py"
 $expectedPairedSha256 = "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5"
-$expectedRobustnessSha256 = "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
+$expectedRobustnessSha256 = "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48"
 $expectedTrainingSha256 = "d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8"
 
 foreach ($path in @(
@@ -252,6 +252,11 @@ function Add-Text {
         [bool]$Bold = $false, [int]$Alignment = 1, [string]$FontName = "Aptos"
     )
 
+    # Bright accents suit the dark slides; use readable ink on the light slides.
+    if ($Slide.Background.Fill.ForeColor.RGB -eq (ConvertTo-Rgb $script:OffWhite)) {
+        if ($Color -ceq $script:Teal) { $Color = "007565" }
+        if ($Color -ceq $script:Gold) { $Color = "835D0A" }
+    }
     $shape = $Slide.Shapes.AddTextbox(1, $Left, $Top, $Width, $Height)
     $shape.Fill.Visible = 0
     $shape.Line.Visible = 0
@@ -437,6 +442,12 @@ function Format-Percent {
     return (($Value * 100).ToString("0.00", [Globalization.CultureInfo]::InvariantCulture) + "%")
 }
 
+function Format-DiagnosticScore {
+    param([double]$Value)
+
+    return $Value.ToString("0.000", [Globalization.CultureInfo]::InvariantCulture)
+}
+
 function Format-Points {
     param([double]$Value)
 
@@ -502,7 +513,7 @@ function Add-StatCard {
 
     Add-Box $Slide $Left $Top $Width $Height $FillColor "" 5 | Out-Null
     Add-Text $Slide $Value ($Left + 14) ($Top + 12) ($Width - 28) 58 23 $ValueColor $true 2 | Out-Null
-    Add-Text $Slide $Label ($Left + 14) ($Top + 76) ($Width - 28) ($Height - 84) 16 $script:OffWhite $true 2 | Out-Null
+    Add-Text $Slide $Label ($Left + 14) ($Top + 76) ($Width - 28) ($Height - 84) 16 $ValueColor $true 2 | Out-Null
 }
 
 $outageDelta = (Format-OneDecimal ([double]$inference.critical_outage_locality_hours.mean_delta) $true) + " locality-hours"
@@ -603,7 +614,8 @@ try {
     for ($index = 0; $index -lt $nodeCenters.Count; $index++) {
         $fill = if ($index -in @(2, 4)) { $script:Teal } else { $script:Slate }
         Add-Box $slide ($nodeCenters[$index] - 62) 184 124 92 $fill "" 5 | Out-Null
-        Add-Text $slide $nodeLabels[$index] ($nodeCenters[$index] - 55) 203 110 64 17 $script:OffWhite $true 2 | Out-Null
+        $nodeInk = if ($index -in @(2, 4)) { $script:Navy } else { $script:OffWhite }
+        Add-Text $slide $nodeLabels[$index] ($nodeCenters[$index] - 55) 203 110 64 17 $nodeInk $true 2 | Out-Null
     }
     Add-Text $slide "Controller evidence" 58 320 230 28 20 $script:Ink $true | Out-Null
     Add-Line $slide 58 355 900 355 $script:Grid 1 | Out-Null
@@ -658,9 +670,9 @@ try {
         "$selectedTransitionLabel transitions  |  learning rate $($trainingSummary.ppo.learning_rate)"
     ) 64 298 420 16 $script:Ink 34 $script:Teal | Out-Null
     Add-Text $slide "Training-objective score (diagnostic)" 536 258 350 28 20 $script:Gold $true | Out-Null
-    Add-Text $slide (Format-TwoDecimals $selectedConvergenceValue) 536 302 170 58 38 $script:Teal $true | Out-Null
+    Add-Text $slide (Format-DiagnosticScore $selectedConvergenceValue) 536 302 170 58 38 $script:Teal $true | Out-Null
     Add-Text $slide "selected iteration $selectedIteration" 536 358 210 24 16 "60727D" | Out-Null
-    Add-Text $slide (Format-TwoDecimals ([double]$trainingSummary.convergence.untrained)) 748 302 140 58 38 "60727D" $true | Out-Null
+    Add-Text $slide (Format-DiagnosticScore ([double]$trainingSummary.convergence.untrained)) 748 302 140 58 38 "60727D" $true | Out-Null
     Add-Text $slide "untrained" 748 358 140 24 16 "60727D" | Out-Null
     Add-Text $slide "Three-seed candidate experiment" 536 395 350 24 17 $script:Gold $true | Out-Null
     Add-Text $slide "$candidateIterationLabel iterations  |  $candidateEpisodeLabel episodes" 536 423 350 22 16 $script:Ink $true | Out-Null
@@ -702,7 +714,7 @@ try {
     Add-Chrome $slide 7 $true
     Add-SlideTitle $slide "The desktop replays one audited GPU scenario" $true
     Add-Box $slide 62 126 836 352 "D7E0E4" $script:Grid 5 | Out-Null
-    Add-Picture $slide $liveImage 69 133 822 338 "Live Scenario page showing one shared GPU scenario and locality detail" | Out-Null
+    Add-Picture $slide $liveImage 179.409 133 601.182 338 "Live Scenario page showing one shared GPU scenario and locality detail" | Out-Null
     Add-Text $slide "Frozen evidence stays separate from Live Scenario replay  |  forecast is DISPLAY ONLY" 75 478 810 24 16 $script:Teal $true 2 | Out-Null
     Add-Notes $slide (New-Notes "Run once, then change controller and hour without changing the scenario. Live values never replace frozen evidence." @(
             "docs/IMPLEMENTATION.md",
@@ -756,7 +768,7 @@ try {
     Set-SlideBackground $slide $script:OffWhite
     Add-Chrome $slide 10 $true
     Add-SlideTitle $slide "One-hour persistence outperformed the three-hour trailing mean" $true
-    Add-Text $slide "Pooled error metric" 64 144 285 24 16 "60727D" $true | Out-Null
+    Add-Text $slide "Pooled error metric (MW)" 64 144 285 24 16 "60727D" $true | Out-Null
     Add-Text $slide "One-hour persistence" 394 144 220 24 16 $script:Teal $true | Out-Null
     Add-Text $slide "Three-hour trailing mean" 655 144 235 24 16 "60727D" $true | Out-Null
     $forecastRows = @(

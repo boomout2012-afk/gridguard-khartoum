@@ -1,7 +1,19 @@
 # Presentation checklist
 
+The October 2026 source refresh is not certified by the historical August release records.
+Complete the current source/artifact sequence in [GRADUATION_REVIEW.md](GRADUATION_REVIEW.md)
+before using this checklist for final rehearsal. A passing historical-record verifier does not
+substitute for a current source snapshot, fresh CUDA tests, or inspection of regenerated artifacts.
+
 ## Build and frozen-runtime validation
 
+- Finish source and document changes, capture the real CUDA scenario, render and inspect every
+  report page and slide, and review speaker notes before freezing the new source snapshot.
+- Generate the fresh exact test collection, zero-skip JUnit results, and both byte-identical
+  evidence reproductions; refresh and commit the machine record against the actual tested source
+  commit. `scripts/build-presentation.ps1` verifies this record but does not generate it.
+- For this source refresh, use `scripts/build-presentation.ps1 -RefreshManifest` after the
+  machine record is committed, then commit the manifest before the clean `-VerifyOnly` gate.
 - Run `scripts/build-presentation.ps1` from the repository before copying the package.
 - After finalizing `RELEASE_MANIFEST.json`, run
   `scripts/build-presentation.ps1 -VerifyOnly` to bind the existing executable,
@@ -95,6 +107,9 @@
 
 ## If the app refuses to start
 
-Do not bypass the gate. Record the message, restart the laptop once, confirm the NVIDIA driver
-is active, and use the report/slides backup if the gate still fails. A blocked startup is safer
-than presenting unverified or CPU-fallback results.
+Do not bypass the gate. Record the message and retain `build/gridguard/launch-diagnostic.json`
+when launching through `scripts/run-presentation.ps1`. The application records `FAILED` before
+showing a blocked-startup dialog and `READY` after opening the verified window; `STARTED` alone
+means startup is pending. Confirm the NVIDIA driver is active and use the report/slides backup
+if the gate still fails. A blocked startup is safer than presenting unverified or CPU-fallback
+results.
