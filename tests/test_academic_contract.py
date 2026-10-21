@@ -74,19 +74,22 @@ def test_evidence_documents_separate_accepted_reproduction_from_documented_holdo
 
 
 def test_live_demonstration_contract_covers_aggregate_metrics_and_accessibility() -> None:
-    implementation = _read("docs/IMPLEMENTATION.md")
+    implementation = " ".join(_read("docs/IMPLEMENTATION.md").split()).casefold()
     specification = _read("SPEC.md")
 
     for phrase in (
-        "Live demonstration",
-        "Served energy",
-        "Critical service",
-        "Fairness",
-        "Curtailed energy",
-        "Power-balance violations",
+        "full-day comparison",
+        "served energy",
+        "critical service",
+        "jain fairness",
+        "curtailed energy",
+        "power-balance violations",
     ):
         assert phrase in implementation
-    assert "synchronized locality list" in implementation
+    assert "for ppo and fixed rotation from the selected episode" in implementation
+    assert "tooltip and accessible description" in implementation
+    assert "frozen evidence remains separate" in implementation
+    assert "synchronized locality dropdown" in implementation
     assert "accessible names and descriptions" in specification
     assert "visible keyboard focus" in specification
 
