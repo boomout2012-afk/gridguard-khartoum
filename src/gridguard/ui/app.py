@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import json
+import os
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
@@ -55,6 +61,48 @@ def format_runtime_label(info: GpuRuntimeInfo) -> str:
     )
 
 
+def _write_startup_diagnostic(path: str | None, *, error: Exception | None = None) -> None:
+    """Publish startup state atomically without allowing a logging failure to block the UI."""
+
+    if not path:
+        return
+    temporary_path: Path | None = None
+    try:
+        destination = Path(path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        cause = None if error is None else error.__cause__
+        payload = {
+            "schema_version": 1,
+            "timestamp_utc": datetime.now(UTC).isoformat(),
+            "source": "application",
+            "stage": "application-startup",
+            "status": "READY" if error is None else "FAILED",
+            "message": "Verified presentation window opened." if error is None else str(error),
+            "executable_path": sys.executable,
+            "exit_code": None if error is None else 1,
+            "error_type": None if error is None else type(error).__name__,
+            "cause": (
+                None
+                if cause is None
+                else {"error_type": type(cause).__name__, "message": str(cause)}
+            ),
+        }
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=destination.parent, prefix=".startup-", delete=False
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            json.dump(payload, temporary, allow_nan=False, indent=2, sort_keys=True)
+            temporary.write("\n")
+        temporary_path.replace(destination)
+    except (OSError, ValueError):
+        # The original trust failure and its dialog remain authoritative if logging is unavailable.
+        pass
+    finally:
+        if temporary_path is not None:
+            with suppress(OSError):
+                temporary_path.unlink(missing_ok=True)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Start the offline desktop shell, refusing to open after a failed preflight."""
 
@@ -62,6 +110,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     application.setApplicationName("GridGuard Khartoum")
     application.setOrganizationName("GridGuard Khartoum")
     apply_theme(application)
+    diagnostic_path = os.environ.get("GRIDGUARD_STARTUP_DIAGNOSTIC")
     try:
         startup = prepare_startup()
         window = PresentationWindow(
@@ -79,14 +128,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         ResourceLocationError,
         RobustnessArtifactError,
     ) as error:
+        _write_startup_diagnostic(diagnostic_path, error=error)
+        if sys.stderr is not None:
+            with suppress(OSError, ValueError):
+                print(f"GridGuard desktop startup: FAIL - {error}", file=sys.stderr)
         QMessageBox.critical(
             None,
             "GridGuard startup blocked",
             f"The presentation cannot start because a required trust check failed.\n\n{error}",
         )
-        print(f"GridGuard desktop startup: FAIL - {error}", file=sys.stderr)
         return 1
     window.show()
+    _write_startup_diagnostic(diagnostic_path)
     return application.exec()
 
 

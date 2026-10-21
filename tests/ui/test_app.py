@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import inspect
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -101,6 +103,7 @@ def test_startup_failure_log_uses_ascii_separator() -> None:
 def test_main_converts_every_trusted_startup_failure_to_the_blocked_dialog(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
     error_type: type[Exception],
 ) -> None:
     class FakeApplication:
@@ -117,18 +120,37 @@ def test_main_converts_every_trusted_startup_failure_to_the_blocked_dialog(
         def setOrganizationName(self, _name: str) -> None:
             pass
 
+    diagnostic_path = tmp_path / "startup.json"
+    monkeypatch.setenv("GRIDGUARD_STARTUP_DIAGNOSTIC", str(diagnostic_path))
     dialogs: list[tuple[object, str, str]] = []
+
+    def show_blocked_dialog(*arguments: object) -> None:
+        diagnostic = json.loads(diagnostic_path.read_text(encoding="utf-8"))
+        assert diagnostic["source"] == "application"
+        assert diagnostic["stage"] == "application-startup"
+        assert diagnostic["status"] == "FAILED"
+        assert diagnostic["error_type"] == error_type.__name__
+        assert diagnostic["message"] == "trusted input rejected"
+        assert diagnostic["cause"] == {
+            "error_type": "OSError",
+            "message": "underlying runtime failure",
+        }
+        dialogs.append(arguments)
+
+    def fail_startup() -> None:
+        raise error_type("trusted input rejected") from OSError("underlying runtime failure")
+
     monkeypatch.setattr(app, "QApplication", FakeApplication)
     monkeypatch.setattr(
         app,
         "QMessageBox",
-        SimpleNamespace(critical=lambda *args: dialogs.append(args)),
+        SimpleNamespace(critical=show_blocked_dialog),
     )
     monkeypatch.setattr(app, "apply_theme", lambda _application: None)
     monkeypatch.setattr(
         app,
         "prepare_startup",
-        lambda: (_ for _ in ()).throw(error_type("trusted input rejected")),
+        fail_startup,
     )
     monkeypatch.setattr(
         app,
@@ -146,3 +168,72 @@ def test_main_converts_every_trusted_startup_failure_to_the_blocked_dialog(
         )
     ]
     assert "GridGuard desktop startup: FAIL - trusted input rejected" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("writable_diagnostic", [True, False])
+def test_startup_failure_remains_visible_without_console_streams(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    writable_diagnostic: bool,
+) -> None:
+    diagnostic_path = tmp_path / "startup.json" if writable_diagnostic else tmp_path
+    monkeypatch.setenv("GRIDGUARD_STARTUP_DIAGNOSTIC", str(diagnostic_path))
+    fake_application = SimpleNamespace(
+        setApplicationName=lambda _name: None,
+        setOrganizationName=lambda _name: None,
+    )
+    monkeypatch.setattr(app, "QApplication", SimpleNamespace(instance=lambda: fake_application))
+    monkeypatch.setattr(app, "apply_theme", lambda _application: None)
+    monkeypatch.setattr(
+        app, "prepare_startup", lambda: (_ for _ in ()).throw(GpuPreflightError("CUDA unavailable"))
+    )
+    monkeypatch.setattr(
+        app, "PresentationWindow", lambda *_args, **_kwargs: pytest.fail("window must not open")
+    )
+    dialogs: list[tuple[object, ...]] = []
+    monkeypatch.setattr(
+        app, "QMessageBox", SimpleNamespace(critical=lambda *args: dialogs.append(args))
+    )
+    with monkeypatch.context() as console_patch:
+        console_patch.setattr(app.sys, "stdout", None)
+        console_patch.setattr(app.sys, "stderr", None)
+        result = app.main(["gridguard-desktop"])
+
+    assert result == 1
+    assert len(dialogs) == 1
+    assert "CUDA unavailable" in str(dialogs[0][2])
+    if writable_diagnostic:
+        assert json.loads(diagnostic_path.read_text(encoding="utf-8"))["status"] == "FAILED"
+    assert not list(tmp_path.glob(".startup-*"))
+
+
+def test_successful_startup_records_readiness_after_the_window_opens(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    diagnostic_path = tmp_path / "startup.json"
+    monkeypatch.setenv("GRIDGUARD_STARTUP_DIAGNOSTIC", str(diagnostic_path))
+    shown: list[bool] = []
+
+    def enter_event_loop() -> int:
+        assert shown == [True]
+        assert json.loads(diagnostic_path.read_text(encoding="utf-8"))["status"] == "READY"
+        return 0
+
+    fake_application = SimpleNamespace(
+        setApplicationName=lambda _name: None,
+        setOrganizationName=lambda _name: None,
+        exec=enter_event_loop,
+    )
+    monkeypatch.setattr(app, "QApplication", SimpleNamespace(instance=lambda: fake_application))
+    monkeypatch.setattr(app, "apply_theme", lambda _application: None)
+    monkeypatch.setattr(
+        app, "prepare_startup", lambda: SimpleNamespace(gpu=_gpu(), snapshot=object())
+    )
+    monkeypatch.setattr(
+        app,
+        "PresentationWindow",
+        lambda *_args, **_kwargs: SimpleNamespace(show=lambda: shown.append(True)),
+    )
+
+    assert app.main(["gridguard-desktop"]) == 0

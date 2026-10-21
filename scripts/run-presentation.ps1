@@ -13,10 +13,30 @@ if (-not (Test-Path -LiteralPath $releaseIntegrityHelper -PathType Leaf)) {
 }
 . $releaseIntegrityHelper
 
+function Get-ApplicationStartupFailure {
+    param([string]$DiagnosticPath)
+
+    try {
+        $diagnostic = Get-Content -Raw -LiteralPath $DiagnosticPath | ConvertFrom-Json
+        if (
+            $diagnostic.source -ceq "application" -and
+            $diagnostic.stage -ceq "application-startup" -and
+            $diagnostic.status -ceq "FAILED"
+        ) {
+            return $diagnostic
+        }
+    }
+    catch {
+        # An unavailable record cannot establish readiness or replace a process failure.
+    }
+    return $null
+}
+
 $previousStartupDiagnostic = [Environment]::GetEnvironmentVariable(
     "GRIDGUARD_STARTUP_DIAGNOSTIC", "Process"
 )
 $currentStage = "integrity-verification"
+$process = $null
 try {
     [Environment]::SetEnvironmentVariable(
         "GRIDGUARD_STARTUP_DIAGNOSTIC", $diagnosticPath, "Process"
@@ -52,7 +72,12 @@ try {
         -FilePath $executable `
         -WorkingDirectory $distribution `
         -PassThru
-    if ($process.WaitForExit(8000)) {
+    $exitedDuringStartup = $process.WaitForExit(8000)
+    $applicationFailure = Get-ApplicationStartupFailure -DiagnosticPath $diagnosticPath
+    if ($null -ne $applicationFailure) {
+        throw "GridGuard blocked startup: $($applicationFailure.message)"
+    }
+    if ($exitedDuringStartup) {
         if ($process.ExitCode -ne 0) {
             throw (
                 "GridGuard exited during startup with code $($process.ExitCode). " +
@@ -68,12 +93,10 @@ try {
             -Message "GridGuard exited cleanly during the startup observation window.")
     }
     else {
-        [void](Write-LaunchDiagnostic `
-            -DiagnosticPath $diagnosticPath `
-            -Stage $currentStage `
-            -Status "RUNNING" `
-            -ExecutablePath $executable `
-            -Message "GridGuard remained active beyond the startup observation window.")
+        # Only the application knows whether its trust gate passed and its window opened.
+        # Leave its atomic READY/FAILED record, or the pending STARTED record, untouched.
+        # A later application failure must remain visible after this observation ends.
+        Write-Host "GridGuard startup observation complete. Diagnostic: $diagnosticPath"
     }
 }
 catch {
@@ -83,13 +106,16 @@ catch {
     else {
         $null
     }
-    [void](Write-LaunchDiagnostic `
-        -DiagnosticPath $diagnosticPath `
-        -Stage $currentStage `
-        -Status "FAILED" `
-        -ExecutablePath $executable `
-        -Message $_.Exception.ToString() `
-        -ExitCode $exitCode)
+    $applicationFailure = Get-ApplicationStartupFailure -DiagnosticPath $diagnosticPath
+    if ($null -eq $applicationFailure) {
+        [void](Write-LaunchDiagnostic `
+            -DiagnosticPath $diagnosticPath `
+            -Stage $currentStage `
+            -Status "FAILED" `
+            -ExecutablePath $executable `
+            -Message $_.Exception.ToString() `
+            -ExitCode $exitCode)
+    }
     throw "GridGuard presentation launch failed. Diagnostic: $diagnosticPath`n$($_.Exception.Message)"
 }
 finally {
