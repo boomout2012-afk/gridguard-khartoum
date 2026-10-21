@@ -110,7 +110,7 @@ def test_capture_page_selection_aligns_navigation_focus(qapp, monkeypatch) -> No
     qapp.processEvents()
 
     try:
-        for page_index in range(4):
+        for page_index in range(3):
             capture._select_capture_page(window, page_index)
             qapp.processEvents()
 
@@ -121,7 +121,7 @@ def test_capture_page_selection_aligns_navigation_focus(qapp, monkeypatch) -> No
         qapp.processEvents()
 
 
-def test_capture_writes_four_distinct_1366_by_768_pngs(
+def test_capture_writes_three_distinct_1366_by_768_pngs(
     qapp,
     tmp_path: Path,
     monkeypatch,
@@ -148,7 +148,7 @@ def test_capture_writes_four_distinct_1366_by_768_pngs(
 
     paths = capture.capture_screenshots(tmp_path, application=qapp)
 
-    assert len(prepared_windows) == 4
+    assert len(prepared_windows) == 3
     assert len(runner_calls) == 1
     assert all(value is comparison for value in installed_comparisons)
     assert all(not window.isVisible() for window in prepared_windows)
@@ -156,22 +156,18 @@ def test_capture_writes_four_distinct_1366_by_768_pngs(
         "overview.png",
         "live.png",
         "results.png",
-        "methodology.png",
     )
     digests: set[str] = set()
-    rail_header_digests: set[str] = set()
-    trust_strip_digests: set[str] = set()
+    wordmark_digests: set[str] = set()
     for path in paths:
         assert path.stat().st_size > 20_000
         image = QImage(str(path))
         assert not image.isNull()
         assert (image.width(), image.height()) == (1366, 768)
         digests.add(hashlib.sha256(path.read_bytes()).hexdigest())
-        rail_header_digests.add(_region_digest(image, QRect(0, 0, 176, 125)))
-        trust_strip_digests.add(_region_digest(image, QRect(0, 727, 1366, 41)))
-    assert len(digests) == 4
-    assert len(rail_header_digests) == 1
-    assert len(trust_strip_digests) == 1
+        wordmark_digests.add(_region_digest(image, QRect(52, 40, 250, 40)))
+    assert len(digests) == 3
+    assert len(wordmark_digests) == 1
 
 
 @pytest.mark.gpu
@@ -186,8 +182,8 @@ def test_cli_capture_matches_committed_cuda_screenshots(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     paths = sorted(tmp_path.glob("*.png"))
-    assert len(paths) == 4
+    assert len(paths) == 3
     for path in paths:
         assert path.read_bytes() == (COMMITTED_SCREENSHOT_DIR / path.name).read_bytes()
-    header_digests = {_region_digest(QImage(str(path)), QRect(0, 0, 176, 125)) for path in paths}
+    header_digests = {_region_digest(QImage(str(path)), QRect(52, 40, 250, 40)) for path in paths}
     assert len(header_digests) == 1

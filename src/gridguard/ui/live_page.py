@@ -5,23 +5,16 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QWidget
 
 from gridguard.domain import ControllerName
-from gridguard.ui.components import ClaimBoundaryNote, page_intro
-from gridguard.ui.live_components import (
-    LiveComparisonTable,
-    LiveLocalityPanel,
-    LiveMapPanel,
-    LiveScenarioControls,
-)
+from gridguard.ui.live_components import compose_live_page
 from gridguard.ui.live_models import LiveScenarioComparison, LiveScenarioFrame
 from gridguard.ui.map_asset import MapAsset
-from gridguard.ui.power_trace import PowerTrace
 
 
 class LiveScenarioPage(QWidget):
-    """Orchestrate genuine live frames across focused presentation widgets."""
+    """Orchestrate genuine live frames across approved native presentation surfaces."""
 
     run_requested = Signal(str, int)
 
@@ -30,107 +23,60 @@ class LiveScenarioPage(QWidget):
         self._frames: dict[int, LiveScenarioFrame] = {}
         self._comparison: LiveScenarioComparison | None = None
         self.setAccessibleName("Live Scenario page")
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(18, 12, 18, 10)
-        layout.setSpacing(8)
-        title, description = page_intro(
-            "Explore a 24-hour shortage scenario",
-            "Run both controllers on identical synthetic inputs. Play the day, inspect a locality, "
-            "and switch controllers to compare their decisions.",
-        )
-        layout.addWidget(title)
-        layout.addWidget(description)
-
-        self.controls = LiveScenarioControls()
-        self.shortage_combo = self.controls.shortage_combo
-        self.seed_input = self.controls.seed_input
-        self.run_button = self.controls.run_button
-        self.state_label = self.controls.state_label
+        compose_live_page(self, asset)
         self.controls.run_requested.connect(self._request_run)
         self.controls.inputs_changed.connect(self._invalidate_changed_inputs)
-        layout.addWidget(self.controls)
-
-        self.comparison_caption = QLabel(
-            "Live demonstration · matched aggregate metrics from this run"
-        )
-        self.comparison_caption.setProperty("eyebrow", True)
-        layout.addWidget(self.comparison_caption)
-        self.comparison_table = LiveComparisonTable()
-        metrics_row = QHBoxLayout()
-        metrics_row.setSpacing(10)
-        metrics_row.addWidget(self.comparison_table, 3)
-        self.power_trace = PowerTrace()
-        metrics_row.addWidget(self.power_trace, 1)
-        layout.addLayout(metrics_row)
-        self.scope_note = ClaimBoundaryNote()
-        layout.addWidget(self.scope_note)
-
-        body = QHBoxLayout()
-        body.setSpacing(10)
-        self.map_panel = LiveMapPanel(asset)
-        self.hour_label = self.map_panel.hour_label
-        self.controller_combo = self.map_panel.controller_combo
-        self.timeline = self.map_panel.timeline
-        self.map_view = self.map_panel.map_view
-        body.addWidget(self.map_panel, 7)
-
-        self.locality_panel = LiveLocalityPanel(asset, self.map_view)
-        self.locality_list = self.locality_panel.locality_list
-        self.locality_card = self.locality_panel.locality_card
-        self.locality_name = self.locality_panel.locality_name
-        self.locality_context = self.locality_panel.locality_context
-        self.locality_status = self.locality_panel.locality_status
-        self.locality_demand = self.locality_panel.locality_demand
-        self.locality_served = self.locality_panel.locality_served
-        self.locality_critical = self.locality_panel.locality_critical
-        self.locality_projection = self.locality_panel.locality_projection
-        self.sector_service_labels = self.locality_panel.sector_service_labels
-        body.addWidget(self.locality_panel, 4)
-        layout.addLayout(body, 1)
-
         self.controller_combo.currentTextChanged.connect(self._select_controller)
         self.timeline.valueChanged.connect(self._show_hour)
         self.map_view.locality_selected.connect(self._update_selected_locality)
+        self.map_view.select_locality("east_nile")
+        self._update_selected_locality("east_nile")
 
     def set_frames(self, frames: Sequence[LiveScenarioFrame]) -> None:
         """Install 24 genuine simulation frames and show the first hour."""
 
         self._comparison = None
-        self.controller_combo.setEnabled(False)
+        self.map_panel.set_controller_available(False)
         self.comparison_table.clear_metrics()
+        self.comparison_summary.clear_metrics()
         self._install_frames(frames)
-        self.controls.set_state(
-            "GPU simulation complete · use the hour control to explore.",
-            "ready",
-        )
+        self.controls.set_state("Scenario complete · use the hour control to explore.", "ready")
 
     def set_comparison(self, comparison: LiveScenarioComparison) -> None:
-        """Install both controller timelines from one shared CUDA scenario."""
+        """Install both controller timelines from the same genuine scenario."""
 
         if not isinstance(comparison, LiveScenarioComparison):
             raise TypeError("comparison must be a LiveScenarioComparison")
         self._comparison = comparison
+        for control, value in (
+            (self.shortage_combo, comparison.shortage_level.title()),
+            (self.seed_input, comparison.seed),
+        ):
+            blocked = control.blockSignals(True)
+            if control is self.shortage_combo:
+                control.setCurrentText(value)
+            else:
+                control.setValue(value)
+            control.blockSignals(blocked)
         self.controller_combo.blockSignals(True)
         self.controller_combo.setCurrentText(ControllerName.PPO.value)
         self.controller_combo.blockSignals(False)
-        self.controller_combo.setEnabled(True)
+        self.map_panel._sync_controller_buttons(ControllerName.PPO.value)
+        self.map_panel.set_controller_available(True)
         self.comparison_table.show_comparison(comparison)
+        self.comparison_summary.show_comparison(comparison)
         self._install_frames(comparison.frames(ControllerName.PPO.value))
         self.controls.set_state(
-            "GPU comparison complete · showing PPO on the shared scenario.",
-            "ready",
+            "Comparison complete · showing PPO on the shared scenario.", "ready"
         )
 
     def set_busy(self, busy: bool) -> None:
-        """Lock scenario inputs while a background GPU run is active."""
+        """Lock scenario inputs while the real background run is active."""
 
         self.controls.set_busy(busy)
 
     def _install_frames(
-        self,
-        frames: Sequence[LiveScenarioFrame],
-        *,
-        reset_hour: bool = True,
+        self, frames: Sequence[LiveScenarioFrame], *, reset_hour: bool = True
     ) -> None:
         indexed = {frame.hour: frame for frame in frames}
         if set(indexed) != set(range(24)) or len(frames) != 24:
@@ -144,26 +90,18 @@ class LiveScenarioPage(QWidget):
         self._show_hour(selected_hour)
 
     def show_run_error(self, message: str) -> None:
-        """Expose an integration error without substituting demo values."""
+        """Expose an integration error without substituting demonstration values."""
 
         self._reset_output()
         self.set_busy(False)
-        self.controls.set_state(
-            f"GPU simulation unavailable: {message}",
-            "error",
-        )
+        self.controls.set_state(f"Scenario unavailable: {message}", "error")
 
-    def _request_run(
-        self,
-        shortage_level: str | None = None,
-        seed: int | None = None,
-    ) -> None:
+    def _request_run(self, shortage_level: str | None = None, seed: int | None = None) -> None:
         shortage = shortage_level or self.shortage_combo.currentText().casefold()
         scenario_seed = self.seed_input.value() if seed is None else seed
         self._reset_output()
         self.controls.set_state(
-            "Scenario requested · awaiting verified GPU simulation output.",
-            "loading",
+            "Scenario requested · awaiting verified simulation output.", "loading"
         )
         self.run_requested.emit(shortage, scenario_seed)
 
@@ -173,6 +111,7 @@ class LiveScenarioPage(QWidget):
         self.map_panel.reset_output()
         self.locality_panel.reset_output()
         self.comparison_table.clear_metrics()
+        self.comparison_summary.clear_metrics()
         self.power_trace.clear()
 
     def _invalidate_changed_inputs(self, _shortage_level: str, _seed: int) -> None:
@@ -180,20 +119,15 @@ class LiveScenarioPage(QWidget):
             return
         self._reset_output()
         self.controls.set_state(
-            "Inputs changed; run required before scientific output is available.",
-            "empty",
+            "Inputs changed; run required before scientific output is available.", "empty"
         )
 
     def _select_controller(self, controller_name: str) -> None:
         if self._comparison is None:
             return
-        self._install_frames(
-            self._comparison.frames(controller_name),
-            reset_hour=False,
-        )
+        self._install_frames(self._comparison.frames(controller_name), reset_hour=False)
         self.controls.set_state(
-            f"GPU comparison complete · showing {controller_name} on the shared scenario.",
-            "ready",
+            f"Comparison complete · showing {controller_name} on the shared scenario.", "ready"
         )
 
     def _show_hour(self, hour: int) -> None:

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication, QGraphicsItem, QGraphicsPathItem
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import load_map_asset
 from gridguard.ui.map_view import LocalityMapView, SchematicMapView
-from gridguard.ui.theme import PALETTE, STATUS_COLORS, apply_theme
+from gridguard.ui.theme import PALETTE, STATUS_FILL_COLORS, apply_theme
 
 
 def test_map_exposes_all_localities_and_accessible_description(qtbot) -> None:
@@ -85,7 +85,7 @@ def test_pointer_selection_emits_locality_identifier(qtbot) -> None:
     assert "Omdurman" in item.toolTip()
 
 
-def test_statuses_have_symbol_and_text_redundancy(qtbot) -> None:
+def test_service_fills_keep_text_status_independent_of_coral_selection(qtbot) -> None:
     view = LocalityMapView(load_map_asset())
     qtbot.addWidget(view)
 
@@ -97,24 +97,35 @@ def test_statuses_have_symbol_and_text_redundancy(qtbot) -> None:
         }
     )
 
-    assert view.locality_items["khartoum"].status_text == "× OFF"
-    assert view.locality_items["omdurman"].status_text == "! CRITICAL ONLY"
-    assert view.locality_items["bahri"].status_text == "• FULL"
+    view.select_locality("east_nile")
+    assert "arrow keys" in view.accessibleDescription()
+    assert view.focusPolicy() == Qt.FocusPolicy.StrongFocus
     for locality_id, tier in (
         ("khartoum", ServiceTier.OFF),
         ("omdurman", ServiceTier.CRITICAL_ONLY),
         ("bahri", ServiceTier.FULL_SERVICE),
     ):
         item = view.locality_items[locality_id]
-        assert item._label_backing.brush().color().name().upper() == PALETTE.surface
-        assert item._label_backing.brush().isOpaque()
+        assert item.service_tier is tier
+        assert item.status_text == tier.label
+        assert item.locality.name in item.toolTip()
+        assert f"Service tier: {tier.label}" in item.toolTip()
+        assert "Selected locality" not in item.toolTip()
+        assert item.brush().style() == Qt.BrushStyle.SolidPattern
+        assert item.brush().color() == STATUS_FILL_COLORS[tier.value]
         assert item._name.brush().color().name().upper() == PALETTE.ink
-        assert (
-            item._status.brush().color().name().upper() == STATUS_COLORS[tier.value].name().upper()
-        )
-        backing_rect = item._label_backing.rect()
-        assert backing_rect.contains(item._name.mapRectToParent(item._name.boundingRect()))
-        assert backing_rect.contains(item._status.mapRectToParent(item._status.boundingRect()))
+
+    view.select_locality("omdurman")
+    selected = view.locality_items["omdurman"]
+    assert selected.brush().color().name().upper() == PALETTE.selection
+    assert selected.service_tier is ServiceTier.CRITICAL_ONLY
+    assert selected.status_text == "Critical Only"
+    assert "Service tier: Critical Only" in selected.toolTip()
+    assert "Selected locality; coral denotes selection, not a service tier" in selected.toolTip()
+
+    view.select_locality("bahri")
+    assert selected.brush().color() == STATUS_FILL_COLORS[ServiceTier.CRITICAL_ONLY.value]
+    assert "Selected locality" not in selected.toolTip()
 
 
 def test_status_callouts_do_not_overlap_at_live_presentation_size(qtbot, qapp) -> None:

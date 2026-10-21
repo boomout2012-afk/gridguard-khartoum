@@ -17,8 +17,7 @@ from gridguard.ui.map_asset import load_map_asset
 from gridguard.ui.window import PresentationWindow
 from gridguard.ui.window_components import (
     PageStack,
-    PresentationNavigationRail,
-    PresentationTrustStrip,
+    PresentationNavigationBar,
 )
 
 
@@ -32,13 +31,11 @@ def test_ui_orchestrators_stay_within_a_200_line_boundary(orchestrator: type) ->
     )
 
 
-def test_window_shell_components_preserve_navigation_and_trust_behavior(qtbot) -> None:
+def test_window_shell_components_preserve_navigation_behavior(qtbot) -> None:
     stack = PageStack()
-    rail = PresentationNavigationRail(PresentationWindow.PAGE_LABELS)
-    trust_strip = PresentationTrustStrip("Test CUDA runtime", "benchmark-001")
+    rail = PresentationNavigationBar(PresentationWindow.PAGE_LABELS)
     qtbot.addWidget(stack)
     qtbot.addWidget(rail)
-    qtbot.addWidget(trust_strip)
     for label in PresentationWindow.PAGE_LABELS:
         stack.addTab(QWidget(), label)
     rail.page_selected.connect(stack.setCurrentIndex)
@@ -50,8 +47,7 @@ def test_window_shell_components_preserve_navigation_and_trust_behavior(qtbot) -
     assert stack.tabText(2) == "Results"
     assert rail.buttons[2].isChecked()
     assert "current" in rail.buttons[2].accessibleDescription()
-    assert trust_strip.runtime_status.toolTip() == "Test CUDA runtime"
-    assert "benchmark-001" in trust_strip.accessibleDescription()
+    assert "Control plus 1 through 3" in rail.accessibleDescription()
 
 
 def test_live_page_exposes_component_widgets_through_existing_aliases(qtbot) -> None:
@@ -88,4 +84,5 @@ def test_live_controls_emit_normalized_inputs_and_keep_state_accessible(qtbot) -
     controls.set_busy(True)
     assert not controls.run_button.isEnabled()
     assert controls.state_label.property("state") == "loading"
-    assert "shared CUDA scenario" in controls.state_label.text()
+    assert "scenario" in controls.state_label.text().casefold()
+    assert "CUDA" not in controls.state_label.text()

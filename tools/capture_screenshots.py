@@ -32,7 +32,6 @@ PAGE_CAPTURES = (
     ("overview", 0),
     ("live", 1),
     ("results", 2),
-    ("methodology", 3),
 )
 
 
@@ -66,7 +65,7 @@ def _prepare_window(
     window.live_page.map_view.select_locality(CAPTURE_LOCALITY_ID)
     window.live_page.state_label.setProperty("state", "ready")
     window.live_page.state_label.setText(
-        "Canonical CUDA live demonstration | Moderate / seed 50002 | not frozen evidence."
+        "Moderate / seed 50002. Live scenario values; frozen results remain separate."
     )
     window.live_page.state_label.setAccessibleName(window.live_page.state_label.text())
     window.live_page.state_label.style().unpolish(window.live_page.state_label)
@@ -84,7 +83,7 @@ def capture_screenshots(
     *,
     application: QApplication | None = None,
 ) -> tuple[Path, ...]:
-    """Render all four real application pages to deterministic PNG files."""
+    """Render all three real application pages to deterministic PNG files."""
 
     app = application or QApplication.instance() or QApplication(["gridguard-screenshot-capture"])
     if not isinstance(app, QApplication):
@@ -103,8 +102,6 @@ def capture_screenshots(
             elif name == "live":
                 window.live_page.map_view.reset_view()
                 window.live_page.map_view.select_locality(CAPTURE_LOCALITY_ID)
-            elif name == "methodology":
-                window.methodology_page.scroll_area.verticalScrollBar().setValue(0)
             window.navigation_buttons[page_index].setFocus(Qt.FocusReason.OtherFocusReason)
             app.processEvents()
             pixmap = window.grab()

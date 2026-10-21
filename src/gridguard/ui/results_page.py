@@ -1,14 +1,15 @@
-"""Evidence-backed documented-seed-disjoint comparison page."""
+"""Approved native comparison layout bound to the frozen presentation snapshot."""
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QGridLayout,
+    QFrame,
     QHBoxLayout,
-    QLabel,
+    QHeaderView,
+    QPushButton,
+    QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -20,233 +21,241 @@ from gridguard.claim_contract import (
     RESULTS_SCOPE_LIMITATION,
     SENSITIVITY_INTERVAL_LIMITATION,
 )
-from gridguard.ui.components import CardFrame, ControllerCard, format_metric_value, page_intro
+from gridguard.ui.components import format_metric_value
 from gridguard.ui.presentation_model import PresentationSnapshot
-from gridguard.ui.theme import MONO_FONT_FAMILY
+from gridguard.ui.results_components import (
+    INK,
+    LINE,
+    MUTED,
+    PRIMARY,
+    EvidenceDetailsDialog,
+    OutcomeComparisonPanel,
+    result_label,
+)
 
 
 class ResultsPage(QWidget):
-    """Three primary outcomes from the documented-seed-disjoint holdout."""
+    """Three evidence-derived comparisons, paired inference, and inspectable provenance."""
 
     def __init__(self, snapshot: PresentationSnapshot, parent=None) -> None:
         super().__init__(parent)
+        self.setObjectName("ResultsPage")
         self.setAccessibleName("Results page")
         self.setAccessibleDescription(
             f"Frozen documented-seed-disjoint holdout from evidence {snapshot.artifact_id}. "
             f"{HOLDOUT_CUSTODY_LIMITATION} {SENSITIVITY_INTERVAL_LIMITATION} "
             f"{RESULTS_SCOPE_LIMITATION}"
         )
+        self.setStyleSheet(
+            "QWidget#ResultsPage {background: #F4F7F5;} "
+            "QFrame#ResultsComparisonSurface {background: white; border: none; "
+            "border-radius: 20px;} "
+            f"QPushButton#ResultsEvidenceButton {{background: white; color: {INK}; "
+            f"border: 1px solid {LINE}; border-radius: 12px; padding: 0 18px; "
+            "font-size: 14px; min-height: 44px;} "
+            "QPushButton#ResultsEvidenceButton:hover {background: #E9F2EE;} "
+            f"QPushButton#ResultsEvidenceButton:focus {{border: 2px solid {PRIMARY};}} "
+            f"QTableWidget#ResultsTable {{background: transparent; color: {INK}; "
+            "border: none; font-size: 14px; gridline-color: transparent;} "
+            "QTableWidget#ResultsTable::item {padding: 4px 5px; "
+            f"border-bottom: 1px solid {LINE};}} "
+            "QTableWidget#ResultsTable::item:selected {background: #DDEDE6; color: #183D40;} "
+            "QTableWidget#ResultsTable QHeaderView {padding: 0; margin: 0; border: none;} "
+            "QTableWidget#ResultsTable QHeaderView::section {background: #F4F7F5; "
+            f"color: {MUTED}; "
+            f"border: none; border-bottom: 1px solid {LINE}; font-size: 12px; "
+            "font-weight: 400; padding: 5px;}"
+        )
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(26, 14, 26, 12)
+        layout.setContentsMargins(16, 7, 16, 10)
         layout.setSpacing(7)
+        header = QHBoxLayout()
+        heading = QVBoxLayout()
+        heading.setSpacing(3)
+        self.title_label = result_label("Results", size=54, bold=True)
+        heading.addWidget(self.title_label)
+        heading.addWidget(
+            result_label(
+                "PPO and Fixed Rotation on identical matched scenarios.", size=16, color=MUTED
+            )
+        )
+        header.addLayout(heading, 1)
+        actions = QVBoxLayout()
+        actions.setSpacing(5)
+        actions.addWidget(
+            result_label("Frozen holdout results", bold=True, color=PRIMARY),
+            0,
+            Qt.AlignmentFlag.AlignRight,
+        )
+        self.evidence_details_button = QPushButton("Evidence details")
+        self.evidence_details_button.setObjectName("ResultsEvidenceButton")
+        self.evidence_details_button.setAccessibleName("Open frozen holdout evidence details")
+        self.evidence_details_button.setMinimumHeight(44)
+        actions.addWidget(self.evidence_details_button)
+        header.addLayout(actions)
+        layout.addLayout(header)
 
-        kicker = QLabel("Results / Documented-seed-disjoint holdout")
-        kicker.setProperty("kicker", True)
-        kicker.setAccessibleName("Results, documented-seed-disjoint holdout")
-        layout.addWidget(kicker)
-        title, description = page_intro(
-            "PPO compared with Fixed Rotation",
-            "Three proposal-aligned outcomes and paired 95% confidence intervals come directly "
-            "from the committed documented-seed-disjoint holdout. It was not preregistered or "
-            "independently custodied and cannot rule out undocumented activity. Live "
-            "demonstrations cannot replace these frozen results.",
+        sample = QHBoxLayout()
+        self.count_label = result_label(
+            f"{snapshot.matched_scenario_count:,} matched scenario conditions   "
+            f"from {snapshot.independent_base_draw_count:,} independent base draws",
+            color=MUTED,
         )
-        layout.addWidget(title)
-        layout.addWidget(description)
+        self.count_label.setAccessibleDescription(snapshot.count_statement)
+        sample.addWidget(self.count_label, 1)
+        sample.addWidget(result_label("Mild, Moderate and Severe shortage", color=MUTED))
+        layout.addLayout(sample)
 
-        inference_disclosure = (
-            "Documented-seed-disjoint holdout; base paired 95% confidence intervals below; "
-            "sensitivity supplement (not shown here): descriptive, pointwise 95%, unadjusted "
-            "for multiple comparisons; no favorable/adverse release gate."
+        self.comparison_surface = QFrame()
+        self.comparison_surface.setObjectName("ResultsComparisonSurface")
+        self.comparison_surface.setAccessibleName("Three primary outcome comparisons")
+        self.comparison_surface.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        self.evidence_role_note = QLabel(
-            "Paired 95% CIs · Sensitivity: pointwise 95%; "
-            "no multiplicity adjustment or result gate."
-        )
-        self.evidence_role_note.setProperty("badge", "locked")
-        self.evidence_role_note.setProperty("compact", True)
-        self.evidence_role_note.setAccessibleName(inference_disclosure)
-        self.evidence_role_note.setToolTip(inference_disclosure)
-        layout.addWidget(self.evidence_role_note)
+        self.comparison_surface.setMaximumHeight(290)
+        comparisons = QHBoxLayout(self.comparison_surface)
+        comparisons.setContentsMargins(0, 0, 0, 0)
+        comparisons.setSpacing(0)
+        self.outcome_panels: dict[str, OutcomeComparisonPanel] = {}
+        for metric in snapshot.metrics:
+            if self.outcome_panels:
+                separator = QFrame()
+                separator.setFixedWidth(1)
+                separator.setStyleSheet(f"background: {LINE}; border: none;")
+                comparisons.addWidget(separator)
+            panel = OutcomeComparisonPanel(metric, self.comparison_surface)
+            comparisons.addWidget(panel, 11 if metric.unit == "locality-hours" else 10)
+            self.outcome_panels[metric.key] = panel
+        layout.addWidget(self.comparison_surface, 1)
 
-        self.provenance_card = CardFrame(
-            accessible_name="Results evidence provenance",
-            variant="accent",
+        table_heading = QHBoxLayout()
+        table_heading.addWidget(result_label("The paired difference", size=21, bold=True), 1)
+        table_heading.addWidget(
+            result_label("Paired 95% intervals · pp = percentage points", color=MUTED)
         )
-        self.provenance_card.setAccessibleDescription(
-            f"Hash-verified committed artifact {snapshot.artifact_id}; "
-            f"SHA-256 {snapshot.artifact_sha256}; release {snapshot.release_id}; "
-            f"{snapshot.matched_scenario_count} matched scenario conditions and "
-            f"{snapshot.controller_evaluation_count} controller evaluations."
-        )
-        provenance_grid = QGridLayout()
-        provenance_grid.setHorizontalSpacing(18)
-        provenance_grid.setVerticalSpacing(3)
-        provenance_heading = QLabel("Evidence provenance")
-        provenance_heading.setProperty("heading", "section")
-        self.provenance_status = QLabel("HASH VERIFIED · FROZEN")
-        self.provenance_status.setProperty("badge", "verified")
-        self.provenance_status.setProperty("compact", True)
-        self.provenance_status.setAccessibleName(
-            "Robustness evidence hash verified at startup; frozen results"
-        )
+        layout.addLayout(table_heading)
+        self.results_table = self._comparison_table(snapshot)
+        layout.addWidget(self.results_table)
 
-        artifact_caption = QLabel("Artifact ID")
-        artifact_caption.setProperty("muted", True)
-        artifact_caption.setProperty("compact", True)
-        self.provenance_id = QLabel(snapshot.artifact_id)
-        self.provenance_id.setProperty("compact", True)
-        self.provenance_id.setProperty("mono", True)
-        self.provenance_id.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByKeyboard)
-        self.provenance_id.setAccessibleName(
-            f"Verified evidence identifier: {snapshot.artifact_id}"
+        note_row = QHBoxLayout()
+        note_row.addWidget(
+            result_label("Differences use unrounded values.", size=13, color=MUTED), 1
         )
+        self.safety_note = result_label(
+            "Power balance: maximum power-balance violation rate "
+            f"{snapshot.maximum_power_balance_violation_rate:.2%} across both controllers.",
+            color=MUTED,
+        )
+        self.safety_note.setAccessibleName(
+            f"{self.safety_note.text()} Simulator conservation invariant, "
+            "not evidence of real-grid operational safety."
+        )
+        note_row.addWidget(self.safety_note)
+        layout.addLayout(note_row)
+        boundaries = QHBoxLayout()
+        boundaries.setSpacing(24)
+        self.scope_note = result_label(
+            "Comparison scope. Fixed Rotation is supply-blind, uses only Off and Full Service, "
+            "and cannot select Critical Only.",
+            color=MUTED,
+            wrap=True,
+        )
+        self.scope_note.setAccessibleName(f"Scientific claim boundary: {RESULTS_SCOPE_LIMITATION}")
+        self.scope_note.setToolTip(RESULTS_SCOPE_LIMITATION)
+        boundaries.addWidget(self.scope_note, 3)
+        self.synthetic_note = result_label(
+            "Synthetic scenarios · Decision support only.\n"
+            "Frozen results stay separate from the live scenario.",
+            color=MUTED,
+            wrap=True,
+        )
+        self.synthetic_note.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        )
+        boundaries.addWidget(self.synthetic_note, 2)
+        for note in (self.scope_note, self.synthetic_note):
+            # Reserve both lines and breathing room even at the presentation's 768px height.
+            note.ensurePolished()
+            note.setContentsMargins(0, 4, 0, 4)
+            note.setMinimumHeight(2 * note.fontMetrics().height() + 8)
+        layout.addLayout(boundaries)
 
-        release_caption = QLabel("Release ID")
-        release_caption.setProperty("muted", True)
-        release_caption.setProperty("compact", True)
-        self.provenance_release = QLabel(snapshot.release_id)
-        self.provenance_release.setProperty("compact", True)
-        self.provenance_release.setProperty("mono", True)
-        self.provenance_release.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse
-            | Qt.TextInteractionFlag.TextSelectableByKeyboard
+        self.evidence_dialog = EvidenceDetailsDialog(snapshot, self)
+        self.evidence_details_button.clicked.connect(self.evidence_dialog.open)
+        self.evidence_dialog.finished.connect(
+            lambda _result: QTimer.singleShot(0, self._restore_evidence_focus)
         )
-        self.provenance_release.setToolTip(
-            f"Release identifier: {snapshot.release_id}. Select the text to copy."
-        )
-        self.provenance_release.setAccessibleName(
-            f"Verified application release identifier: {snapshot.release_id}"
-        )
+        # Retain stable evidence-field access for integrations and assistive tooling.
+        for name in (
+            "provenance_card",
+            "provenance_status",
+            "provenance_id",
+            "provenance_release",
+            "provenance_sha256",
+            "provenance_summary",
+            "evidence_role_note",
+        ):
+            setattr(self, name, getattr(self.evidence_dialog, name))
 
-        sha256_caption = QLabel("SHA-256")
-        sha256_caption.setProperty("muted", True)
-        sha256_caption.setProperty("compact", True)
-        self.provenance_sha256 = QLabel(snapshot.artifact_sha256)
-        self.provenance_sha256.setProperty("compact", True)
-        self.provenance_sha256.setProperty("mono", True)
-        self.provenance_sha256.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse
-            | Qt.TextInteractionFlag.TextSelectableByKeyboard
-        )
-        self.provenance_sha256.setToolTip(
-            f"Verified robustness supplement SHA-256: {snapshot.artifact_sha256}. "
-            "Select the text to copy."
-        )
-        self.provenance_sha256.setAccessibleName(
-            f"Verified robustness supplement SHA-256: {snapshot.artifact_sha256}"
-        )
-        self.provenance_summary = QLabel(snapshot.count_statement)
-        self.provenance_summary.setProperty("muted", True)
-        self.provenance_summary.setWordWrap(True)
-        self.provenance_summary.setAccessibleName(
-            f"Verified evidence sample: {snapshot.count_statement}"
-        )
+    def _restore_evidence_focus(self) -> None:
+        self.window().activateWindow()
+        self.evidence_details_button.setFocus(Qt.FocusReason.OtherFocusReason)
 
-        provenance_grid.addWidget(provenance_heading, 0, 0, 1, 3)
-        provenance_grid.addWidget(self.provenance_status, 0, 3, Qt.AlignmentFlag.AlignRight)
-        provenance_grid.addWidget(artifact_caption, 1, 0)
-        provenance_grid.addWidget(self.provenance_id, 1, 1)
-        provenance_grid.addWidget(release_caption, 1, 2)
-        provenance_grid.addWidget(self.provenance_release, 1, 3)
-        provenance_grid.addWidget(sha256_caption, 2, 0)
-        provenance_grid.addWidget(self.provenance_sha256, 2, 1, 1, 3)
-        provenance_grid.addWidget(self.provenance_summary, 3, 0, 1, 4)
-        provenance_grid.setColumnStretch(0, 0)
-        provenance_grid.setColumnStretch(1, 1)
-        provenance_grid.setColumnStretch(2, 0)
-        provenance_grid.setColumnStretch(3, 1)
-        self.provenance_card.content.addLayout(provenance_grid)
-        layout.addWidget(self.provenance_card)
-
-        card_row = QHBoxLayout()
-        card_row.setSpacing(10)
-        self.controller_cards = [
-            ControllerCard(snapshot, "PPO"),
-            ControllerCard(snapshot, "Fixed Rotation"),
-        ]
-        for card in self.controller_cards:
-            card_row.addWidget(card)
-        layout.addLayout(card_row)
-
-        maximum_balance = snapshot.maximum_power_balance_violation_rate
-        safety_text = (
-            "Safety check: maximum power-balance violation rate "
-            f"{maximum_balance:.2%} across both controllers."
-        )
-        self.safety_note = QLabel(safety_text)
-        self.safety_note.setAccessibleName(f"Power-balance safety result: {safety_text}")
-        self.safety_note.setProperty("badge", "verified")
-        self.safety_note.setProperty("compact", True)
-        layout.addWidget(self.safety_note)
-
-        self.results_table = QTableWidget(len(snapshot.metrics), 4)
-        self.results_table.setAccessibleName("Paired controller comparison results")
-        self.results_table.setAccessibleDescription(
+    @staticmethod
+    def _comparison_table(snapshot: PresentationSnapshot) -> QTableWidget:
+        table = QTableWidget(len(snapshot.metrics), 4)
+        table.setObjectName("ResultsTable")
+        table.setAccessibleName("Paired controller comparison results")
+        table.setAccessibleDescription(
             f"{len(snapshot.metrics)} primary-outcome rows from {snapshot.artifact_id} compare "
             "PPO with Fixed Rotation. Delta is PPO minus Fixed Rotation and includes a paired "
             "95 percent confidence interval. The sensitivity supplement is not shown in this "
             "table; its intervals are descriptive and pointwise, with no multiplicity adjustment."
         )
-        self.results_table.setHorizontalHeaderLabels(
-            ["Metric", "PPO", "Fixed Rotation", "PPO − Fixed Rotation"]
+        table.setHorizontalHeaderLabels(["Metric", "PPO", "Fixed Rotation", "PPO − Fixed Rotation"])
+        table.verticalHeader().hide()
+        table.setFrameShape(QFrame.Shape.NoFrame)
+        table.setShowGrid(False)
+        table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        table.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        table.horizontalHeader().setDefaultAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
         )
-        self.results_table.verticalHeader().setVisible(False)
-        self.results_table.setAlternatingRowColors(True)
-        self.results_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.results_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.results_table.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.results_table.horizontalHeader().setStretchLastSection(True)
-        self.results_table.horizontalHeader().setMinimumSectionSize(125)
-        self.results_table.setColumnWidth(0, 220)
-        self.results_table.setColumnWidth(1, 215)
-        self.results_table.setColumnWidth(2, 225)
-        self.results_table.setMinimumHeight(155)
+        table.horizontalHeader().setMinimumSectionSize(145)
+        for column in range(4):
+            mode = (
+                QHeaderView.ResizeMode.ResizeToContents
+                if column in (1, 2)
+                else QHeaderView.ResizeMode.Stretch
+            )
+            table.horizontalHeader().setSectionResizeMode(column, mode)
+        table.horizontalHeader().setFixedHeight(31)
+        table.verticalHeader().setDefaultSectionSize(34)
+        table.setFixedHeight(136)
         for row, metric in enumerate(snapshot.metrics):
             delta = format_metric_value(
-                metric,
-                metric.mean_delta,
-                signed=True,
-                as_delta=True,
-                include_unit=False,
+                metric, metric.mean_delta, signed=True, as_delta=True, include_unit=False
             )
             lower = format_metric_value(
-                metric,
-                metric.ci95_lower,
-                as_delta=True,
-                include_unit=False,
+                metric, metric.ci95_lower, as_delta=True, include_unit=False
             )
             upper = format_metric_value(
-                metric,
-                metric.ci95_upper,
-                as_delta=True,
-                include_unit=False,
+                metric, metric.ci95_upper, as_delta=True, include_unit=False
             )
             interval_unit = "pp" if metric.unit == "%" else metric.unit
-            interval = f"{delta} [{lower}, {upper}] {interval_unit}"
             values = (
                 metric.label,
                 format_metric_value(metric, metric.ppo),
                 format_metric_value(metric, metric.fixed_rotation),
-                interval,
+                f"{delta} [{lower}, {upper}] {interval_unit}",
             )
             for column, value in enumerate(values):
                 item = QTableWidgetItem(value)
                 item.setToolTip(
-                    f"{metric.label}; {self.results_table.horizontalHeaderItem(column).text()}: "
-                    f"{value}"
+                    f"{metric.label}; {table.horizontalHeaderItem(column).text()}: {value}"
                 )
-                if column > 0:
-                    item.setFont(QFont(MONO_FONT_FAMILY))
-                    item.setTextAlignment(
-                        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
-                    )
-                self.results_table.setItem(row, column, item)
-        layout.addWidget(self.results_table, 1)
-
-        self.scope_note = QLabel(RESULTS_SCOPE_LIMITATION)
-        self.scope_note.setAccessibleName(f"Results scope limitation: {self.scope_note.text()}")
-        self.scope_note.setProperty("compact", True)
-        self.scope_note.setWordWrap(True)
-        layout.addWidget(self.scope_note)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+                table.setItem(row, column, item)
+        return table

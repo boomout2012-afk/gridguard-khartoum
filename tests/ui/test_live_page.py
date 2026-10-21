@@ -105,14 +105,14 @@ def test_page_displays_only_frames_supplied_by_simulation_integration(qtbot) -> 
 
     assert page.timeline.isEnabled()
     assert page.hour_label.text() == "Hour 07:00  ·  demand 447 MW  ·  supply 317 MW"
-    assert page.map_view.locality_items["khartoum"].status_text == "! CRITICAL ONLY"
+    assert page.map_view.locality_items["khartoum"].status_text == "Critical Only"
     assert page.locality_demand.text() == f"{(447 / 7):.1f} MW"
     assert page.locality_served.text() == f"{(317 / 7):.1f} MW"
     assert page.locality_critical.text() == "95.0%"
     assert page.sector_service_labels["Hospital"].text() == "100.0%"
     assert f"{((447 / 7) + 1):.1f} MW" in page.locality_projection.text()
-    assert "DISPLAY ONLY" in page.locality_projection.text()
-    assert "not PPO input/evidence" in page.locality_projection.text()
+    assert "display only" in page.locality_projection.text().casefold()
+    assert "not PPO input/evidence" in page.locality_projection.toolTip()
     assert "complete" in page.state_label.text().casefold()
 
 
@@ -173,20 +173,10 @@ def test_live_comparison_keeps_controller_scope_visible_beside_metrics(qtbot) ->
     qtbot.waitUntil(page.scope_note.isVisible, timeout=1000)
 
     note = page.scope_note
-    visible = note.text().casefold()
-    for phrase in (
-        "synthetic decision support only",
-        "supply-blind",
-        "uses only off and full service",
-        "cannot select critical only",
-        "behavior-cloning-only ablation",
-        "ppo fine-tuning",
-    ):
-        assert phrase in visible
+    assert note.text() == "Synthetic scenario · Decision support only"
     assert RESULTS_SCOPE_LIMITATION in note.accessibleName()
-    assert note.wordWrap()
-    assert note.geometry().top() >= page.comparison_table.geometry().bottom()
-    assert note.geometry().bottom() <= page.contentsRect().bottom()
+    assert RESULTS_SCOPE_LIMITATION in note.toolTip()
+    assert note.mapTo(page, QPoint(0, note.height())).y() <= page.contentsRect().bottom()
 
 
 def test_visible_locality_list_is_bidirectionally_synchronized_with_map(qtbot) -> None:
@@ -236,37 +226,28 @@ def test_locality_detail_rows_fit_at_presentation_height(qtbot, qapp) -> None:
     qtbot.wait(50)
 
     detail_labels = (
-        page.locality_name,
-        page.locality_context,
         page.locality_status,
         page.locality_demand,
         page.locality_served,
-        page.locality_critical,
         page.locality_projection,
         *page.sector_service_labels.values(),
     )
     for label in detail_labels:
         bottom = label.mapTo(page.locality_card, QPoint(0, label.height())).y()
         assert label.isVisibleTo(page.locality_card)
-        assert label.height() >= label.sizeHint().height()
-        assert bottom <= page.locality_card.height()
-    viewport_height = page.locality_list.viewport().height()
-    for row in range(page.locality_list.count()):
-        item = page.locality_list.item(row)
-        item_rect = page.locality_list.visualItemRect(item)
-        assert item_rect.top() >= 0
-        assert item_rect.bottom() < viewport_height
-        # Leave enough room for the item delegate's horizontal padding and
-        # antialiasing so Qt never substitutes an ellipsis at presentation size.
-        assert page.locality_list.fontMetrics().horizontalAdvance(item.text()) <= (
-            item_rect.width() - 16
+        required_height = (
+            label.heightForWidth(label.width()) if label.wordWrap() else label.sizeHint().height()
         )
+        assert label.height() >= required_height
+        assert bottom <= page.locality_card.height()
+    selector = page.locality_panel.locality_combo
+    assert selector.isVisibleTo(page.locality_card)
+    assert selector.count() == 7
+    assert selector.height() >= 44
     assert page.timeline.width() >= 180
-    assert not page.comparison_table.verticalScrollBar().isVisible()
-    comparison_viewport_height = page.comparison_table.viewport().height()
-    for row in range(page.comparison_table.rowCount()):
-        row_rect = page.comparison_table.visualItemRect(page.comparison_table.item(row, 0))
-        assert row_rect.bottom() < comparison_viewport_height
+    for label in page.comparison_summary.values.values():
+        assert label.isVisibleTo(page)
+        assert label.height() >= label.sizeHint().height()
 
 
 def test_page_rejects_partial_timeline_instead_of_filling_missing_hours(qtbot) -> None:

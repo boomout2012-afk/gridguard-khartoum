@@ -117,13 +117,24 @@ alternatives are recorded in `docs/decisions/ADR-002-geographic-boundary-map.md`
 
 ## Desktop presentation flow
 
+The current source interface uses the approved A/D/F design: a floating top navigation bar,
+open locality map, white control panels, bold Atkinson typography, and coral selection accents.
+The three pages are Overview, Live Scenario, and Results. Open **Evidence details** on Results
+for provenance and complete scientific limitations. Ctrl+1 through Ctrl+3 switch pages;
+F11 toggles full screen. To run the current source application:
+
+```powershell
+uv run --no-sync gridguard-desktop
+```
+
 1. Select Mild, Moderate, or Severe shortage and a deterministic seed.
 2. Replay the same 24-hour scenario through PPO and Fixed Rotation.
 3. Inspect service tiers and sector outcomes on the interactive administrative map or synchronized
    keyboard-accessible locality list.
 4. Compare the live demonstration's matched episode aggregates with the separately verified
    documented-seed-disjoint holdout; live values never replace reviewer-facing frozen evidence.
-5. Review methodology, implementation, limitations, and evidence provenance offline.
+5. Inspect evidence provenance and limitations in Results; consult the offline methodology
+   and implementation chapters for the complete academic account.
 
 ## Development
 

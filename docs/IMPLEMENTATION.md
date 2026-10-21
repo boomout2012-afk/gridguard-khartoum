@@ -43,15 +43,15 @@ recalculating the headline claim.
 | `src/gridguard/resources.py` | Safe source-checkout or installed-bundle resource resolution |
 | `src/gridguard/ui/map_asset.py` | Provenance verification, closed GeoJSON validation, WGS84 projection, and locality keyboard graph |
 | `src/gridguard/ui/app.py` | Desktop entry point and fail-closed startup sequence |
-| `src/gridguard/ui/window.py`; `src/gridguard/ui/window_components.py` | 1366 x 768 shell, accessible page stack/navigation, shortcuts, and persistent trust status |
+| `src/gridguard/ui/window.py`; `src/gridguard/ui/window_components.py` | Native shell, three-page top navigation, and keyboard shortcuts; 1366 x 768 minimum viewport |
 | `src/gridguard/ui/presentation_model.py` | Strict projection of the documented-seed-disjoint robustness supplement into presentation data |
 | `src/gridguard/ui/map_view.py` and `src/gridguard/ui/map_items.py` | Interactive `QGraphicsView` map and redundant service-state rendering |
 | `src/gridguard/ui/live_models.py`; `src/gridguard/ui/live_runner.py`; `src/gridguard/ui/live_worker.py` | Validated timeline contracts, shared-scenario CUDA execution, one display transfer, and off-GUI-thread worker signals |
 | `src/gridguard/ui/live_components.py`; `src/gridguard/ui/live_controls.py`; `src/gridguard/ui/live_visualization.py`; `src/gridguard/ui/live_page.py` | Stable focused widgets for controls, aggregate results, synchronized map/timeline replay, and locality details |
 | `src/gridguard/ui/power_trace.py` | Display-only demand/supply trace with an hour marker, using already transferred replay values |
 | `src/gridguard/ui/overview_page.py` | Scope, protocol, and locality overview |
-| `src/gridguard/ui/results_page.py` | Artifact-derived controller comparison and paired intervals |
-| `src/gridguard/ui/methodology_page.py` | In-application method and limitation summary |
+| `src/gridguard/ui/results_page.py`; `src/gridguard/ui/results_components.py` | Artifact-derived comparison bars, paired intervals, and evidence-details dialog |
+| `src/gridguard/ui/methodology_page.py` | Retained method-summary widget, outside the current three-page navigation |
 | `src/gridguard/ui/components.py` and `src/gridguard/ui/theme.py` | Reusable accessible cards, metric formatting, and visual theme |
 | `src/gridguard/cli.py` | `gridguard-doctor` and evidence-verification entry points |
 
@@ -342,11 +342,11 @@ then loads the pinned robustness supplement for the Results view and the bundled
 evidence, model, resource, or map failure blocks the presentation instead of opening a partly
 trusted interface.
 
-The main window requires a minimum 1366 x 768 viewport and contains four pages: Overview, Live Scenario,
-Results, and Methodology. A cool navy navigation rail, white surfaces, and teal accents frame the
-map as the main view. Atkinson Hyperlegible supplies interface headings and body text, with IBM
-Plex Mono for numeric details; Source Serif remains bundled for the academic artifacts.
-Ctrl+1 through Ctrl+4 select the pages and F11 toggles fullscreen. The minimum size preserves map
+The main window requires a minimum 1366 x 768 viewport and contains three pages: Overview,
+Live Scenario, and Results. The user-approved A/D/F design uses a floating white top navigation
+bar, pale open canvas, teal controls, and coral locality selection. Atkinson Hyperlegible supplies
+bold interface headings and body text; the other fonts remain bundled for academic artifacts.
+Ctrl+1 through Ctrl+3 select the pages and F11 toggles fullscreen. The minimum size preserves map
 labels, controls, and comparison tables; fullscreen provides more room on the presentation display.
 Controls expose accessible names and descriptions, accept keyboard focus, and use a visible blue
 focus outline. Dynamic run, hour, projection, and service-tier labels emit accessibility value or
@@ -354,10 +354,12 @@ name-change notifications when their text changes.
 
 The `QGraphicsView` map supports pointer selection against real compound locality paths,
 arrow-key navigation through explicit locality neighbors, wheel or plus/minus zoom, drag-to-pan,
-and R or 0 to reset the view. A synchronized locality list provides a persistent text target for
-the same seven selections. Service state is never communicated by color alone: fill, texture,
-symbol, text, tooltips, and the list distinguish Off, Critical Only, and Full Service. The map
-retains its administrative-context, synthetic-results, and no-electrical-topology notice.
+and R or 0 to reset the view. A synchronized locality dropdown provides a keyboard-accessible
+target for the same seven selections. Solid fills, tooltips, the accessible map description,
+and the selected locality's textual status distinguish Off, Critical Only, and Full Service.
+Coral marks selection independently of service tier. Name labels use a light halo without
+boxed status overlays. The map retains its administrative-context and no-electrical-topology
+notice; each page identifies the synthetic decision-support scope.
 
 The Live Scenario page accepts a shortage level and seed and starts a `QThread` worker so CUDA
 execution does not block the Qt event loop. The runner generates one `cuda:0` scenario, passes
@@ -374,16 +376,15 @@ UI runner's only bulk device-to-host transfer. The resulting immutable compariso
 exactly 24 frames and one validated `LiveEpisodeSummary` for each named controller, with identical
 supply, system demand, locality demand, and projection values at every paired hour.
 
-A table labeled **Live demonstration** presents Served energy, Critical service, Fairness,
-Curtailed energy, and Power-balance violations for PPO and Fixed Rotation from the selected
-episode. It is explicitly separate from frozen evidence. A controller selector and 24-hour slider
-let the presenter compare tier allocations on that same scenario. Play/Pause uses a `QTimer` to
-advance through already computed frames and stops at the end of the day. It does not run the
-simulator again. The display-only `PowerTrace` widget plots the transferred demand and available
-supply values in MW, with distinct solid/dashed lines and a synchronized hour marker. Its
-accessible description reports the selected hour's values. These widgets render replay data;
-scenario generation, inference, forecasting, and scientific metric calculation remain outside
-the widgets.
+The full-day comparison presents served energy, critical service, and Jain fairness for PPO
+and Fixed Rotation from the selected episode. Its tooltip and accessible description also
+report curtailed energy and power-balance violations. Frozen evidence remains separate.
+Controller buttons and a 24-hour slider compare tier allocations on the same scenario.
+Play/Pause uses a `QTimer` to advance through already computed frames and stops at the end of
+the day or when leaving the page. It does not run the simulator again. The timeline reports
+the transferred demand and available supply in MW. The retained comparison-table and
+`PowerTrace` data adapters remain synchronized but are outside the visible layout. Scenario
+generation, inference, forecasting, and scientific metric calculation remain outside widgets.
 
 The selected-locality panel
 derives actual demand MW, served MW, critical-service ratio, and service ratios for Hospital,
@@ -395,9 +396,10 @@ disable replay controls, and remain visible to the presenter.
 
 The Results page renders only the three primary values and paired intervals present in the
 documented-seed-disjoint robustness supplement. It shows power balance separately as safety and does not
-calculate replacement headline values. The Methodology page summarizes the accepted reproduction,
-documented seed disjointness, historical training record, locked design, and evidence limitations for
-presentation use.
+calculate replacement headline values. Its native Evidence details dialog exposes the accepted
+reproduction's historical role, documented seed disjointness, artifact hashes, study counts, custody,
+sensitivity, and ablation limitations. The Methodology tab and persistent runtime strip are removed
+from the current GUI; the offline methodology chapter and canonical training record remain available.
 
 ## Runtime resources and packaging
 

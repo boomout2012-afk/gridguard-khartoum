@@ -16,26 +16,27 @@ from PySide6.QtWidgets import (
 
 from gridguard.domain import ServiceTier
 from gridguard.ui.map_asset import LocalityShape
-from gridguard.ui.theme import BODY_FONT_FAMILY, PALETTE, STATUS_COLORS, STATUS_TEXT
+from gridguard.ui.theme import BODY_FONT_FAMILY, PALETTE, STATUS_COLORS, STATUS_FILL_COLORS
 
 _LABEL_OFFSETS = {
-    "khartoum": (100.0, -18.0),
-    "omdurman": (-100.0, 12.0),
-    "bahri": (60.0, -20.0),
-    "east_nile": (93.0, -13.0),
-    "jebel_awlia": (85.0, 32.0),
-    "karari": (-70.0, -18.0),
-    "ombada": (-10.0, -85.0),
+    "khartoum": (132.0, 0.0),
+    "omdurman": (-93.0, 17.0),
+    "bahri": (10.0, -4.0),
+    "east_nile": (70.0, -16.0),
+    "jebel_awlia": (116.0, 45.0),
+    "karari": (0.0, -20.0),
+    "ombada": (8.0, -25.0),
 }
 
 
 class LocalityGraphicsItem(QGraphicsPathItem):
-    """Selectable Polygon/MultiPolygon locality with redundant status cues."""
+    """Pinned geometry with independent service state and coral selection."""
 
     def __init__(self, locality: LocalityShape) -> None:
         super().__init__(_boundary_path(locality))
         self.locality = locality
-        self.status_text = "— NOT RUN"
+        self.service_tier: ServiceTier | None = None
+        self.status_text = "Not run"
         self._hovered = False
         self.setFlags(
             QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
@@ -43,16 +44,19 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         )
         self.setAcceptHoverEvents(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setBrush(QBrush(QColor(PALETTE.surface_raised)))
+        self._update_fill()
         self.setToolTip(self._tooltip())
         self._update_pen()
 
         self._label_leader = QGraphicsLineItem(self)
-        leader_pen = QPen(QColor(PALETTE.boundary), 1, Qt.PenStyle.DashLine)
+        leader_pen = QPen(QColor("#7D9589"), 1, Qt.PenStyle.SolidLine)
         leader_pen.setCosmetic(True)
         self._label_leader.setPen(leader_pen)
         self._label_leader.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self._label_leader.setZValue(3)
+        self._label_leader.setVisible(
+            locality.locality_id in {"khartoum", "omdurman", "jebel_awlia"}
+        )
 
         self._label_group = QGraphicsItemGroup(self)
         self._label_group.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations)
@@ -60,41 +64,35 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         self._label_group.setZValue(4)
 
         self._label_backing = QGraphicsRectItem(self._label_group)
-        self._label_backing.setBrush(QBrush(QColor(PALETTE.surface)))
-        backing_pen = QPen(QColor(PALETTE.boundary), 0.75)
-        backing_pen.setCosmetic(True)
-        self._label_backing.setPen(backing_pen)
+        self._label_backing.setBrush(QBrush(Qt.BrushStyle.NoBrush))
+        self._label_backing.setPen(QPen(Qt.PenStyle.NoPen))
         self._label_backing.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self._label_backing.setZValue(-1)
 
-        self._name = QGraphicsSimpleTextItem(locality.name, self._label_group)
+        self._name = _MapNameItem(locality.name, self._label_group)
         name_font = QFont(BODY_FONT_FAMILY)
-        name_font.setPointSizeF(9.5)
-        name_font.setWeight(QFont.Weight.DemiBold)
+        name_font.setPixelSize(14)
         self._name.setFont(name_font)
         self._name.setBrush(QColor(PALETTE.text))
         self._name.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
 
         self._status = QGraphicsSimpleTextItem(self.status_text, self._label_group)
         status_font = QFont(BODY_FONT_FAMILY)
-        status_font.setPointSizeF(7.5)
+        status_font.setPixelSize(12)
         status_font.setWeight(QFont.Weight.Bold)
         self._status.setFont(status_font)
         self._status.setBrush(QColor(PALETTE.text_muted))
         self._status.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self._status.setVisible(False)
         self._position_labels()
 
     def set_service_tier(self, tier: ServiceTier) -> None:
-        """Apply a tier using color, texture, symbol, and text together."""
+        """Keep the actual service tier when selection temporarily uses coral."""
 
         normalized = ServiceTier(tier)
-        self.status_text = STATUS_TEXT[normalized.value]
-        brush_style = {
-            ServiceTier.OFF: Qt.BrushStyle.BDiagPattern,
-            ServiceTier.CRITICAL_ONLY: Qt.BrushStyle.Dense4Pattern,
-            ServiceTier.FULL_SERVICE: Qt.BrushStyle.SolidPattern,
-        }[normalized]
-        self.setBrush(QBrush(STATUS_COLORS[normalized.value], brush_style))
+        self.service_tier = normalized
+        self.status_text = normalized.label
+        self._update_fill()
         self._status.setText(self.status_text)
         self._name.setBrush(QColor(PALETTE.ink))
         self._status.setBrush(STATUS_COLORS[normalized.value])
@@ -115,6 +113,13 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         result = super().itemChange(change, value)
         if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
             self._update_pen(selected=bool(value))
+            self._update_fill(selected=bool(value))
+            self.setToolTip(self._tooltip())
+            if hasattr(self, "_name"):
+                font = self._name.font()
+                font.setBold(bool(value))
+                self._name.setFont(font)
+                self._position_labels()
         return result
 
     def _position_labels(self) -> None:
@@ -123,33 +128,45 @@ class LocalityGraphicsItem(QGraphicsPathItem):
         target_x = anchor_x + offset_x
         target_y = anchor_y + offset_y
         name_bounds = self._name.boundingRect()
-        status_bounds = self._status.boundingRect()
         self._label_group.setPos(target_x, target_y)
-        self._name.setPos(-name_bounds.width() / 2, -name_bounds.height() - 1)
-        self._status.setPos(-status_bounds.width() / 2, 1)
+        self._name.setPos(-name_bounds.width() / 2, -name_bounds.height() / 2)
         name_rect = self._name.mapRectToParent(name_bounds)
-        status_rect = self._status.mapRectToParent(status_bounds)
-        text_rect = name_rect.united(status_rect)
-        self._label_backing.setRect(text_rect.adjusted(-5, -3, 5, 3))
+        self._label_backing.setRect(name_rect.adjusted(-2, -2, 2, 2))
         self._label_leader.setLine(anchor_x, anchor_y, target_x, target_y)
 
     def _update_pen(self, *, selected: bool | None = None) -> None:
         is_selected = self.isSelected() if selected is None else selected
         if is_selected:
-            color, width = QColor(PALETTE.focus), 5
+            color, width = QColor("#A64C35"), 2
         elif self._hovered:
-            color, width = QColor(PALETTE.accent), 4
+            color, width = QColor(PALETTE.accent), 2
         else:
-            color, width = QColor(PALETTE.border), 3
+            color, width = QColor(PALETTE.canvas), 1.5
         pen = QPen(color, width)
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        pen.setCosmetic(True)
         self.setPen(pen)
+
+    def _update_fill(self, *, selected: bool | None = None) -> None:
+        is_selected = self.isSelected() if selected is None else selected
+        if is_selected:
+            color = QColor(PALETTE.selection)
+        elif self.service_tier is None:
+            color = QColor("#D3E4DB")
+        else:
+            color = STATUS_FILL_COLORS[self.service_tier.value]
+        self.setBrush(QBrush(color))
 
     def _tooltip(self) -> str:
         return (
             f"{self.locality.name} ({self.locality.adm2_pcode})\n"
-            f"Status: {self.status_text}\n"
-            "Click to select; use arrow keys to move between localities."
+            f"Service tier: {self.status_text}\n"
+            + (
+                "Selected locality; coral denotes selection, not a service tier.\n"
+                if self.isSelected()
+                else ""
+            )
+            + "Click to select; use arrow keys to move between localities."
         )
 
     def paint(self, painter: QPainter, option, widget=None) -> None:
@@ -157,6 +174,22 @@ class LocalityGraphicsItem(QGraphicsPathItem):
 
         option.state &= ~QStyle.StateFlag.State_Selected
         super().paint(painter, option, widget)
+
+
+class _MapNameItem(QGraphicsSimpleTextItem):
+    """Crisp device-sized text with a quiet halo instead of a boxed label."""
+
+    def paint(self, painter: QPainter, option, widget=None) -> None:
+        text_path = QPainterPath()
+        text_path.addText(0, self.font().pixelSize() * 0.94, self.font(), self.text())
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        halo = QPen(QColor(PALETTE.canvas), 3.0)
+        halo.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        painter.setPen(halo)
+        painter.setBrush(self.brush())
+        painter.drawPath(text_path)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawPath(text_path)
 
 
 def _boundary_path(locality: LocalityShape) -> QPainterPath:

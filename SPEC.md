@@ -108,12 +108,14 @@ Acceptance conditions:
 - All evidence verification is sign-neutral. Result direction is descriptive and never a release
   gate.
 
-### 4. Explain the methodology
+### 4. Inspect evidence and explain the methodology
 
-The presenter opens a Methodology view that explains scenario generation, action tiers,
-proportional dispatch, the supply-blind Fixed Rotation baseline, PPO, reward design, historical
-training parameters, both evidence roles, sensitivity and forecast evaluation, and limitations in
-plain academic language.
+The approved October interface contains Overview, Live Scenario, and Results, with floating
+top navigation, open cartography, and the selected A/D/F visual design. Results opens native
+Evidence details for artifact identity, hash, counts, custody, sensitivity, and comparison limits.
+The Methodology tab and runtime status strip are removed at the user's request. The offline
+methodology chapter and canonical training record retain the full account of scenario generation,
+action tiers, proportional dispatch, Fixed Rotation, PPO, reward, training, and forecast evaluation.
 
 ## Tech stack
 
@@ -306,7 +308,7 @@ Golden cases generated from the accepted source implementation must prove that t
 - Map supports selection, keyboard focus, panning, and zooming
 - Hour and shortage controls update the map and detail panel
 - Empty, loading, and error states are legible
-- Frozen Results and Methodology views render without changing evidence
+- Frozen Results and its Evidence details render without changing evidence
 - Live demonstration aggregates match the selected controller episode metrics
 - Dynamic state is exposed through accessible text, a synchronized locality list, and visible
   keyboard focus at 1366 x 768

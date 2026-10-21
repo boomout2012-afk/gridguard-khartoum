@@ -7,8 +7,6 @@ from collections.abc import Callable
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QFrame,
-    QHBoxLayout,
     QMainWindow,
     QVBoxLayout,
     QWidget,
@@ -18,23 +16,21 @@ from gridguard.ui.live_models import LiveScenarioComparison
 from gridguard.ui.live_page import LiveScenarioPage
 from gridguard.ui.live_worker import LiveScenarioWorker
 from gridguard.ui.map_asset import MapAsset, load_map_asset
-from gridguard.ui.methodology_page import MethodologyPage
 from gridguard.ui.overview_page import OverviewPage
 from gridguard.ui.presentation_model import PresentationSnapshot
 from gridguard.ui.results_page import ResultsPage
 from gridguard.ui.window_components import (
     PageStack,
-    PresentationNavigationRail,
-    PresentationTrustStrip,
+    PresentationNavigationBar,
 )
 
 _PageStack = PageStack
 
 
 class PresentationWindow(QMainWindow):
-    """1366×768 presentation shell with four keyboard-accessible pages."""
+    """Three-page native workspace with the approved floating top navigation."""
 
-    PAGE_LABELS = ("Overview", "Live Scenario", "Results", "Methodology")
+    PAGE_LABELS = ("Overview", "Live Scenario", "Results")
 
     scenario_run_requested = Signal(str, int)
 
@@ -49,13 +45,14 @@ class PresentationWindow(QMainWindow):
     ) -> None:
         super().__init__(parent)
         asset = map_asset or load_map_asset()
-        self.setWindowTitle("GridGuard Khartoum · Offline Power Allocation")
+        self.setWindowTitle("GridGuard Khartoum")
         self.setAccessibleName("GridGuard Khartoum presentation")
         self.setAccessibleDescription(
-            "Offline synthetic load-shedding decision-support presentation with four pages."
+            "Offline synthetic load-shedding decision-support presentation with three pages."
         )
         self.setMinimumSize(1366, 768)
-        self.resize(1366, 768)
+        self.resize(1440, 900)
+        self.runtime_label = runtime_label
         self._shortcuts: list[QShortcut] = []
         self._live_runner = live_runner
         self._live_thread: QThread | None = None
@@ -63,9 +60,9 @@ class PresentationWindow(QMainWindow):
 
         central = QWidget()
         central.setObjectName("applicationShell")
-        shell = QHBoxLayout(central)
-        shell.setContentsMargins(0, 0, 0, 0)
-        shell.setSpacing(0)
+        shell = QVBoxLayout(central)
+        shell.setContentsMargins(32, 24, 32, 16)
+        shell.setSpacing(20)
 
         self.tabs = _PageStack()
         self.tabs.setObjectName("pageStack")
@@ -74,28 +71,19 @@ class PresentationWindow(QMainWindow):
         self.overview_page = OverviewPage(snapshot, asset)
         self.live_page = LiveScenarioPage(asset)
         self.results_page = ResultsPage(snapshot)
-        self.methodology_page = MethodologyPage(snapshot)
         self.tabs.addTab(self.overview_page, "Overview")
         self.tabs.addTab(self.live_page, "Live Scenario")
         self.tabs.addTab(self.results_page, "Results")
-        self.tabs.addTab(self.methodology_page, "Methodology")
         self.overview_page.explore_button.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
+        self.overview_page.results_button.clicked.connect(lambda: self.tabs.setCurrentIndex(2))
         self.live_page.run_requested.connect(self._handle_live_request)
 
-        self.navigation_rail = self._build_navigation_rail()
-        self.navigation_group = self.navigation_rail.navigation_group
-        self.navigation_buttons = self.navigation_rail.buttons
-        shell.addWidget(self.navigation_rail)
-        content = QFrame()
-        content.setObjectName("contentSurface")
-        content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
-        content_layout.addWidget(self.tabs, 1)
-        self.trust_strip = self._build_trust_strip(runtime_label, snapshot)
-        self.runtime_status = self.trust_strip.runtime_status
-        content_layout.addWidget(self.trust_strip)
-        shell.addWidget(content, 1)
+        self.navigation_bar = PresentationNavigationBar(self.PAGE_LABELS)
+        self.navigation_bar.page_selected.connect(self.tabs.setCurrentIndex)
+        self.navigation_group = self.navigation_bar.navigation_group
+        self.navigation_buttons = self.navigation_bar.buttons
+        shell.addWidget(self.navigation_bar)
+        shell.addWidget(self.tabs, 1)
         self.setCentralWidget(central)
         self.tabs.currentChanged.connect(self._sync_navigation_state)
         self._sync_navigation_state(0)
@@ -105,22 +93,10 @@ class PresentationWindow(QMainWindow):
     def live_run_active(self) -> bool:
         return self._live_thread is not None and self._live_thread.isRunning()
 
-    def _build_navigation_rail(self) -> PresentationNavigationRail:
-        rail = PresentationNavigationRail(self.PAGE_LABELS)
-        rail.page_selected.connect(self.tabs.setCurrentIndex)
-        return rail
-
-    def _build_trust_strip(
-        self,
-        runtime_label: str,
-        snapshot: PresentationSnapshot,
-    ) -> PresentationTrustStrip:
-        return PresentationTrustStrip(runtime_label, snapshot.benchmark_id)
-
     def _sync_navigation_state(self, index: int) -> None:
         if not 0 <= index < len(self.navigation_buttons):
             return
-        self.navigation_rail.set_current_index(index)
+        self.navigation_bar.set_current_index(index)
         page_label = self.PAGE_LABELS[index]
         self.tabs.setAccessibleDescription(f"Current page: {page_label}")
 
@@ -179,7 +155,7 @@ class PresentationWindow(QMainWindow):
     def closeEvent(self, event) -> None:  # noqa: N802
         if self.live_run_active:
             self.live_page.state_label.setText(
-                "The CUDA comparison is still running; close the window after it completes."
+                "The comparison is still running; close the window after it completes."
             )
             event.ignore()
             return

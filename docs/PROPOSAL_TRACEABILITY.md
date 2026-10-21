@@ -3,6 +3,28 @@
 Status: Final release traceability
 Audit date: 2026-08-26
 
+## Native GUI design update, 2026-10-21
+
+The approved A/D/F design is implemented in the source desktop application: three pages with
+top navigation, an open locality map, a floating locality inspector, and evidence-derived
+comparison bars. The user's review removes the Methodology tab, sidebar notices, and persistent
+runtime strip. Compact synthetic/decision-support notes remain in page content; the Results
+evidence dialog retains the complete canonical limitations and provenance. The academic
+methodology and training records remain unchanged.
+
+Focused native tests cover navigation, both presentation sizes, map selection and pan/zoom,
+controller switching, timeline playback, real-run integration, empty/loading/error states,
+changed-input invalidation, and frozen-evidence isolation. Documentation screenshots are
+captured from the actual CUDA Moderate/50002 scenario. Scientific modules, model weights, and
+frozen evidence are unchanged. This source UI update does not constitute a new frozen release;
+the Windows release process still requires its complete build, integrity, and smoke gates.
+
+Source verification on 2026-10-21: all 147 tests in `tests/ui` and
+`tests/test_screenshot_capture.py` passed with no skips; Ruff lint and format checks passed;
+`gridguard-evaluate --verify-evidence` passed. The redesigned application also reached its
+verified startup READY state on the presentation GPU. Every current page was rendered and
+inspected at 1366 x 768 and 1440 x 900.
+
 ## Accepted scope baseline
 
 The only scope authority for this clean project is

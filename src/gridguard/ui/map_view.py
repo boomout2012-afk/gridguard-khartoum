@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QKeyEvent, QPainter, QPainterPath, QPen, QWheelEvent
 from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsScene, QGraphicsView
 
@@ -31,11 +31,13 @@ class LocalityMapView(QGraphicsView):
         rect = asset.scene_rect
         self._scene.setSceneRect(rect.x, rect.y, rect.width, rect.height)
         self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing)
-        self.setBackgroundBrush(QColor(PALETTE.surface))
+        self.setBackgroundBrush(QColor(PALETTE.canvas))
         self.setFrameShape(QGraphicsView.Shape.NoFrame)
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAccessibleName("Interactive Khartoum locality map")
         self.setAccessibleDescription(
@@ -85,7 +87,12 @@ class LocalityMapView(QGraphicsView):
         """Fit the complete administrative map within the viewport."""
 
         self._zoom_steps = 0
-        bounds = self._scene.sceneRect().adjusted(-24, -24, 24, 24)
+        bounds = QRectF()
+        for item in self.locality_items.values():
+            bounds = bounds.united(item.path().boundingRect())
+        # Fit the geography, not the empty margins of the pinned source canvas.
+        # The fit rectangle stays inside the scene as required by QGraphicsView.
+        bounds = bounds.adjusted(-36, -38, 36, 38).intersected(self._scene.sceneRect())
         self.fitInView(bounds, Qt.AspectRatioMode.KeepAspectRatio)
 
     def zoom_in(self) -> None:
@@ -153,7 +160,7 @@ class LocalityMapView(QGraphicsView):
             self.locality_selected.emit(selected)
 
     def _build_scene(self) -> None:
-        river_pen = QPen(QColor(PALETTE.river), 5, Qt.PenStyle.SolidLine)
+        river_pen = QPen(QColor(PALETTE.river), 2.2, Qt.PenStyle.SolidLine)
         river_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         river_pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         river_pen.setCosmetic(True)
@@ -180,6 +187,8 @@ class LocalityMapView(QGraphicsView):
         # bounded by its parent locality, so neighboring polygons could otherwise
         # obscure a label near a shared boundary (notably central Khartoum).
         for item in self.locality_items.values():
+            item._label_leader.setParentItem(None)
+            item._label_leader.setZValue(4)
             label_group = item._label_group
             label_group.setParentItem(None)
             label_group.setZValue(5)

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QVBoxLay
 
 from gridguard.claim_contract import HOLDOUT_CUSTODY_LIMITATION, RESULTS_SCOPE_LIMITATION
 from gridguard.ui.presentation_model import MetricComparison, PresentationSnapshot
-from gridguard.ui.theme import PALETTE, STATUS_COLORS, STATUS_TEXT
+from gridguard.ui.theme import PALETTE, STATUS_FILL_COLORS
 
 
 class CardFrame(QFrame):
@@ -155,11 +155,14 @@ class ControllerCard(CardFrame):
             )
 
 
-class StatusLegend(CardFrame):
-    """Service status key with color, texture name, symbol, and text."""
+class StatusLegend(QFrame):
+    """Quiet service-tier and selection key on the open map canvas."""
 
     def __init__(self, parent=None, *, compact: bool = False) -> None:
-        super().__init__(accessible_name="Service status legend", parent=parent)
+        super().__init__(parent)
+        self.setAccessibleName("Service status legend")
+        self.setStyleSheet("QFrame { background: transparent; border: 0; }")
+        self.content = QVBoxLayout(self)
         horizontal_margin = 8 if compact else 12
         vertical_margin = 5 if compact else 10
         self.content.setContentsMargins(
@@ -173,21 +176,25 @@ class StatusLegend(CardFrame):
             title = QLabel("Service status")
             title.setProperty("heading", "section")
             self.content.addWidget(title)
-        textures = ("hatched", "patterned", "solid")
         status_row = QHBoxLayout()
         status_row.setSpacing(5 if compact else 8)
-        for tier, texture in enumerate(textures):
+        entries = (
+            ("Full Service", STATUS_FILL_COLORS[2].name()),
+            ("Critical Only", STATUS_FILL_COLORS[1].name()),
+            ("Off", STATUS_FILL_COLORS[0].name()),
+            ("Selected locality", PALETTE.selection),
+        )
+        for name, color in entries:
             swatch = QFrame()
             swatch_size = 12 if compact else 14
             swatch.setFixedSize(swatch_size, swatch_size)
             swatch.setStyleSheet(
-                f"background: {STATUS_COLORS[tier].name()}; border: 1px solid {PALETTE.surface};"
+                f"background: {color}; border: 1px solid #8EADA0; border-radius: 3px;"
             )
-            swatch.setAccessibleName(f"{STATUS_TEXT[tier]} color swatch; {texture}")
-            label = QLabel(STATUS_TEXT[tier])
+            swatch.setAccessibleName(f"{name} map key")
+            label = QLabel(name)
             label.setProperty("compact", True)
-            label.setAccessibleName(f"Service tier: {STATUS_TEXT[tier]}; {texture} map fill")
-            label.setToolTip(f"{STATUS_TEXT[tier]} areas use a {texture} map fill")
+            label.setAccessibleName(f"Map legend: {name}")
             status_row.addWidget(swatch)
             status_row.addWidget(label)
         status_row.addStretch(1)

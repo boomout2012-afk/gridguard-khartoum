@@ -8,7 +8,6 @@ from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QFont, QFontDatabase, QFontMetrics, QRawFont
 from PySide6.QtWidgets import QLabel
 
-from gridguard.claim_contract import HOLDOUT_CUSTODY_LIMITATION, RESULTS_SCOPE_LIMITATION
 from gridguard.domain import ServiceTier
 from gridguard.ui import presentation_model, theme
 from gridguard.ui.live_models import (
@@ -18,6 +17,7 @@ from gridguard.ui.live_models import (
     LocalityHourDetail,
 )
 from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS
+from gridguard.ui.methodology_page import MethodologyPage
 from gridguard.ui.presentation_model import PresentationSnapshot
 from gridguard.ui.theme import PALETTE
 from gridguard.ui.window import PresentationWindow
@@ -146,12 +146,11 @@ def test_window_has_presentation_pages_and_only_approved_controllers(qtbot) -> N
         "Overview",
         "Live Scenario",
         "Results",
-        "Methodology",
     ]
-    assert [card.controller_name for card in window.results_page.controller_cards] == [
-        "PPO",
-        "Fixed Rotation",
-    ]
+    assert all(
+        list(panel.value_labels) == ["PPO", "Fixed Rotation"]
+        for panel in window.results_page.outcome_panels.values()
+    )
     assert window.minimumSize().width() <= 1366
     assert window.minimumSize().height() <= 768
 
@@ -193,18 +192,14 @@ def test_results_table_displays_values_from_injected_evidence(qtbot) -> None:
     assert table.item(1, 1).text() == "97.00%"
     assert table.item(1, 3).text() == "+9.00 [8.00, 10.00] pp"
     assert table.accessibleName() == "Paired controller comparison results"
-    assert all(
-        tuple(card.metric_value_labels)
-        == (
-            "critical_outage_locality_hours",
-            "fairness",
-            "utilization",
-        )
-        for card in window.results_page.controller_cards
+    assert tuple(window.results_page.outcome_panels) == (
+        "critical_outage_locality_hours",
+        "fairness",
+        "utilization",
     )
 
 
-def test_results_controller_cards_do_not_clip_headlines_at_1366_by_768(qtbot, qapp) -> None:
+def test_results_comparisons_do_not_clip_headlines_at_1366_by_768(qtbot, qapp) -> None:
     theme.apply_theme(qapp)
     snapshot = _snapshot()
     window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
@@ -214,17 +209,11 @@ def test_results_controller_cards_do_not_clip_headlines_at_1366_by_768(qtbot, qa
     window.tabs.setCurrentIndex(2)
     qtbot.wait(20)
 
-    for card in window.results_page.controller_cards:
-        metric_names = {
-            label.text(): label
-            for label in card.findChildren(QLabel)
-            if label.text() in {metric.label for metric in snapshot.metrics}
-        }
-        assert set(metric_names) == {metric.label for metric in snapshot.metrics}
-        for label in (*metric_names.values(), *card.metric_value_labels.values()):
+    for panel in window.results_page.outcome_panels.values():
+        for label in (panel.title_label, *panel.value_labels.values()):
             assert label.width() >= label.sizeHint().width()
             assert label.height() >= label.sizeHint().height()
-        assert card.height() >= card.minimumSizeHint().height()
+        assert panel.height() >= panel.minimumSizeHint().height()
 
     table = window.results_page.results_table
     for row in range(table.rowCount()):
@@ -260,7 +249,8 @@ def test_results_page_keeps_safety_and_scope_limits_visible(qtbot) -> None:
     assert "maximum power-balance violation rate 0.00%" in safety
     assert "across both controllers" in safety
     assert expected_scope == presentation_model.RESULTS_SCOPE_LIMITATION
-    assert scope_note.text() == expected_scope
+    assert "supply-blind" in scope
+    assert "cannot select critical only" in scope
     assert "forecast-only limitation" not in scope
     assert scope_note.wordWrap()
     assert expected_scope in scope_note.accessibleName()
@@ -285,10 +275,12 @@ def test_results_inference_banner_is_fully_visible_at_presentation_width(qtbot) 
     window.resize(1366, 768)
     window.show()
     window.tabs.setCurrentIndex(2)
+    qtbot.mouseClick(window.results_page.evidence_details_button, Qt.MouseButton.LeftButton)
     qtbot.waitUntil(window.results_page.evidence_role_note.isVisible, timeout=1000)
 
     banner = window.results_page.evidence_role_note
-    assert banner.fontMetrics().horizontalAdvance(banner.text()) <= banner.contentsRect().width()
+    assert banner.wordWrap()
+    assert banner.height() >= banner.heightForWidth(banner.width())
     accessible = banner.accessibleName().casefold()
     assert "base paired 95% confidence intervals below" in accessible
     assert "sensitivity supplement (not shown here)" in accessible
@@ -367,25 +359,19 @@ def test_approved_presentation_fonts_register_from_bundled_assets(qapp) -> None:
         assert all(body_font.supportsCharacter(ord(character)) for character in marker)
 
 
-def test_window_uses_176px_navigation_rail_and_verified_trust_strip(qtbot) -> None:
+def test_window_uses_approved_top_navigation_without_a_trust_strip(qtbot) -> None:
     window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
     qtbot.addWidget(window)
 
-    assert window.navigation_rail.minimumWidth() == 176
-    assert window.navigation_rail.maximumWidth() == 176
+    assert window.navigation_bar.minimumHeight() == 64
+    assert window.navigation_bar.maximumHeight() == 64
     assert [button.text() for button in window.navigation_buttons] == [
         "Overview",
         "Live Scenario",
         "Results",
-        "Methodology",
     ]
-    assert window.trust_strip.accessibleName() == "Verified application trust status"
-    trust_text = " ".join(
-        label.text() for label in window.trust_strip.findChildren(QLabel)
-    ).casefold()
-    assert "offline" in trust_text
-    assert "gpu verified" in trust_text
-    assert "evidence locked" in trust_text
+    assert not hasattr(window, "trust_strip")
+    assert not hasattr(window, "methodology_page")
 
 
 def test_navigation_keeps_visual_and_accessible_page_state_in_sync(qtbot) -> None:
@@ -451,8 +437,8 @@ def test_results_page_displays_evidence_derived_provenance(qtbot) -> None:
     assert results.provenance_id.property("mono") is True
     assert all(
         value_label.property("metric") == "value"
-        for card in results.controller_cards
-        for value_label in card.metric_value_labels.values()
+        for panel in results.outcome_panels.values()
+        for value_label in panel.value_labels.values()
     )
 
 
@@ -475,19 +461,15 @@ def test_overview_opens_live_workspace_without_inventing_a_run(qtbot) -> None:
     assert not window.live_page.timeline.isEnabled()
 
 
-def test_overview_metric_values_are_not_clipped_at_presentation_size(qtbot, qapp) -> None:
+def test_overview_scope_facts_are_not_clipped_at_presentation_size(qtbot, qapp) -> None:
     theme.apply_theme(qapp)
     window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
     qtbot.addWidget(window)
     window.setFixedSize(1366, 768)
     window.show()
     qtbot.wait(20)
-    values = [
-        label
-        for label in window.overview_page.findChildren(QLabel)
-        if label.property("metric") == "value"
-    ]
-    assert len(values) == 6
+    values = window.overview_page.scope_fact_labels.values()
+    assert len(values) == 3
     for label in values:
         assert label.height() >= label.sizeHint().height()
         assert label.width() >= label.sizeHint().width()
@@ -539,10 +521,11 @@ def test_live_details_remain_readable_at_the_allowed_minimum(qtbot, qapp) -> Non
     qtbot.wait(20)
     for label in window.live_page.sector_service_labels.values():
         assert label.height() >= label.sizeHint().height()
-    assert window.live_page.hour_label.width() >= window.live_page.hour_label.sizeHint().width()
+    clock = window.live_page.map_panel.clock_label
+    assert clock.width() >= clock.sizeHint().width()
 
 
-def test_overview_keeps_claim_boundaries_visible_beside_results(qtbot) -> None:
+def test_overview_keeps_synthetic_scope_visible_and_links_to_results(qtbot) -> None:
     window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
     qtbot.addWidget(window)
     window.resize(1366, 768)
@@ -552,31 +535,20 @@ def test_overview_keeps_claim_boundaries_visible_beside_results(qtbot) -> None:
 
     note = window.overview_page.scope_note
     visible = note.text().casefold()
-    accessible = note.accessibleName()
-    for phrase in (
-        "not preregistered or independently custodied",
-        "undocumented activity cannot be ruled out",
-        "supply-blind",
-        "uses only off and full service",
-        "cannot select critical only",
-        "behavior-cloning-only ablation",
-        "ppo fine-tuning",
-    ):
-        assert phrase in visible
-    assert HOLDOUT_CUSTODY_LIMITATION in accessible
-    assert RESULTS_SCOPE_LIMITATION in accessible
-    assert note.wordWrap()
-    assert note.height() >= note.heightForWidth(note.width())
+    assert "synthetic" in visible
+    assert "decision support only" in visible
+    assert note.width() >= note.sizeHint().width()
+    assert note.height() >= note.sizeHint().height()
     bottom = note.mapTo(window.overview_page, QPoint(0, note.height())).y()
     assert bottom <= window.overview_page.contentsRect().bottom()
+    qtbot.mouseClick(window.overview_page.results_button, Qt.MouseButton.LeftButton)
+    assert window.tabs.currentWidget() is window.results_page
 
 
 def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None:
     snapshot = _snapshot()
-    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
-    qtbot.addWidget(window)
-
-    page = window.methodology_page
+    page = MethodologyPage(snapshot)
+    qtbot.addWidget(page)
     page_text = " ".join(label.text() for label in page.findChildren(QLabel)).casefold()
     assert page.scroll_area.widgetResizable()
     for topic in (
@@ -602,14 +574,11 @@ def test_methodology_is_scrollable_and_covers_the_approved_method(qtbot) -> None
 
 def test_methodology_shows_verified_historical_training_record_at_presentation_size(qtbot) -> None:
     snapshot = _snapshot()
-    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
-    qtbot.addWidget(window)
-    window.resize(1366, 768)
-    window.show()
-    window.tabs.setCurrentIndex(3)
-    qtbot.waitUntil(window.methodology_page.isVisible, timeout=1000)
-
-    page = window.methodology_page
+    page = MethodologyPage(snapshot)
+    qtbot.addWidget(page)
+    page.resize(1366, 768)
+    page.show()
+    qtbot.waitUntil(page.isVisible, timeout=1000)
     card = page.training_record_card
     card_text = " ".join(label.text() for label in card.findChildren(QLabel))
 
@@ -720,12 +689,12 @@ def test_live_run_executes_off_the_gui_thread_and_keeps_results_frozen(qtbot) ->
     assert worker_thread_ids and worker_thread_ids[0] != threading.get_ident()
     assert window.live_page.timeline.isEnabled()
     assert window.live_page.controller_combo.currentText() == "PPO"
-    assert window.live_page.map_view.locality_items["khartoum"].status_text == "• FULL"
+    assert window.live_page.map_view.locality_items["khartoum"].status_text == "Full Service"
     assert window.live_page.locality_context.text() == "PPO · Hour 00:00"
     assert window.live_page.sector_service_labels["Water"].text() == "90.0%"
     window.live_page.timeline.setValue(7)
     window.live_page.controller_combo.setCurrentText("Fixed Rotation")
-    assert window.live_page.map_view.locality_items["khartoum"].status_text == "× OFF"
+    assert window.live_page.map_view.locality_items["khartoum"].status_text == "Off"
     assert window.live_page.timeline.value() == 7
     assert window.live_page.locality_context.text() == "Fixed Rotation · Hour 07:00"
     assert window.results_page.results_table.item(2, 1).text() == frozen_headline
@@ -763,20 +732,17 @@ def _assert_live_output_is_unavailable(window: PresentationWindow) -> None:
         map_item.status_text.casefold().endswith("not run")
         for map_item in page.map_view.locality_items.values()
     )
-    assert all(
-        map_item.brush().color().name().upper() == PALETTE.surface_raised
-        for map_item in page.map_view.locality_items.values()
-    )
+    assert all(map_item.service_tier is None for map_item in page.map_view.locality_items.values())
     assert all(
         page.locality_list.item(row).text().casefold().endswith("not run")
         for row in range(page.locality_list.count())
     )
     assert page.locality_context.text() == "No controller output \N{MIDDLE DOT} Hour \N{EM DASH}"
-    assert page.locality_status.text() == "Status: not run"
+    assert page.locality_status.text() == "Not run"
     assert page.locality_demand.text() == "\N{EM DASH}"
     assert page.locality_served.text() == "\N{EM DASH}"
     assert page.locality_critical.text() == "\N{EM DASH}"
-    assert "Next hour: \N{EM DASH}" in page.locality_projection.text()
+    assert "Next hour: unavailable" in page.locality_projection.text()
     assert all(label.text() == "\N{EM DASH}" for label in page.sector_service_labels.values())
     assert "no verified live demonstration metrics" in (
         page.comparison_table.accessibleDescription().casefold()
