@@ -3,7 +3,7 @@
   "release_id": "gridguard-khartoum-v1.2.0",
   "schema_version": 3,
   "source": {
-    "git_commit": "b6cde3e39781aae00eea601ea8807713971b36dd",
+    "git_commit": "e0ce275d16edd364b8db5ecb4959d99d656a8f52",
     "uv_lock": {
       "path": "uv.lock",
       "sha256": "e395f9d53295da2dcf5977ea1011c5363d4a9dbb48b4408640073820e593f2b4",
@@ -58,13 +58,13 @@
     },
     {
       "path": "docs/release-machine-validation.json",
-      "sha256": "70c8c1dc287a9b55afba57eaa9581d347dfbcc809764195973444cf0040e4851",
-      "size_bytes": 278824
+      "sha256": "a264c1ff1ad8fbf3b776eb8ae5756d0f5feedb35a4127a2b49688de77a1e9329",
+      "size_bytes": 285330
     },
     {
       "path": "docs/release-visual-review.json",
-      "sha256": "dad725b624e71570147f7a25d0c5820f0483f84afe5237a545437320991a11bc",
-      "size_bytes": 13240
+      "sha256": "f1f7aef6e7d30229f18a4e9624a0e002767e73dae86893978767abaccc14edfd",
+      "size_bytes": 12944
     },
     {
       "path": "docs/source/graduation-project-proposal.pdf",
@@ -73,13 +73,13 @@
     },
     {
       "path": "output/pdf/gridguard-khartoum-final-report.pdf",
-      "sha256": "61a2d186a13e1fe536ec6a0dd32fe89629c75128d4045377963b93998fbebe35",
-      "size_bytes": 728579
+      "sha256": "ed0c5221b2d7ac5e5758303f04367cfa7dd2551adc829faa0435b07397ebb69e",
+      "size_bytes": 507501
     },
     {
       "path": "output/presentation/gridguard-khartoum-defense.pptx",
-      "sha256": "3ed76ea15c4d3dac3f1f112ee6021ec8fd1f36f88847a6dc8421cdc2155ca176",
-      "size_bytes": 374316
+      "sha256": "b6359b1fb47b32213eba2ba860a7d82f0734fc04bbadca85ec9ea3cc96683f0d",
+      "size_bytes": 328009
     },
     {
       "path": "src/gridguard/assets/map/THIRD_PARTY_DATA.md",
@@ -106,24 +106,24 @@
     "authenticity_boundary": "UNSIGNED_INTERNAL_CONSISTENCY_REQUIRES_INDEPENDENTLY_TRUSTED_GIT_COMMIT",
     "machine_validation": {
       "path": "docs/release-machine-validation.json",
-      "sha256": "70c8c1dc287a9b55afba57eaa9581d347dfbcc809764195973444cf0040e4851",
-      "size_bytes": 278824
+      "sha256": "a264c1ff1ad8fbf3b776eb8ae5756d0f5feedb35a4127a2b49688de77a1e9329",
+      "size_bytes": 285330
     },
     "visual_review": {
       "path": "docs/release-visual-review.json",
-      "sha256": "dad725b624e71570147f7a25d0c5820f0483f84afe5237a545437320991a11bc",
-      "size_bytes": 13240
+      "sha256": "f1f7aef6e7d30229f18a4e9624a0e002767e73dae86893978767abaccc14edfd",
+      "size_bytes": 12944
     }
   },
   "windows_build": {
     "build_kind": "PyInstaller one-directory",
     "distribution": {
-      "file_count": 4665,
+      "file_count": 4621,
       "files": [
         {
           "path": "GridGuard Khartoum.exe",
-          "sha256": "dae134154d98f2d35b9b56c0aec564c3b799a312214a3dcdab930bfe76b35a8e",
-          "size_bytes": 35145396
+          "sha256": "b1b572910eb740a856af397b77d609aae3c1befbb5dfeec3c20394165c092af5",
+          "size_bytes": 35160595
         },
         {
           "path": "_internal/PIL/_avif.cp312-win_amd64.pyd",
@@ -896,223 +896,8 @@
           "size_bytes": 40304
         },
         {
-          "path": "_internal/api-ms-win-core-console-l1-1-0.dll",
-          "sha256": "88ace577a9c51061cb7d1a36babbbefa48212fadc838ffde98fdfff60de18386",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-datetime-l1-1-0.dll",
-          "sha256": "1bd81dfd19204b44662510d9054852fb77c9f25c1088d647881c9b976cc16818",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-debug-l1-1-0.dll",
-          "sha256": "591358eb4d1531e9563ee0813e4301c552ce364c912ce684d16576eabf195dc3",
-          "size_bytes": 21944
-        },
-        {
-          "path": "_internal/api-ms-win-core-errorhandling-l1-1-0.dll",
-          "sha256": "d56ce7b1cd76108ad6c137326ec694a14c99d48c3d7b0ace8c3ff4d9bcee3ce8",
-          "size_bytes": 22096
-        },
-        {
-          "path": "_internal/api-ms-win-core-fibers-l1-1-0.dll",
-          "sha256": "91d249d7bc0e38ef6bcb17158b1fdc6dd8888dc086615c9b8b750b87e52a5fb3",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-fibers-l1-1-1.dll",
-          "sha256": "fc9d86cec621383eab636ebc87ddd3f5c19a3cb2a33d97be112c051d0b275429",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-file-l1-1-0.dll",
-          "sha256": "1ca895aba4e7435563a6b43e85eba67a0f8c74aa6a6a94d0fc48fa35535e2585",
-          "size_bytes": 26152
-        },
-        {
-          "path": "_internal/api-ms-win-core-file-l1-2-0.dll",
-          "sha256": "4cadbc0c39da7c6722206fdcebd670abe5b8d261e7b041dd94f9397a89d1990d",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-file-l2-1-0.dll",
-          "sha256": "93c624b366ba16c643fc8933070a26f03b073ad0cf7f80173266d67536c61989",
-          "size_bytes": 21960
-        },
-        {
-          "path": "_internal/api-ms-win-core-handle-l1-1-0.dll",
-          "sha256": "39095f59c41d76ec81bb2723d646fde4c148e7cc3402f4980d2ade95cb9c84f9",
-          "size_bytes": 21944
-        },
-        {
-          "path": "_internal/api-ms-win-core-heap-l1-1-0.dll",
-          "sha256": "8f105771b236dbcb859de271f0a6822ce1cb79c36988dd42c9e3f6f55c5f7eb9",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-interlocked-l1-1-0.dll",
-          "sha256": "53b25e753ca785bf8b695d89dde5818a318890211dc992a89146f16658f0b606",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-kernel32-legacy-l1-1-1.dll",
-          "sha256": "a9b13a1cd1b8c19b0c6b4afcd5bb0dd29c0e2288231ac9e6db8510094ce68ba6",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-core-libraryloader-l1-1-0.dll",
-          "sha256": "7f39ba298b41e4963047341288cab36b6a241835ee11ba4ad70f44dacd40906c",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-localization-l1-2-0.dll",
-          "sha256": "6ee44dd0d8510dc024c9f7c79b1b9fa88c987b26b6beb6653ddd11751c34e5dc",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-core-memory-l1-1-0.dll",
-          "sha256": "0512a35316ec9180437f86696a84c5c06a7e4e82e050055a656e5bf9fca206f9",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-namedpipe-l1-1-0.dll",
-          "sha256": "c05f1fffe3b5a2738ea54ce9485cca026fb9635f982626fba1e1dcc531897273",
-          "size_bytes": 22096
-        },
-        {
-          "path": "_internal/api-ms-win-core-processenvironment-l1-1-0.dll",
-          "sha256": "c4eca98c3c67b6395d5b005b00ac1eb0318b86b23aa71035a44c2b1602befba9",
-          "size_bytes": 21968
-        },
-        {
-          "path": "_internal/api-ms-win-core-processthreads-l1-1-0.dll",
-          "sha256": "5ccb89e93d67bc3288d4e84649c5346e66e15e3d7cd65d989daf3f4cb584be9a",
-          "size_bytes": 22096
-        },
-        {
-          "path": "_internal/api-ms-win-core-processthreads-l1-1-1.dll",
-          "sha256": "4ad565a8ba3ef0ea8ab87221ad11f83ee0bc844ce236607958406663b407333e",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-profile-l1-1-0.dll",
-          "sha256": "7809160932f44e59b021699f5bc68799eb7293ee1fa926d6fcca3c3445302e61",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-core-rtlsupport-l1-1-0.dll",
-          "sha256": "9dc1e91e71c7c054854bd1487cb4e6946d82c9f463430f1c4e8d1471005172b1",
-          "size_bytes": 21960
-        },
-        {
-          "path": "_internal/api-ms-win-core-string-l1-1-0.dll",
-          "sha256": "60fc31d2a0c634412f529dba76af3b9bf991352877c6dae528186d3935704cfd",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-synch-l1-1-0.dll",
-          "sha256": "3a72b4f29f39a265d32ad12f0ce15dbf60129c840e10d84d427829ede45e78ad",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-synch-l1-2-0.dll",
-          "sha256": "efc1e4460984a73cf47a3def033af1c8f3b1dbc1a56cd27781d3aacf3e3330cb",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-core-sysinfo-l1-1-0.dll",
-          "sha256": "b203d862ddef1dd62bf623fc866c7f7a9c317c1c2ae30d1f52cb41f955b5698e",
-          "size_bytes": 22072
-        },
-        {
-          "path": "_internal/api-ms-win-core-sysinfo-l1-2-0.dll",
-          "sha256": "2703635d835396afd0f138d7c73751afe7e33a24f4225d08c1690b0a371932c0",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-core-timezone-l1-1-0.dll",
-          "sha256": "33f4fddc181066fce06b2227bded813f95e94ed1f3d785e982c6b6b56c510c57",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-core-util-l1-1-0.dll",
-          "sha256": "6eda016742a6171205a387a14b3c0b331841567740376f56768f8c151724207d",
-          "size_bytes": 21944
-        },
-        {
-          "path": "_internal/api-ms-win-crt-conio-l1-1-0.dll",
-          "sha256": "b762061b688aae679afe788904d2c9970f74a7dac98f3b42463d08f25e483d3f",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-crt-convert-l1-1-0.dll",
-          "sha256": "ebb2ae5535a64f65daeab8235585114fc9dd2cf1a49f5852d446250b998b6ae4",
-          "size_bytes": 26056
-        },
-        {
-          "path": "_internal/api-ms-win-crt-environment-l1-1-0.dll",
-          "sha256": "17d63275d00bdd8670422b95bd264c532998e0a1b041079e54fce4b6b7a55819",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-crt-filesystem-l1-1-0.dll",
-          "sha256": "9a9e2a65a281644e368d0f272b95ba5f6b445d1c35910d06056c5ebeb77402db",
-          "size_bytes": 22056
-        },
-        {
-          "path": "_internal/api-ms-win-crt-heap-l1-1-0.dll",
-          "sha256": "bab9ac3ec83e380ae51e4295ef3bf2c738627812d3a49d1e713661abbc8dc57a",
-          "size_bytes": 22096
-        },
-        {
-          "path": "_internal/api-ms-win-crt-locale-l1-1-0.dll",
-          "sha256": "bd14c67ea28e21d6257ad780a37122c9b5773f69e693f5db6bffaee4d839526e",
-          "size_bytes": 22080
-        },
-        {
-          "path": "_internal/api-ms-win-crt-math-l1-1-0.dll",
-          "sha256": "606d66d82db562ea7979179d06486a0f94d079941d26b80a1e2c49d29959df6f",
-          "size_bytes": 30248
-        },
-        {
-          "path": "_internal/api-ms-win-crt-private-l1-1-0.dll",
-          "sha256": "1bc82bed6143d2bf1b6b08a7809f4a5e29317d6fddd338a7da3c0223522e4bbf",
-          "size_bytes": 75328
-        },
-        {
-          "path": "_internal/api-ms-win-crt-process-l1-1-0.dll",
-          "sha256": "f6156b1020380ec4f0e48577ebedaaef5fb1ab1f337d8b4e72e6a33a7567a9cc",
-          "size_bytes": 22096
-        },
-        {
-          "path": "_internal/api-ms-win-crt-runtime-l1-1-0.dll",
-          "sha256": "c5902934d026d7e15fbe9917d474f3322846a41a25e66f4b2b1f758801879f4b",
-          "size_bytes": 26152
-        },
-        {
-          "path": "_internal/api-ms-win-crt-stdio-l1-1-0.dll",
-          "sha256": "a9c5a153d8c0286f9b41a2b1c65854ad9e6471b8755b7de87bae4470e60bcab6",
-          "size_bytes": 26168
-        },
-        {
-          "path": "_internal/api-ms-win-crt-string-l1-1-0.dll",
-          "sha256": "25b8f83a7767211b11132775a0e27a45aa4ec8ab4e6572599f9c172ae3606b40",
-          "size_bytes": 26176
-        },
-        {
-          "path": "_internal/api-ms-win-crt-time-l1-1-0.dll",
-          "sha256": "7c7f6393f06de11750adb09cc5698ae55cd9fb27b2e51e207286feb1b5b2b156",
-          "size_bytes": 22096
-        },
-        {
-          "path": "_internal/api-ms-win-crt-utility-l1-1-0.dll",
-          "sha256": "d8ba5f17b9ffcbf3aeaf3fa1da226832d2fa90f81acce0cd669464e76ce434ac",
-          "size_bytes": 21952
-        },
-        {
           "path": "_internal/base_library.zip",
-          "sha256": "0b2ce18450b068a1a79db83a7a8701bd263758ea4f098048329104b4514976ac",
+          "sha256": "2fa9e2677066ab2e599ab714a4bf61ec6fbd7bb6794314b8f826c5bec481a10c",
           "size_bytes": 1331373
         },
         {
@@ -12412,8 +12197,8 @@
         },
         {
           "path": "_internal/gridguard_khartoum-1.2.0.dist-info/METADATA",
-          "sha256": "13f72994c928a5447fb5a8554b0cbc25138c95a970c0fe1efa9610c653e001c2",
-          "size_bytes": 12326
+          "sha256": "de434dfa851f5cb3d7034a504e5dcea7635e5584bbd226b8ba5174f6acd26794",
+          "size_bytes": 13953
         },
         {
           "path": "_internal/gridguard_khartoum-1.2.0.dist-info/WHEEL",
@@ -23421,24 +23206,19 @@
           "size_bytes": 6031
         },
         {
-          "path": "_internal/ucrtbase.dll",
-          "sha256": "2e5fb14b7bf8540278f3614a12f0226e56a7cc9e64b81cbd976c6fcf2f71cbfb",
-          "size_bytes": 1361448
-        },
-        {
           "path": "_internal/unicodedata.pyd",
           "sha256": "208ee1cd3cbad0828433ca7246b05be2b1ff5569983d27d296c0b38888585488",
           "size_bytes": 1140592
         },
         {
           "path": "_internal/vcruntime140.dll",
-          "sha256": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
-          "size_bytes": 178616
+          "sha256": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4",
+          "size_bytes": 120400
         },
         {
           "path": "_internal/vcruntime140_1.dll",
-          "sha256": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e",
-          "size_bytes": 50112
+          "sha256": "6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8",
+          "size_bytes": 49776
         },
         {
           "path": "_internal/yaml/_yaml.cp312-win_amd64.pyd",
@@ -23447,27 +23227,27 @@
         }
       ],
       "path": "dist/GridGuard Khartoum",
-      "size_bytes": 4873691244,
+      "size_bytes": 4871257974,
       "tree_hash_algorithm": "sha256(canonical-lines-v1)",
-      "tree_sha256": "b5930c8e33675bb8d7a4bb07e7ff6f75533f42a51ad1cc333edca8e32491b3b4"
+      "tree_sha256": "6364d7d82f786d41c97fa352df88ccec65ee36c764c24d09f0b554ca87cae6fd"
     },
-    "distribution_file_count": 4665,
-    "distribution_size_bytes": 4873691244,
-    "distribution_tree_sha256": "b5930c8e33675bb8d7a4bb07e7ff6f75533f42a51ad1cc333edca8e32491b3b4",
+    "distribution_file_count": 4621,
+    "distribution_size_bytes": 4871257974,
+    "distribution_tree_sha256": "6364d7d82f786d41c97fa352df88ccec65ee36c764c24d09f0b554ca87cae6fd",
     "executable_path": "dist/GridGuard Khartoum/GridGuard Khartoum.exe",
-    "executable_sha256": "dae134154d98f2d35b9b56c0aec564c3b799a312214a3dcdab930bfe76b35a8e",
-    "executable_size_bytes": 35145396,
+    "executable_sha256": "b1b572910eb740a856af397b77d609aae3c1befbb5dfeec3c20394165c092af5",
+    "executable_size_bytes": 35160595,
     "frozen_smoke": "PASS",
     "frozen_smoke_report": {
       "path": "build/gridguard/frozen-smoke.json",
-      "sha256": "53df4665c77f150f08d6c79d38a64b756c5dcf81e6a294e741a5c0b9f6890f9c",
-      "size_bytes": 994
+      "sha256": "2e38fcfab4d03fb4f7e5458f8fae124fa30eb411aadc546f9da0fa6f65e8eb45",
+      "size_bytes": 962
     },
     "no_gpu_behavior": "FAIL_CLOSED",
     "sdist": {
       "path": "dist/gridguard_khartoum-1.2.0.tar.gz",
-      "sha256": "c1bf77b72a2321c331c5b5c4c8f2252fb958c5a11dae6ad2447c7b432489e0d2",
-      "size_bytes": 11574373
+      "sha256": "300eb2ffaf4eb524935ba5ce3fb3b7efed5a9bcc5a1da66110ff14b403cf7e1a",
+      "size_bytes": 11298703
     },
     "tracked": false,
     "validated_runtime": {
@@ -23478,8 +23258,8 @@
     },
     "wheel": {
       "path": "dist/gridguard_khartoum-1.2.0-py3-none-any.whl",
-      "sha256": "3f55bc788e72391745dd2a27c3f0e6ed663cc7fb48b937bf7a204c5dba564396",
-      "size_bytes": 9820554
+      "sha256": "e31fe599b7fc28820232ebfc07b9f55930ce746d8463deeb19a997c9bc272372",
+      "size_bytes": 9829209
     }
   }
 }
