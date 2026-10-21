@@ -45,13 +45,13 @@
       "id": "robustness-supplement",
       "kind": "documented-seed-disjoint-holdout-evidence",
       "path": "data/evidence/robustness-supplement.json",
-      "sha256": "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
+      "sha256": "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48"
     },
     {
       "id": "robustness-trust-anchor-source",
       "kind": "evidence-trust-anchor-source",
       "path": "src/gridguard/robustness_provenance.py",
-      "sha256": "f3353641e0887325e8ebe52b28a4007d220ba8bd18761edc1eb80116c5b456f7"
+      "sha256": "edc944525407967eb56c4d65d3e60bc68008275598b62648cbb133d0f0adf539"
     }
   ],
   "lineage": [

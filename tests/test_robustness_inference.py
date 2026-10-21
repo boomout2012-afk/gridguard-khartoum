@@ -186,6 +186,56 @@ def test_delta_cube_payload_rejects_complex_values_instead_of_truncating_them() 
         build_delta_cube_payload(values, contract=contract)
 
 
+@pytest.mark.parametrize(
+    ("contract_factory", "build_payload", "decode_payload"),
+    (
+        (_contract, build_delta_cube_payload, decode_delta_cube_payload),
+        (
+            _base_controller_contract,
+            build_base_controller_cube_payload,
+            decode_base_controller_cube_payload,
+        ),
+        (
+            _power_balance_contract,
+            build_power_balance_cube_payload,
+            decode_power_balance_cube_payload,
+        ),
+        (
+            _sensitivity_controller_contract,
+            build_sensitivity_controller_cube_payload,
+            decode_sensitivity_controller_cube_payload,
+        ),
+        (
+            _forecast_demand_contract,
+            build_forecast_demand_cube_payload,
+            decode_forecast_demand_cube_payload,
+        ),
+    ),
+)
+@pytest.mark.parametrize(
+    ("field", "replacement_type"),
+    (
+        ("shape", float),
+        ("seed_order", float),
+        ("episode_order", float),
+        ("episode_order", bool),
+    ),
+)
+def test_cube_metadata_rejects_equal_values_with_wrong_json_types(
+    contract_factory,
+    build_payload,
+    decode_payload,
+    field: str,
+    replacement_type,
+) -> None:
+    contract = contract_factory()
+    payload = build_payload(np.zeros(contract.shape, dtype=np.float64), contract=contract)
+    payload[field] = [replacement_type(value) for value in payload[field]]
+
+    with pytest.raises(RobustnessInferenceError, match=field):
+        decode_payload(payload, contract=contract)
+
+
 def test_controller_and_power_balance_cubes_round_trip_strict_contracts() -> None:
     controller_contract = _base_controller_contract()
     power_contract = _power_balance_contract()

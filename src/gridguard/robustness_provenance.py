@@ -103,8 +103,8 @@ ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS: Final[tuple[tuple[str, str, int], ...
     ),
     (
         "src/gridguard/robustness_inference.py",
-        "b9355bc1704bbbfb144d1281b058c457b59968a24e9eef3708cb4834fe762cc1",
-        37_306,
+        "814fa97fd62e08f83fb149fa2afb83382fe3efb9362f178f2d4f1ec536661798",
+        37_813,
     ),
     (
         "src/gridguard/scenarios.py",
@@ -125,5 +125,5 @@ ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS: Final[tuple[tuple[str, str, int], ...
 
 # Accepted only after two byte-identical CUDA reproductions of the final source bundle.
 ROBUSTNESS_SUPPLEMENT_SHA256: Final = (
-    "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1"
+    "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48"
 )

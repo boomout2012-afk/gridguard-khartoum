@@ -341,6 +341,19 @@ def _build_cube_payload(
     }
 
 
+def _matches_metadata_contract(value: object, expected: object) -> bool:
+    """Compare JSON metadata without accepting bool/int/float equality coercions."""
+
+    if type(value) is not type(expected):
+        return False
+    if isinstance(expected, list):
+        return len(value) == len(expected) and all(
+            _matches_metadata_contract(actual, required)
+            for actual, required in zip(value, expected, strict=True)
+        )
+    return value == expected
+
+
 def _decode_cube_payload(
     payload: object,
     *,
@@ -370,7 +383,7 @@ def _decode_cube_payload(
         **metadata,
     }
     for field, expected in expected_values.items():
-        if payload[field] != expected:
+        if not _matches_metadata_contract(payload[field], expected):
             raise RobustnessInferenceError(f"{label} {field} does not match the contract")
     digest = payload["decoded_sha256"]
     if type(digest) is not str or not _SHA256_PATTERN.fullmatch(digest):
