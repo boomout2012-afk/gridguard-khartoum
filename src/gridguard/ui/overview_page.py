@@ -24,17 +24,22 @@ class OverviewPage(QWidget):
         layout.setContentsMargins(26, 18, 26, 18)
         layout.setSpacing(10)
 
-        kicker = QLabel("OVERVIEW  /  KHARTOUM STATE")
+        kicker = QLabel("Khartoum State / Research workspace")
         kicker.setProperty("kicker", True)
         kicker.setAccessibleName("Overview, Khartoum State")
         layout.addWidget(kicker)
         title, description = page_intro(
-            "A service-allocation atlas",
-            "Explore the seven-locality boundary context and keep the frozen PPO comparison "
-            "in view. "
-            "All traces are synthetic; this interface supports decisions, not grid operations.",
+            "Load shedding, locality by locality",
+            "Compare how PPO and Fixed Rotation allocate limited supply across seven localities. "
+            "Explore a matched 24-hour scenario, then examine the frozen research evidence.",
         )
-        layout.addWidget(title)
+        heading_row = QHBoxLayout()
+        heading_row.addWidget(title, 1)
+        self.explore_button = QPushButton("Explore a scenario")
+        self.explore_button.setProperty("primary", True)
+        self.explore_button.setAccessibleName("Explore a scenario in the Live Scenario workspace")
+        heading_row.addWidget(self.explore_button)
+        layout.addLayout(heading_row)
         layout.addWidget(description)
         self.scope_note = ClaimBoundaryNote(include_holdout_custody=True)
         layout.addWidget(self.scope_note)
@@ -43,10 +48,10 @@ class OverviewPage(QWidget):
         body.setSpacing(12)
         map_card = CardFrame(accessible_name="Khartoum locality map overview")
         map_header = QHBoxLayout()
-        map_title = QLabel(asset.title)
+        map_title = QLabel("Seven localities. One shared supply.")
         map_title.setProperty("heading", "section")
         map_title.setAccessibleName(f"Map title: {asset.title}")
-        boundary_badge = QLabel("7 LOCALITIES · BOUNDARY CONTEXT")
+        boundary_badge = QLabel("Administrative map")
         boundary_badge.setProperty("badge", "neutral")
         boundary_badge.setProperty("compact", True)
         boundary_badge.setAccessibleName("Seven locality administrative boundary context")
@@ -107,7 +112,7 @@ class OverviewPage(QWidget):
         evidence_header = QHBoxLayout()
         evidence_title = QLabel("Frozen comparison")
         evidence_title.setProperty("heading", "section")
-        self.evidence_status = QLabel("HASH VERIFIED")
+        self.evidence_status = QLabel("Verified")
         self.evidence_status.setProperty("badge", "verified")
         self.evidence_status.setProperty("compact", True)
         self.evidence_status.setAccessibleName(

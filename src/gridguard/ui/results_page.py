@@ -40,7 +40,7 @@ class ResultsPage(QWidget):
         layout.setContentsMargins(26, 14, 26, 12)
         layout.setSpacing(7)
 
-        kicker = QLabel("RESULTS  /  DOCUMENTED-SEED-DISJOINT HOLDOUT")
+        kicker = QLabel("Results / Documented-seed-disjoint holdout")
         kicker.setProperty("kicker", True)
         kicker.setAccessibleName("Results, documented-seed-disjoint holdout")
         layout.addWidget(kicker)

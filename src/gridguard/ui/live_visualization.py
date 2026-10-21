@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtWidgets import (
     QComboBox,
     QGridLayout,
@@ -42,7 +42,6 @@ class LiveMapPanel(CardFrame):
             "\N{MIDDLE DOT}  supply unavailable"
         )
         self.hour_label.setProperty("heading", "section")
-        self.hour_label.setProperty("mono", True)
         reset_button = QPushButton("Reset map")
         reset_button.setAccessibleName("Reset locality map view")
         readout_row.addWidget(self.hour_label)
@@ -66,6 +65,15 @@ class LiveMapPanel(CardFrame):
         view_label.setBuddy(self.controller_combo)
         timeline_row.addWidget(view_label)
         timeline_row.addWidget(self.controller_combo)
+        self.play_button = QPushButton("Play")
+        self.play_button.setAccessibleName("Play the 24-hour scenario")
+        self.play_button.setEnabled(False)
+        self.play_button.setFixedWidth(70)
+        self.playback_timer = QTimer(self)
+        self.playback_timer.setInterval(900)
+        self.playback_timer.timeout.connect(self._advance_hour)
+        self.play_button.clicked.connect(self._toggle_playback)
+        timeline_row.addWidget(self.play_button)
         timeline_row.addWidget(self.timeline, 1)
         self.content.addLayout(timeline_row)
 
@@ -73,7 +81,34 @@ class LiveMapPanel(CardFrame):
         reset_button.clicked.connect(self.map_view.reset_view)
         self.content.addWidget(self.map_view, 1)
 
+    def _toggle_playback(self) -> None:
+        if self.playback_timer.isActive():
+            self.stop_playback()
+            return
+        if not self.timeline.isEnabled():
+            return
+        if self.timeline.value() == self.timeline.maximum():
+            self.timeline.setValue(0)
+        self.play_button.setText("Pause")
+        self.play_button.setAccessibleName("Pause scenario playback")
+        self.playback_timer.start()
+
+    def _advance_hour(self) -> None:
+        self.timeline.setValue(min(self.timeline.value() + 1, self.timeline.maximum()))
+        if self.timeline.value() == self.timeline.maximum():
+            self.stop_playback()
+
+    def stop_playback(self) -> None:
+        self.playback_timer.stop()
+        self.play_button.setText("Play")
+        self.play_button.setAccessibleName("Play the 24-hour scenario")
+
+    def hideEvent(self, event) -> None:  # noqa: N802
+        self.stop_playback()
+        super().hideEvent(event)
+
     def show_frame(self, frame: LiveScenarioFrame) -> None:
+        self.play_button.setEnabled(True)
         _set_accessible_text(
             self.hour_label,
             f"Hour {frame.hour:02d}:00  ·  demand {frame.demand_mw:,.0f} MW  ·  "
@@ -83,6 +118,9 @@ class LiveMapPanel(CardFrame):
 
     def reset_output(self) -> None:
         """Restore every scientific map readout to its neutral pre-run state."""
+
+        self.stop_playback()
+        self.play_button.setEnabled(False)
 
         _set_accessible_text(
             self.hour_label,

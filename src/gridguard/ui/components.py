@@ -83,6 +83,8 @@ class ControllerCard(CardFrame):
             raise ValueError(f"unsupported controller: {controller_name}")
         super().__init__(accessible_name=f"{controller_name} aggregate results", parent=parent)
         self.controller_name = controller_name
+        self.content.setContentsMargins(16, 10, 16, 10)
+        self.content.setSpacing(5)
 
         heading = QLabel(controller_name)
         heading.setProperty("heading", "section")
@@ -113,10 +115,12 @@ class ControllerCard(CardFrame):
         for metric in snapshot.metrics:
             key = metric.key
             value = metric.ppo if controller_name == "PPO" else metric.fixed_rotation
-            formatted_value = format_metric_value(metric, value)
+            formatted_value = format_metric_value(
+                metric, value, include_unit=metric.unit != "locality-hours"
+            )
             value_label = QLabel(formatted_value)
             value_label.setProperty("metric", "value")
-            value_label.setProperty("mono", True)
+            value_label.setMinimumHeight(34)
             value_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
             value_label.setAccessibleName(f"{controller_name}, {metric.label}: {formatted_value}")
             name_label = QLabel(metric.label)

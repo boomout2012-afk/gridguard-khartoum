@@ -63,7 +63,15 @@ class PresentationNavigationRail(QFrame):
             column.addWidget(button)
 
         column.addStretch(1)
-        scope_heading = QLabel("SYNTHETIC DATA")
+        shortcuts = QLabel("Ctrl + 1–4: pages\nF11: full screen")
+        shortcuts.setProperty("railMuted", True)
+        shortcuts.setProperty("compact", True)
+        shortcuts.setAccessibleName(
+            "Keyboard shortcuts: Control 1 through 4 for pages; F11 full screen"
+        )
+        column.addWidget(shortcuts)
+        column.addSpacing(12)
+        scope_heading = QLabel("Synthetic data")
         scope_heading.setObjectName("railKicker")
         scope = QLabel("Decision support only\nNot grid operations")
         scope.setProperty("railMuted", True)
@@ -75,11 +83,11 @@ class PresentationNavigationRail(QFrame):
 
     @staticmethod
     def _add_identity(column: QVBoxLayout) -> None:
-        kicker = QLabel("GRIDGUARD")
+        kicker = QLabel("GridGuard")
         kicker.setObjectName("railKicker")
         title = QLabel("Khartoum")
         title.setObjectName("railTitle")
-        subtitle = QLabel("Power allocation atlas")
+        subtitle = QLabel("Load-shedding research")
         subtitle.setObjectName("railSubtitle")
         subtitle.setWordWrap(True)
         column.addWidget(kicker)
@@ -88,13 +96,13 @@ class PresentationNavigationRail(QFrame):
         rule = QFrame()
         rule.setObjectName("railRule")
         column.addWidget(rule)
-        navigation_label = QLabel("PRESENTATION")
+        navigation_label = QLabel("Workspace")
         navigation_label.setObjectName("railKicker")
         navigation_label.setAccessibleName("Presentation page navigation")
         column.addWidget(navigation_label)
 
     def _navigation_button(self, index: int, page_label: str) -> QPushButton:
-        button = QPushButton(f"{index + 1:02d}  {page_label}")
+        button = QPushButton(page_label)
         button.setProperty("nav", True)
         button.setCheckable(True)
         button.setCursor(Qt.CursorShape.PointingHandCursor)

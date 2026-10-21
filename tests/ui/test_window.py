@@ -331,33 +331,6 @@ def _contrast_ratio(foreground: str, background: str) -> float:
 
 
 def test_atlas_palette_is_light_and_meets_wcag_aa_text_contrast() -> None:
-    assert {
-        "canvas": PALETTE.canvas,
-        "surface": PALETTE.surface,
-        "ink": PALETTE.ink,
-        "muted": PALETTE.muted,
-        "nav": PALETTE.nav,
-        "boundary": PALETTE.boundary,
-        "nile": PALETTE.nile,
-        "evidence": PALETTE.evidence,
-        "full": PALETTE.full,
-        "critical": PALETTE.critical,
-        "off": PALETTE.off,
-        "focus": PALETTE.focus,
-    } == {
-        "canvas": "#F4F0E6",
-        "surface": "#FFFCF4",
-        "ink": "#10282E",
-        "muted": "#4F6366",
-        "nav": "#123039",
-        "boundary": "#70837F",
-        "nile": "#087D8B",
-        "evidence": "#A66A13",
-        "full": "#15705C",
-        "critical": "#975F19",
-        "off": "#963A45",
-        "focus": "#005FCC",
-    }
     assert _contrast_ratio(PALETTE.canvas, "#000000") > 10
     assert _contrast_ratio(PALETTE.text, PALETTE.canvas) >= 4.5
     assert _contrast_ratio(PALETTE.text_muted, PALETTE.canvas) >= 4.5
@@ -401,10 +374,10 @@ def test_window_uses_176px_navigation_rail_and_verified_trust_strip(qtbot) -> No
     assert window.navigation_rail.minimumWidth() == 176
     assert window.navigation_rail.maximumWidth() == 176
     assert [button.text() for button in window.navigation_buttons] == [
-        "01  Overview",
-        "02  Live Scenario",
-        "03  Results",
-        "04  Methodology",
+        "Overview",
+        "Live Scenario",
+        "Results",
+        "Methodology",
     ]
     assert window.trust_strip.accessibleName() == "Verified application trust status"
     trust_text = " ".join(
@@ -477,7 +450,7 @@ def test_results_page_displays_evidence_derived_provenance(qtbot) -> None:
     )
     assert results.provenance_id.property("mono") is True
     assert all(
-        value_label.property("mono") is True
+        value_label.property("metric") == "value"
         for card in results.controller_cards
         for value_label in card.metric_value_labels.values()
     )
@@ -492,6 +465,81 @@ def test_overview_visibly_attributes_verified_map_sources(qtbot) -> None:
     assert "Natural Earth 5.0" in attribution.text()
     assert window.overview_page.map_view.asset.source.source_url in attribution.toolTip()
     assert "Natural Earth 5.0" in attribution.accessibleName()
+
+
+def test_overview_opens_live_workspace_without_inventing_a_run(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    qtbot.mouseClick(window.overview_page.explore_button, Qt.MouseButton.LeftButton)
+    assert window.tabs.currentIndex() == 1
+    assert not window.live_page.timeline.isEnabled()
+
+
+def test_overview_metric_values_are_not_clipped_at_presentation_size(qtbot, qapp) -> None:
+    theme.apply_theme(qapp)
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.setFixedSize(1366, 768)
+    window.show()
+    qtbot.wait(20)
+    values = [
+        label
+        for label in window.overview_page.findChildren(QLabel)
+        if label.property("metric") == "value"
+    ]
+    assert len(values) == 6
+    for label in values:
+        assert label.height() >= label.sizeHint().height()
+        assert label.width() >= label.sizeHint().width()
+
+
+def test_playback_tracks_hours_and_stops_at_end_or_when_leaving_page(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.show()
+    window.tabs.setCurrentIndex(1)
+    page = window.live_page
+    assert not page.map_panel.play_button.isEnabled()
+    page.set_comparison(_live_comparison())
+    page.map_panel.playback_timer.setInterval(20)
+    page.timeline.setValue(22)
+    qtbot.mouseClick(page.map_panel.play_button, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: page.timeline.value() == 23)
+    assert not page.map_panel.playback_timer.isActive()
+    qtbot.mouseClick(page.map_panel.play_button, Qt.MouseButton.LeftButton)
+    assert page.timeline.value() == 0
+    assert page.map_panel.playback_timer.isActive()
+    window.tabs.setCurrentIndex(2)
+    assert not page.map_panel.playback_timer.isActive()
+
+
+def test_trace_follows_selected_hour_and_clears_on_input_change(qtbot) -> None:
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    page = window.live_page
+    page.set_comparison(_live_comparison())
+    page.timeline.setValue(7)
+    assert page.power_trace.selected_hour == 7
+    assert "447" in page.power_trace.accessibleDescription()
+    assert "317" in page.power_trace.accessibleDescription()
+    page.seed_input.setValue(50005)
+    assert page.power_trace.frames == ()
+    assert "unavailable" in page.power_trace.accessibleDescription()
+    assert not page.map_panel.play_button.isEnabled()
+
+
+def test_live_details_remain_readable_at_the_allowed_minimum(qtbot, qapp) -> None:
+    theme.apply_theme(qapp)
+    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    qtbot.addWidget(window)
+    window.resize(window.minimumSize())
+    window.live_page.set_comparison(_live_comparison())
+    window.tabs.setCurrentIndex(1)
+    window.show()
+    qtbot.wait(20)
+    for label in window.live_page.sector_service_labels.values():
+        assert label.height() >= label.sizeHint().height()
+    assert window.live_page.hour_label.width() >= window.live_page.hour_label.sizeHint().width()
 
 
 def test_overview_keeps_claim_boundaries_visible_beside_results(qtbot) -> None:

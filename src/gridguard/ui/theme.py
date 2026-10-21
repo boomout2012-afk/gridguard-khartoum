@@ -14,23 +14,23 @@ from PySide6.QtWidgets import QApplication
 class Palette:
     """Semantic light-cartography colors with WCAG AA text contrast."""
 
-    canvas: str = "#F4F0E6"
-    surface: str = "#FFFCF4"
-    ink: str = "#10282E"
-    muted: str = "#4F6366"
-    nav: str = "#123039"
-    boundary: str = "#70837F"
-    nile: str = "#087D8B"
-    evidence: str = "#A66A13"
+    canvas: str = "#F2F6FA"
+    surface: str = "#FFFFFF"
+    ink: str = "#193348"
+    muted: str = "#516579"
+    nav: str = "#142C48"
+    boundary: str = "#78909E"
+    nile: str = "#007C91"
+    evidence: str = "#007C91"
     full: str = "#15705C"
     critical: str = "#975F19"
     off: str = "#963A45"
     focus: str = "#005FCC"
-    surface_raised: str = "#E8E3D7"
-    accent_dark: str = "#71470D"
-    rail_surface: str = "#1E4650"
-    rail_text: str = "#FFFCF4"
-    rail_muted: str = "#CAD7D5"
+    surface_raised: str = "#E6EDF3"
+    accent_dark: str = "#005B70"
+    rail_surface: str = "#284863"
+    rail_text: str = "#FFFFFF"
+    rail_muted: str = "#BFCFDD"
     loading_surface: str = "#FCF5E3"
 
     @property
@@ -180,13 +180,13 @@ QFrame#navigationRail {{
 }}
 QLabel#railKicker {{
     color: {PALETTE.rail_muted};
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 0px;
 }}
 QLabel#railTitle {{
     color: {PALETTE.rail_text};
-    font-family: "{DISPLAY_FONT_FAMILY}", "Georgia", "Times New Roman";
+    font-family: "{BODY_FONT_FAMILY}", "Segoe UI", "Arial";
     font-size: 23px;
     font-weight: 700;
 }}
@@ -194,7 +194,7 @@ QLabel#railSubtitle, QLabel[railMuted="true"] {{
     color: {PALETTE.rail_muted};
 }}
 QFrame#railRule {{
-    background: #46665C;
+    background: #3C5870;
     border: 0;
     max-height: 1px;
     min-height: 1px;
@@ -240,19 +240,19 @@ QFrame#trustStrip {{
 QFrame#appHeader, QFrame[card="true"] {{
     background: {PALETTE.surface};
     border: 1px solid {PALETTE.border};
-    border-radius: 5px;
+    border-radius: 8px;
 }}
 QFrame[cardVariant="accent"] {{
-    background: #F4E8D8;
-    border: 1px solid #C99D79;
+    background: #E9F4F6;
+    border: 1px solid #A1BCC7;
     border-left: 4px solid {PALETTE.accent};
 }}
 QFrame[cardVariant="quiet"] {{
-    background: #EEE8DB;
+    background: #ECF2F7;
 }}
 QLabel#brandTitle {{
     color: {PALETTE.text};
-    font-family: "{DISPLAY_FONT_FAMILY}", "Georgia", "Times New Roman";
+    font-family: "{BODY_FONT_FAMILY}", "Segoe UI", "Arial";
     font-size: 25px;
     font-weight: 700;
 }}
@@ -261,43 +261,43 @@ QLabel#brandSubtitle, QLabel[muted="true"] {{
 }}
 QLabel[kicker="true"] {{
     color: {PALETTE.accent_dark};
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 750;
-    letter-spacing: 1px;
+    letter-spacing: 0px;
 }}
 QLabel[compact="true"] {{
     font-size: 12px;
 }}
 QLabel[claim="boundary"] {{
     color: {PALETTE.text_muted};
-    background: #F3EDE2;
-    border: 1px solid #C99D79;
+    background: #EDF3F7;
+    border: 1px solid #A1BCC7;
     border-radius: 3px;
     padding: 4px 7px;
     font-size: 11px;
 }}
 QLabel[heading="page"] {{
     color: {PALETTE.text};
-    font-family: "{DISPLAY_FONT_FAMILY}", "Georgia", "Times New Roman";
-    font-size: 27px;
+    font-family: "{BODY_FONT_FAMILY}", "Segoe UI", "Arial";
+    font-size: 30px;
     font-weight: 700;
 }}
 QLabel[heading="section"] {{
     color: {PALETTE.text};
-    font-family: "{DISPLAY_FONT_FAMILY}", "Georgia", "Times New Roman";
-    font-size: 17px;
+    font-family: "{BODY_FONT_FAMILY}", "Segoe UI", "Arial";
+    font-size: 18px;
     font-weight: 700;
 }}
 QLabel[metric="value"] {{
-    color: {PALETTE.accent_dark};
-    font-family: "{MONO_FONT_FAMILY}", "Cascadia Mono", "Consolas";
-    font-size: 25px;
+    color: {PALETTE.ink};
+    font-family: "{BODY_FONT_FAMILY}", "Segoe UI", "Arial";
+    font-size: 26px;
     font-weight: 700;
 }}
 QLabel[detail="value"] {{
     color: {PALETTE.accent_dark};
     font-family: "{MONO_FONT_FAMILY}", "Cascadia Mono", "Consolas";
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
 }}
 QLabel[badge="verified"] {{
@@ -310,15 +310,15 @@ QLabel[badge="verified"] {{
 }}
 QLabel[badge="locked"] {{
     color: {PALETTE.accent_dark};
-    background: #F2E2D3;
-    border: 1px solid #C99D79;
+    background: #E1F0F3;
+    border: 1px solid #A1BCC7;
     border-radius: 3px;
     padding: 4px 8px;
     font-weight: 700;
 }}
 QLabel[badge="neutral"] {{
     color: {PALETTE.text_muted};
-    background: #ECE6D9;
+    background: #ECF2F7;
     border: 1px solid {PALETTE.border};
     border-radius: 3px;
     padding: 4px 8px;
@@ -326,7 +326,7 @@ QLabel[badge="neutral"] {{
 }}
 QLabel[state="empty"] {{
     color: {PALETTE.text_muted};
-    background: #ECE6D9;
+    background: #ECF2F7;
     border: 1px dashed {PALETTE.border};
     padding: 5px 8px;
 }}
@@ -359,23 +359,23 @@ QLabel[mono="true"] {{
 QPushButton {{
     color: {PALETTE.text};
     background: {PALETTE.surface_raised};
-    border: 1px solid #9F927A;
+    border: 1px solid #96ACBC;
     border-radius: 4px;
     min-height: 34px;
     padding: 4px 12px;
     font-weight: 650;
 }}
 QPushButton:hover {{
-    background: #DDD4C3;
+    background: #DDE9F0;
     border-color: {PALETTE.accent};
 }}
 QPushButton:pressed {{
-    background: #CEC2AE;
+    background: #C9DDE8;
 }}
 QPushButton:disabled {{
     color: #7B837E;
-    background: #E2DED5;
-    border-color: #C5BFB3;
+    background: #E9EDF1;
+    border-color: #CBD5DD;
 }}
 QPushButton[primary="true"] {{
     color: {PALETTE.surface};
@@ -395,14 +395,14 @@ QSlider:focus, QGraphicsView:focus, QTableWidget:focus {{
 QComboBox, QSpinBox {{
     color: {PALETTE.text};
     background: {PALETTE.surface};
-    border: 1px solid #8F846F;
+    border: 1px solid #96ACBC;
     border-radius: 4px;
     min-height: 34px;
     padding: 2px 9px;
 }}
 QComboBox:disabled, QSpinBox:disabled {{
     color: #747D77;
-    background: #E5E0D6;
+    background: #E9EDF1;
 }}
 QComboBox QAbstractItemView {{
     color: {PALETTE.text};
@@ -412,7 +412,7 @@ QComboBox QAbstractItemView {{
 }}
 QSlider::groove:horizontal {{
     height: 5px;
-    background: #C8BEAB;
+    background: #C2D2DE;
 }}
 QSlider::handle:horizontal {{
     width: 16px;
@@ -424,11 +424,11 @@ QSlider::handle:horizontal {{
 QTableWidget {{
     color: {PALETTE.text};
     background: {PALETTE.surface};
-    alternate-background-color: #F1ECDF;
+    alternate-background-color: #F3F7FA;
     border: 1px solid {PALETTE.border};
-    gridline-color: #D5CCBB;
+    gridline-color: #D6E1E9;
     selection-color: {PALETTE.text};
-    selection-background-color: #E6D3BE;
+    selection-background-color: #D9EDF2;
 }}
 QListWidget {{
     color: {PALETTE.text};
@@ -452,7 +452,7 @@ QHeaderView::section {{
     color: {PALETTE.rail_text};
     background: {PALETTE.rail};
     border: 0;
-    border-right: 1px solid #46665C;
+    border-right: 1px solid #3C5870;
     padding: 8px;
     font-weight: 700;
 }}
@@ -469,11 +469,11 @@ QToolTip {{
 QScrollBar:vertical {{
     width: 12px;
     margin: 0;
-    background: #E4DED2;
+    background: #E6EDF3;
 }}
 QScrollBar::handle:vertical {{
-    background: #877C68;
-    border-radius: 5px;
+    background: #93A9BA;
+    border-radius: 8px;
     min-height: 30px;
 }}
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{

@@ -54,7 +54,7 @@ class PresentationWindow(QMainWindow):
         self.setAccessibleDescription(
             "Offline synthetic load-shedding decision-support presentation with four pages."
         )
-        self.setMinimumSize(1024, 650)
+        self.setMinimumSize(1366, 768)
         self.resize(1366, 768)
         self._shortcuts: list[QShortcut] = []
         self._live_runner = live_runner
@@ -79,6 +79,7 @@ class PresentationWindow(QMainWindow):
         self.tabs.addTab(self.live_page, "Live Scenario")
         self.tabs.addTab(self.results_page, "Results")
         self.tabs.addTab(self.methodology_page, "Methodology")
+        self.overview_page.explore_button.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
         self.live_page.run_requested.connect(self._handle_live_request)
 
         self.navigation_rail = self._build_navigation_rail()

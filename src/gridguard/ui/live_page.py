@@ -17,6 +17,7 @@ from gridguard.ui.live_components import (
 )
 from gridguard.ui.live_models import LiveScenarioComparison, LiveScenarioFrame
 from gridguard.ui.map_asset import MapAsset
+from gridguard.ui.power_trace import PowerTrace
 
 
 class LiveScenarioPage(QWidget):
@@ -34,8 +35,8 @@ class LiveScenarioPage(QWidget):
         layout.setSpacing(8)
         title, description = page_intro(
             "Explore a 24-hour shortage scenario",
-            "Choose the shortage level and deterministic seed. The presentation shell "
-            "never invents a run; the map updates only when the GPU simulation supplies frames.",
+            "Run both controllers on identical synthetic inputs. Play the day, inspect a locality, "
+            "and switch controllers to compare their decisions.",
         )
         layout.addWidget(title)
         layout.addWidget(description)
@@ -55,7 +56,12 @@ class LiveScenarioPage(QWidget):
         self.comparison_caption.setProperty("eyebrow", True)
         layout.addWidget(self.comparison_caption)
         self.comparison_table = LiveComparisonTable()
-        layout.addWidget(self.comparison_table)
+        metrics_row = QHBoxLayout()
+        metrics_row.setSpacing(10)
+        metrics_row.addWidget(self.comparison_table, 3)
+        self.power_trace = PowerTrace()
+        metrics_row.addWidget(self.power_trace, 1)
+        layout.addLayout(metrics_row)
         self.scope_note = ClaimBoundaryNote()
         layout.addWidget(self.scope_note)
 
@@ -131,6 +137,8 @@ class LiveScenarioPage(QWidget):
             raise ValueError("a live run must contain exactly one frame for each of 24 hours")
         selected_hour = 0 if reset_hour else self.timeline.value()
         self._frames = indexed
+        self.map_panel.stop_playback()
+        self.power_trace.set_frames(frames)
         self.timeline.setEnabled(True)
         self.timeline.setValue(selected_hour)
         self._show_hour(selected_hour)
@@ -165,6 +173,7 @@ class LiveScenarioPage(QWidget):
         self.map_panel.reset_output()
         self.locality_panel.reset_output()
         self.comparison_table.clear_metrics()
+        self.power_trace.clear()
 
     def _invalidate_changed_inputs(self, _shortage_level: str, _seed: int) -> None:
         if not self._frames and self._comparison is None:
@@ -192,6 +201,7 @@ class LiveScenarioPage(QWidget):
         if frame is None:
             return
         self.map_panel.show_frame(frame)
+        self.power_trace.set_hour(hour)
         self.locality_panel.refresh(frame, self.controller_combo.currentText())
 
     def _update_selected_locality(self, locality_id: str) -> None:
