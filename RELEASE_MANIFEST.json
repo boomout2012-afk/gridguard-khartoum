@@ -3,7 +3,7 @@
   "release_id": "gridguard-khartoum-v1.2.0",
   "schema_version": 3,
   "source": {
-    "git_commit": "c95135a625c81b207684abfdf41fa20a0026d3fa",
+    "git_commit": "b6cde3e39781aae00eea601ea8807713971b36dd",
     "uv_lock": {
       "path": "uv.lock",
       "sha256": "e395f9d53295da2dcf5977ea1011c5363d4a9dbb48b4408640073820e593f2b4",
@@ -18,12 +18,12 @@
     },
     {
       "path": "data/evidence/robustness-supplement.json",
-      "sha256": "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1",
+      "sha256": "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48",
       "size_bytes": 4812182
     },
     {
       "path": "data/evidence/source-manifest.json",
-      "sha256": "a8377ee96b8c7742f0794776b5752a9553abd0f766b78e457565428d612463e6",
+      "sha256": "3db92467b8bc5d14392a50069fa512608a25f5f78de4226557197efeca381ef2",
       "size_bytes": 8207
     },
     {
@@ -43,13 +43,13 @@
     },
     {
       "path": "docs/DEVILS_ADVOCATE_AUDIT.md",
-      "sha256": "15e8e25e8e7ef85bca5984671474e8683cc0e24cb69d763e6c85e34a45e9c66d",
-      "size_bytes": 22366
+      "sha256": "7f6546b394407d481766d21d5048057425c2a0be472917b7809bcd25feae9b7e",
+      "size_bytes": 22870
     },
     {
       "path": "docs/REVIEW_REMEDIATION.md",
-      "sha256": "8ae29730194c102358061032e78543b431be2a647b7fa21d25780bdf9a792d0d",
-      "size_bytes": 13816
+      "sha256": "7ac4c381f065355bf6e1d00fce04f4e7895f1290d78adc6fb5128bc8ebf33ef4",
+      "size_bytes": 14167
     },
     {
       "path": "docs/decisions/ADR-002-geographic-boundary-map.md",
@@ -58,13 +58,13 @@
     },
     {
       "path": "docs/release-machine-validation.json",
-      "sha256": "a11f486aa76f19e940b827a3f3d49b4fc5f18f85ed4694773d890254494b26a1",
-      "size_bytes": 265548
+      "sha256": "70c8c1dc287a9b55afba57eaa9581d347dfbcc809764195973444cf0040e4851",
+      "size_bytes": 278824
     },
     {
       "path": "docs/release-visual-review.json",
-      "sha256": "3cdd59c7691b810d34308a279a5aeb03fac782e8e80cfe14d141fc2e0bb829f1",
-      "size_bytes": 13130
+      "sha256": "dad725b624e71570147f7a25d0c5820f0483f84afe5237a545437320991a11bc",
+      "size_bytes": 13240
     },
     {
       "path": "docs/source/graduation-project-proposal.pdf",
@@ -73,13 +73,13 @@
     },
     {
       "path": "output/pdf/gridguard-khartoum-final-report.pdf",
-      "sha256": "de40be34662d0640455bf9838bffe4da49ffed1e057a54564d165168e81114b1",
-      "size_bytes": 713284
+      "sha256": "61a2d186a13e1fe536ec6a0dd32fe89629c75128d4045377963b93998fbebe35",
+      "size_bytes": 728579
     },
     {
       "path": "output/presentation/gridguard-khartoum-defense.pptx",
-      "sha256": "27a2f8866b2b504c2391c2406ab1a40aa28d0bf8d52e6c7ba1710c0faca19774",
-      "size_bytes": 367421
+      "sha256": "3ed76ea15c4d3dac3f1f112ee6021ec8fd1f36f88847a6dc8421cdc2155ca176",
+      "size_bytes": 374316
     },
     {
       "path": "src/gridguard/assets/map/THIRD_PARTY_DATA.md",
@@ -106,13 +106,13 @@
     "authenticity_boundary": "UNSIGNED_INTERNAL_CONSISTENCY_REQUIRES_INDEPENDENTLY_TRUSTED_GIT_COMMIT",
     "machine_validation": {
       "path": "docs/release-machine-validation.json",
-      "sha256": "a11f486aa76f19e940b827a3f3d49b4fc5f18f85ed4694773d890254494b26a1",
-      "size_bytes": 265548
+      "sha256": "70c8c1dc287a9b55afba57eaa9581d347dfbcc809764195973444cf0040e4851",
+      "size_bytes": 278824
     },
     "visual_review": {
       "path": "docs/release-visual-review.json",
-      "sha256": "3cdd59c7691b810d34308a279a5aeb03fac782e8e80cfe14d141fc2e0bb829f1",
-      "size_bytes": 13130
+      "sha256": "dad725b624e71570147f7a25d0c5820f0483f84afe5237a545437320991a11bc",
+      "size_bytes": 13240
     }
   },
   "windows_build": {
@@ -122,8 +122,8 @@
       "files": [
         {
           "path": "GridGuard Khartoum.exe",
-          "sha256": "3e84c5264b4ba61f437cc0a4ebc1b6b7038f7388d57d658ca813e2d5fc7c8708",
-          "size_bytes": 35137900
+          "sha256": "dae134154d98f2d35b9b56c0aec564c3b799a312214a3dcdab930bfe76b35a8e",
+          "size_bytes": 35145396
         },
         {
           "path": "_internal/PIL/_avif.cp312-win_amd64.pyd",
@@ -1112,7 +1112,7 @@
         },
         {
           "path": "_internal/base_library.zip",
-          "sha256": "daaff7243fee6e7103f6b70e798fc7eb323935a64d27d42ee80501b9d500db01",
+          "sha256": "0b2ce18450b068a1a79db83a7a8701bd263758ea4f098048329104b4514976ac",
           "size_bytes": 1331373
         },
         {
@@ -12242,12 +12242,12 @@
         },
         {
           "path": "_internal/gridguard/_bundled/data/evidence/robustness-supplement.json",
-          "sha256": "fabb5a2f13ab31cd51f641f4e6a6db3cce8a28a6e2c4fa144612f634bad0beb1",
+          "sha256": "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48",
           "size_bytes": 4812182
         },
         {
           "path": "_internal/gridguard/_bundled/data/evidence/source-manifest.json",
-          "sha256": "a8377ee96b8c7742f0794776b5752a9553abd0f766b78e457565428d612463e6",
+          "sha256": "3db92467b8bc5d14392a50069fa512608a25f5f78de4226557197efeca381ef2",
           "size_bytes": 8207
         },
         {
@@ -12317,12 +12317,12 @@
         },
         {
           "path": "_internal/gridguard/_bundled/src/gridguard/robustness_inference.py",
-          "sha256": "b9355bc1704bbbfb144d1281b058c457b59968a24e9eef3708cb4834fe762cc1",
-          "size_bytes": 37306
+          "sha256": "814fa97fd62e08f83fb149fa2afb83382fe3efb9362f178f2d4f1ec536661798",
+          "size_bytes": 37813
         },
         {
           "path": "_internal/gridguard/_bundled/src/gridguard/robustness_provenance.py",
-          "sha256": "f3353641e0887325e8ebe52b28a4007d220ba8bd18761edc1eb80116c5b456f7",
+          "sha256": "edc944525407967eb56c4d65d3e60bc68008275598b62648cbb133d0f0adf539",
           "size_bytes": 3859
         },
         {
@@ -23447,16 +23447,16 @@
         }
       ],
       "path": "dist/GridGuard Khartoum",
-      "size_bytes": 4873683241,
+      "size_bytes": 4873691244,
       "tree_hash_algorithm": "sha256(canonical-lines-v1)",
-      "tree_sha256": "e775e672ba45aba56bc369280b48becc47512bff26541e9e5b86e569a7994c25"
+      "tree_sha256": "b5930c8e33675bb8d7a4bb07e7ff6f75533f42a51ad1cc333edca8e32491b3b4"
     },
     "distribution_file_count": 4665,
-    "distribution_size_bytes": 4873683241,
-    "distribution_tree_sha256": "e775e672ba45aba56bc369280b48becc47512bff26541e9e5b86e569a7994c25",
+    "distribution_size_bytes": 4873691244,
+    "distribution_tree_sha256": "b5930c8e33675bb8d7a4bb07e7ff6f75533f42a51ad1cc333edca8e32491b3b4",
     "executable_path": "dist/GridGuard Khartoum/GridGuard Khartoum.exe",
-    "executable_sha256": "3e84c5264b4ba61f437cc0a4ebc1b6b7038f7388d57d658ca813e2d5fc7c8708",
-    "executable_size_bytes": 35137900,
+    "executable_sha256": "dae134154d98f2d35b9b56c0aec564c3b799a312214a3dcdab930bfe76b35a8e",
+    "executable_size_bytes": 35145396,
     "frozen_smoke": "PASS",
     "frozen_smoke_report": {
       "path": "build/gridguard/frozen-smoke.json",
@@ -23466,8 +23466,8 @@
     "no_gpu_behavior": "FAIL_CLOSED",
     "sdist": {
       "path": "dist/gridguard_khartoum-1.2.0.tar.gz",
-      "sha256": "9b78346dee99921b2de7bfeea05d309add51b0243daf9dbe5564fb4f11289901",
-      "size_bytes": 11530359
+      "sha256": "c1bf77b72a2321c331c5b5c4c8f2252fb958c5a11dae6ad2447c7b432489e0d2",
+      "size_bytes": 11574373
     },
     "tracked": false,
     "validated_runtime": {
@@ -23478,8 +23478,8 @@
     },
     "wheel": {
       "path": "dist/gridguard_khartoum-1.2.0-py3-none-any.whl",
-      "sha256": "2da0dab5ac6bdfb27b1773c3f99ec147843f9f08e704c87b8b47029c4cac7cb8",
-      "size_bytes": 9816939
+      "sha256": "3f55bc788e72391745dd2a27c3f0e6ed663cc7fb48b937bf7a204c5dba564396",
+      "size_bytes": 9820554
     }
   }
 }
