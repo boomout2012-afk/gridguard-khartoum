@@ -560,6 +560,16 @@ def test_refresh_requires_explicit_agent_inspection_confirmation(tmp_path: Path)
         refresh_release_visual_review(tmp_path)
 
 
+def test_release_review_tracks_only_the_three_current_application_pages() -> None:
+    assert EXPECTED_APPLICATION_SCREENSHOT_COUNT == 3
+    expected_paths = (
+        Path("docs/assets/screenshots/overview.png"),
+        Path("docs/assets/screenshots/live.png"),
+        Path("docs/assets/screenshots/results.png"),
+    )
+    assert expected_paths == APPLICATION_SCREENSHOT_PATHS
+
+
 @pytest.mark.parametrize(
     "path_options",
     [
@@ -622,7 +632,7 @@ def test_refresh_and_verify_bind_complete_honest_visual_review_record(
         "human_visual_inspection_claimed": False,
         "inspection_method": (
             "rendered PDF pages, rendered presentation slides, all speaker-note contents, "
-            "and all four application screenshots reviewed one-by-one in the active "
+            "and all three application screenshots reviewed one-by-one in the active "
             "release session"
         ),
         "inspection_status": "completed_pass",
@@ -1159,7 +1169,7 @@ def test_verifier_rejects_tampered_indices_or_statuses(tmp_path: Path, mutator) 
         ),
         (
             lambda record: record["artifacts"]["application_screenshots"]["screenshots"].pop(),
-            "exactly 4 entries",
+            "exactly 3 entries",
         ),
     ],
 )
@@ -1312,8 +1322,8 @@ def test_committed_release_visual_review_verifies_current_final_artifacts() -> N
     assert verified["artifacts"]["presentation"]["detected_slide_count"] == 13
     assert verified["artifacts"]["presentation"]["detected_speaker_note_slide_count"] == 13
     assert len(verified["artifacts"]["presentation"]["speaker_note_slides"]) == 13
-    assert verified["artifacts"]["application_screenshots"]["detected_screenshot_count"] == 4
-    assert len(verified["artifacts"]["application_screenshots"]["screenshots"]) == 4
+    assert verified["artifacts"]["application_screenshots"]["detected_screenshot_count"] == 3
+    assert len(verified["artifacts"]["application_screenshots"]["screenshots"]) == 3
 
 
 def test_current_real_release_artifacts_pass_direct_structural_inspection() -> None:

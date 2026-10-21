@@ -78,7 +78,6 @@ SCREENSHOT_PATHS = (
     ("Overview", PROJECT_ROOT / "docs" / "assets" / "screenshots" / "overview.png"),
     ("Live scenario", PROJECT_ROOT / "docs" / "assets" / "screenshots" / "live.png"),
     ("Verified results", PROJECT_ROOT / "docs" / "assets" / "screenshots" / "results.png"),
-    ("Methodology", PROJECT_ROOT / "docs" / "assets" / "screenshots" / "methodology.png"),
 )
 
 CANVAS = HexColor("#F4F0E6")
@@ -1070,7 +1069,15 @@ def build_report(output_path: Path = DEFAULT_OUTPUT) -> Path:
         )
     )
     for source_path in ("docs/METHODOLOGY.md", "docs/IMPLEMENTATION.md"):
-        story.extend(markdown_text_flowables(rendered_sources[source_path], styles))
+        chapter_styles = styles
+        if source_path == "docs/IMPLEMENTATION.md":
+            # Preserve the UI chapter's text and readable type size without an orphaned
+            # final limitation after the expanded three-page interface description.
+            chapter_styles = dict(styles)
+            chapter_styles["body"] = ParagraphStyle(
+                "ImplementationBody", parent=styles["body"], spaceAfter=6
+            )
+        story.extend(markdown_text_flowables(rendered_sources[source_path], chapter_styles))
     story.extend(_screenshots(styles))
     story.extend(markdown_text_flowables(rendered_sources["docs/RESULTS.md"], styles))
     for section_title in REPORT_SECTION_ORDER[3:]:

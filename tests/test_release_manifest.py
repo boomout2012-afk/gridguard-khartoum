@@ -233,7 +233,7 @@ def _valid_frozen_smoke_payload(
         },
         "release_id": release_id,
         "status": "PASS",
-        "window_title": "GridGuard Khartoum · Offline Power Allocation",
+        "window_title": "GridGuard Khartoum",
     }
 
 

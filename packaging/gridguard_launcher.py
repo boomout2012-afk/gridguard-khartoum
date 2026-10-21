@@ -7,6 +7,12 @@ import math
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from PySide6.QtWidgets import QApplication
+
+    from gridguard.ui.window import PresentationWindow
 
 _PRIVATE_SMOKE_OPTION = "--_gridguard-frozen-smoke-report"
 
@@ -143,15 +149,52 @@ def _live_smoke_facts(comparison: object) -> dict[str, object]:
     }
 
 
+def _capture_presentation_pages(
+    application: QApplication,
+    window: PresentationWindow,
+    report_path: Path,
+) -> None:
+    """Export actual packaged pages beside the smoke report for visual inspection."""
+
+    from PySide6.QtCore import Qt
+
+    labels = tuple(window.tabs.tabText(index) for index in range(window.tabs.count()))
+    if labels != ("Overview", "Live Scenario", "Results"):
+        raise RuntimeError("frozen presentation must contain the three approved pages")
+    destination = report_path.parent / "screenshots"
+    destination.mkdir(exist_ok=True)
+    previous_index = window.tabs.currentIndex()
+    previous_size = window.size()
+    try:
+        window.resize(1366, 768)
+        for index, name in enumerate(("overview", "live", "results")):
+            window.tabs.setCurrentIndex(index)
+            window.navigation_buttons[index].setFocus(Qt.FocusReason.OtherFocusReason)
+            application.processEvents()
+            output_path = destination / f"{name}.png"
+            temporary_path = destination / f".{name}.png.tmp"
+            if not window.grab().save(str(temporary_path), "PNG"):
+                raise OSError(f"could not encode packaged presentation screenshot: {output_path}")
+            temporary_path.replace(output_path)
+    finally:
+        window.tabs.setCurrentIndex(previous_index)
+        window.resize(previous_size)
+        application.processEvents()
+
+
 def _run_frozen_smoke(report_path: Path) -> int:
     from PySide6.QtWidgets import QApplication
 
     from gridguard import __version__
     from gridguard.ui.app import format_runtime_label, prepare_startup
     from gridguard.ui.live_runner import run_live_scenario
+    from gridguard.ui.theme import apply_theme
     from gridguard.ui.window import PresentationWindow
 
     application = QApplication.instance() or QApplication(sys.argv[:1])
+    application.setApplicationName("GridGuard Khartoum")
+    application.setOrganizationName("GridGuard Khartoum")
+    apply_theme(application)
     window = None
     try:
         startup = prepare_startup()
@@ -192,6 +235,7 @@ def _run_frozen_smoke(report_path: Path) -> int:
                 "results_table_rows": results_table_rows,
             }
         )
+        _capture_presentation_pages(application, window, report_path)
         _write_smoke_report(
             report_path,
             {

@@ -31,7 +31,7 @@ RECORD_ROLE = "ai_agent_visual_and_content_inspection_attestation"
 EXPECTED_PDF_PAGE_COUNT = 39
 EXPECTED_PRESENTATION_SLIDE_COUNT = 13
 EXPECTED_SPEAKER_NOTE_SLIDE_COUNT = 13
-EXPECTED_APPLICATION_SCREENSHOT_COUNT = 4
+EXPECTED_APPLICATION_SCREENSHOT_COUNT = 3
 AGENT_INSPECTION_STATUS = "agent_inspected_pass"
 AGENT_CONTENT_INSPECTION_STATUS = "agent_content_inspected_pass"
 AUTOMATED_NOTE_STATUS = "automated_present_nonempty"
@@ -45,7 +45,6 @@ APPLICATION_SCREENSHOT_PATHS = (
     Path("docs/assets/screenshots/overview.png"),
     Path("docs/assets/screenshots/live.png"),
     Path("docs/assets/screenshots/results.png"),
-    Path("docs/assets/screenshots/methodology.png"),
 )
 
 AUTOMATED_VALIDATION_SCOPE = (
@@ -55,7 +54,7 @@ AUTOMATED_VALIDATION_SCOPE = (
     "does not perform or independently prove AI-agent content or visual inspection."
 )
 INSPECTION_METHOD = (
-    "rendered PDF pages, rendered presentation slides, all speaker-note contents, and all four "
+    "rendered PDF pages, rendered presentation slides, all speaker-note contents, and all three "
     "application screenshots reviewed one-by-one in the active release session"
 )
 

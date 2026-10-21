@@ -588,7 +588,7 @@ try {
         "Share service across seven modeled localities"
     ) 58 160 330 21 $script:OffWhite 66 | Out-Null
     Add-Box $slide 425 140 485 273 $script:Slate $script:Grid 5 | Out-Null
-    Add-Picture $slide $overviewImage 432 147 471 265 "Overview showing seven administrative locality boundaries and frozen outcomes" | Out-Null
+    Add-Picture $slide $overviewImage 432 147 471 265 "Overview showing seven administrative locality boundaries and access to live scenarios and results" | Out-Null
     Add-Text $slide "Synthetic decision support - not a live grid controller" 58 438 790 30 17 $script:Teal $true | Out-Null
     Add-Notes $slide (New-Notes "Administrative locality boundaries provide presentation context and are not electrical-network topology." @(
             "docs/METHODOLOGY.md",

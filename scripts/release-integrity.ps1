@@ -2404,7 +2404,7 @@ exact(root['release_id'], expected_release_id, 'frozen-smoke release_id')
 exact(root['status'], 'PASS', 'frozen-smoke status')
 exact(
     root['window_title'],
-    'GridGuard Khartoum \u00b7 Offline Power Allocation',
+    'GridGuard Khartoum',
     'frozen-smoke window_title',
 )
 

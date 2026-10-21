@@ -1,34 +1,27 @@
 {
   "artifacts": {
     "application_screenshots": {
-      "detected_screenshot_count": 4,
+      "detected_screenshot_count": 3,
       "screenshots": [
         {
           "path": "docs/assets/screenshots/overview.png",
           "screenshot_index": 1,
-          "sha256": "2006fcafef682dd7c8d330ce6391a936d15f50b98213f41277917adef9b2b2c8",
-          "size_bytes": 137965,
+          "sha256": "d08bed2b63ba2d85931553b9122e1e8126aaad57cdc62adc6eedd2cd83c097b3",
+          "size_bytes": 108922,
           "visual_inspection_status": "agent_inspected_pass"
         },
         {
           "path": "docs/assets/screenshots/live.png",
           "screenshot_index": 2,
-          "sha256": "9690a0dfc5850f8d4fe165dda3e4bcbb2da02993152d36644d312f03f4d036ae",
-          "size_bytes": 137455,
+          "sha256": "b547276f50279af853c27405f72b11d3d77494c944f3f0223fe033e9e26c49b2",
+          "size_bytes": 120153,
           "visual_inspection_status": "agent_inspected_pass"
         },
         {
           "path": "docs/assets/screenshots/results.png",
           "screenshot_index": 3,
-          "sha256": "a8d5283efc4980a17e683b3a5cac428853864e5233d5d316715b6679a8ab7f81",
-          "size_bytes": 109821,
-          "visual_inspection_status": "agent_inspected_pass"
-        },
-        {
-          "path": "docs/assets/screenshots/methodology.png",
-          "screenshot_index": 4,
-          "sha256": "4c1699fa5c057557d1d56bd1819a5e6de1c672915bd42801cab738b765949bee",
-          "size_bytes": 142202,
+          "sha256": "0aba8b3518ec3fd8ba5b3a9088e50e97bc8ba77ef99c1c2ebaf17255f3d56067",
+          "size_bytes": 85550,
           "visual_inspection_status": "agent_inspected_pass"
         }
       ]
@@ -194,15 +187,15 @@
         }
       ],
       "path": "output/pdf/gridguard-khartoum-final-report.pdf",
-      "sha256": "61a2d186a13e1fe536ec6a0dd32fe89629c75128d4045377963b93998fbebe35",
-      "size_bytes": 728579
+      "sha256": "ed0c5221b2d7ac5e5758303f04367cfa7dd2551adc829faa0435b07397ebb69e",
+      "size_bytes": 507501
     },
     "presentation": {
       "detected_slide_count": 13,
       "detected_speaker_note_slide_count": 13,
       "path": "output/presentation/gridguard-khartoum-defense.pptx",
-      "sha256": "3ed76ea15c4d3dac3f1f112ee6021ec8fd1f36f88847a6dc8421cdc2155ca176",
-      "size_bytes": 374316,
+      "sha256": "b6359b1fb47b32213eba2ba860a7d82f0734fc04bbadca85ec9ea3cc96683f0d",
+      "size_bytes": 328009,
       "slides": [
         {
           "slide_index": 1,
@@ -261,15 +254,15 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide1.xml",
-          "sha256": "d635f9e1beca57da96a0c9a209205698f4820775b0ae069e4c5401e72ce07898",
-          "size_bytes": 2055,
+          "sha256": "b4e98600dd74417a759e3603dee2d715344ba01760ebbdd7913b3981b1564a41",
+          "size_bytes": 2056,
           "slide_index": 1,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide2.xml",
-          "sha256": "b2d753ef563538c574e1344d69d0ce71f2c68b8849e130fadc85aa8e10e54788",
+          "sha256": "6aab41c83f4bca11a85e9a71332d3fb585a2e1da9d8d96c1c6a9d95602776aee",
           "size_bytes": 2081,
           "slide_index": 2,
           "structural_inspection_status": "automated_present_nonempty"
@@ -277,7 +270,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide3.xml",
-          "sha256": "caae92248fea0e801fa0ed215c746e8fc4ce802409ca29a54e69aa1530cef49a",
+          "sha256": "4725db2e88c7ab5d20b0c1d8f236f152ed8af8b7e06422404c6ade5ba733b5b5",
           "size_bytes": 2103,
           "slide_index": 3,
           "structural_inspection_status": "automated_present_nonempty"
@@ -285,7 +278,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide4.xml",
-          "sha256": "e6008b99ece4d2ff457e3adfe1d510b338e6580a35153fce8d2cf9d02f7623e5",
+          "sha256": "1d2d84d3ad3fd68c30dd88b8bd64098598d775d5e972952ccaf5732bef565653",
           "size_bytes": 2224,
           "slide_index": 4,
           "structural_inspection_status": "automated_present_nonempty"
@@ -293,7 +286,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide5.xml",
-          "sha256": "faf28c394343d67d9cd2ce1313806c60d8c8274cf4ca8d2a4f9bfd1dc4c54398",
+          "sha256": "df2c68243079882e5021f573b95c2f42eae992636ef2e27cbb9135a7b6482920",
           "size_bytes": 2567,
           "slide_index": 5,
           "structural_inspection_status": "automated_present_nonempty"
@@ -301,7 +294,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide6.xml",
-          "sha256": "bc0b3a2064c068561d25fe603a11740d7f389c21474e1c09533a5a36d974536e",
+          "sha256": "6bca86e34b9261d39a18c2acb38d1f31d8f6eddad86cd766f27c68d79f992c71",
           "size_bytes": 2158,
           "slide_index": 6,
           "structural_inspection_status": "automated_present_nonempty"
@@ -309,15 +302,15 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide7.xml",
-          "sha256": "d966c79bb0135c51308b241318cd77c9ef82a71b6b8e26ba31fca4f6c89781fc",
-          "size_bytes": 2090,
+          "sha256": "749ef6d06005ebf02129c717cf1fff6c1f90100cdc2120a5f698f5cf968ea296",
+          "size_bytes": 2091,
           "slide_index": 7,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide8.xml",
-          "sha256": "ccecf97f0ecc7485203b762081b0f2995a28b366a4d4a2f31c8bbe8ba6813558",
+          "sha256": "279537de4a3c8034550f5390c323c0da31b79ca04f6d63bcc05776281dcf567a",
           "size_bytes": 2446,
           "slide_index": 8,
           "structural_inspection_status": "automated_present_nonempty"
@@ -325,7 +318,7 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide9.xml",
-          "sha256": "606808d0e824b8f8987f90ddd1f67ef979cce2acb4fd98000ccc39bd3c799a33",
+          "sha256": "e9541bd978d566e8070af1bcf34792469da914e7d2c041f61b22a86368453306",
           "size_bytes": 2259,
           "slide_index": 9,
           "structural_inspection_status": "automated_present_nonempty"
@@ -333,31 +326,31 @@
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide10.xml",
-          "sha256": "cb16ef3f541a2a2a74df99ff6ef41389f63993fcb2826d66cc7844f58634a5a7",
-          "size_bytes": 2111,
+          "sha256": "94bbc50f3d033982a4dc74a7947bb60d22aeeff876d3261568099b70d37ce667",
+          "size_bytes": 2110,
           "slide_index": 10,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide11.xml",
-          "sha256": "43c341945860426afac56fac5e8f9e4ca61bfa392e1bd838689dc8b12b7bc2c9",
-          "size_bytes": 2284,
+          "sha256": "1742e02ba1dcd54712fe413d4cecaffde0d13aa79795ebc290b179df2cfb0f44",
+          "size_bytes": 2283,
           "slide_index": 11,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide12.xml",
-          "sha256": "27f0cc37c2948ded56118e15bb1cc65a3b9d3e86231dff2b58c53226f6739573",
-          "size_bytes": 2271,
+          "sha256": "e8806bbc4dcd6c4f1621ce44e710070456ae075da517c02617c6454e9b4380d1",
+          "size_bytes": 2270,
           "slide_index": 12,
           "structural_inspection_status": "automated_present_nonempty"
         },
         {
           "content_inspection_status": "agent_content_inspected_pass",
           "path": "ppt/notesSlides/notesSlide13.xml",
-          "sha256": "89be8277c47ad72f8e10cca20a10807f04d068a17ec4b3dc9d9938e1d696724d",
+          "sha256": "14ac3b3a2d55b27c8e7e8a6fd2f3a6071c2111bfa8b02e227b71a394af0b66a6",
           "size_bytes": 2358,
           "slide_index": 13,
           "structural_inspection_status": "automated_present_nonempty"
@@ -368,7 +361,7 @@
   "automated_validation_scope": "This validator checks artifact hashes, PDF/PPTX structure and counts, speaker-note presence and raw-content bindings, application-screenshot path/hash bindings, canonical schema, and complete recorded statuses; it does not inspect meaning or appearance and does not perform or independently prove AI-agent content or visual inspection.",
   "inspection_attestation": {
     "human_visual_inspection_claimed": false,
-    "inspection_method": "rendered PDF pages, rendered presentation slides, all speaker-note contents, and all four application screenshots reviewed one-by-one in the active release session",
+    "inspection_method": "rendered PDF pages, rendered presentation slides, all speaker-note contents, and all three application screenshots reviewed one-by-one in the active release session",
     "inspection_status": "completed_pass",
     "reviewer": "Codex root agent",
     "reviewer_kind": "ai_agent"

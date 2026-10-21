@@ -21,6 +21,12 @@ build/
 dist/
 *.egg-info/
 
+# Local design explorations; released report and presentation stay tracked.
+output/design/
+output/pdf/.previous/
+output/pdf/gridguard-khartoum-design-directions.pdf
+output/pdf/gridguard-khartoum-gui-pages.pdf
+
 # Temporary and log files
 tmp/
 *.log

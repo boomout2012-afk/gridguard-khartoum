@@ -292,7 +292,10 @@ def test_final_report_contains_no_blank_interior_pages() -> None:
 
     assert len(page_text) == 39
     assert all(text for text in page_text)
-    assert all(len(text.split()) >= 20 for text in page_text[1:-1])
+    assert all(
+        len(text.split()) >= 40 or bool(page.images)
+        for page, text in zip(reader.pages[1:-1], page_text[1:-1], strict=True)
+    )
     assert any("System at a glance" in text for text in page_text)
 
 

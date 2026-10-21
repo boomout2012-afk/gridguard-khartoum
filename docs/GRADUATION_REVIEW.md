@@ -117,7 +117,7 @@ source or document review is still changing its inputs.
    model, proposal, metric definitions, and approved scope. Any implementation-provenance refresh
    must retain the dual-reproduction and numeric-comparison evidence described above. Run focused
    regression tests and Ruff for each behavior change.
-2. Capture all four final application pages at 1366 x 768 with
+2. Capture all three current application pages at 1366 x 768 with
    `uv run --no-sync python tools/capture_screenshots.py`. Inspect the screenshots, loading/error
    states, keyboard navigation, locality selection, timeline playback, and map pan/zoom. Captures
    now use the real CUDA demonstration and remain visibly separate from frozen evidence.

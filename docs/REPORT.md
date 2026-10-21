@@ -128,7 +128,7 @@ possible approaches to larger systems and remain future work.
 The presentation design reinforces that boundary. The real administrative map is more legible and
 recognizable than the former abstract drawing, but visual realism must not be mistaken for model
 realism. OCHA/HDX boundaries and Natural Earth rivers are presentation context only and are not
-electrical-network topology. Likewise, the live aggregate table helps the committee compare the
+electrical-network topology. Likewise, the live episode comparison helps the committee compare the
 two controllers on one selected run, while the Results page remains bound to the separately
 verified frozen evidence.
 
