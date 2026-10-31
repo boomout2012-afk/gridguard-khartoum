@@ -30,11 +30,6 @@ from tools.training_provenance import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 PROVENANCE_PATH = REPOSITORY_ROOT / "data" / "model" / "training-provenance.yaml"
 MODEL_MANIFEST_PATH = REPOSITORY_ROOT / "data" / "model" / "manifest.json"
-REVIEWER_ENTRY_POINTS = (
-    REPOSITORY_ROOT / "README.md",
-    REPOSITORY_ROOT / "SPEC.md",
-    REPOSITORY_ROOT / "docs" / "DEVILS_ADVOCATE_AUDIT.md",
-)
 SOURCE_REVISION = "52f6dd82605c993c8094448caecec86faa289c0c"
 SOURCE_BINDINGS = (
     (
@@ -1140,17 +1135,16 @@ def test_ppo_learning_semantics_are_complete_and_reviewer_visible() -> None:
     assert summary["ppo"]["learning_semantics"] == EXPECTED_PPO_LEARNING_SEMANTICS
 
 
-def test_reviewer_entry_points_link_the_canonical_training_parameter_record() -> None:
-    for document_path in REVIEWER_ENTRY_POINTS:
-        document = document_path.read_text(encoding="utf-8")
-        assert "[data/model/training-provenance.yaml]" in document, document_path
-        assert "canonical" in document.casefold(), document_path
-        assert "strict" in document.casefold(), document_path
+def test_research_guides_link_the_historical_training_parameter_record() -> None:
+    from tests.test_document_claims import _linked_local_paths
 
-    readme = REVIEWER_ENTRY_POINTS[0].read_text(encoding="utf-8")
-    spec = REVIEWER_ENTRY_POINTS[1].read_text(encoding="utf-8")
-    assert "## Reviewer start here" in readme
-    assert "## Reviewer start here" in spec
+    linked_paths = set().union(
+        *(
+            _linked_local_paths(REPOSITORY_ROOT / relative)
+            for relative in ("SUBMISSION_README.md", "docs/REVIEWER_GUIDE.md")
+        )
+    )
+    assert PROVENANCE_PATH.resolve() in linked_paths
 
 
 @pytest.mark.parametrize(

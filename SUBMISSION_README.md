@@ -1,203 +1,103 @@
-# GridGuard Khartoum submission guide
+# Setup and reproduction
 
-Submission date: October 2026. University of Khartoum, Faculty of Mathematical Sciences and
-Informatics. Bachelor of Computer Science. Supervisor: Dr. Abubakr Siraj.
+## Run the application
 
-Authors: Murtada Asim Ibrahim Bakhit (18-317), Suliman Elawad Suliman Babiker (18-310),
-and Abdalhay Abass Mobarak Abass (15-306).
-
-## Open the submitted project
-
-The separate portable submission has Documents, App, Source and Verification folders. The current
-repository provides the revised thesis PDF and editable Word document, 32-slide presentation PDF,
-editable PowerPoint and 22-page GUI collection. An older portable archive is not automatically
-updated by a Git pull; check its manifest against the current files before submitting it.
-Double-click `Run GridGuard.cmd` to start the app. Keep the complete App folder together.
-No Python installation or network connection is needed to run the packaged application.
-
-The app requires 64-bit Windows and a compatible NVIDIA GPU/driver supporting the bundled
-CUDA 12.8 runtime. It was verified on an NVIDIA GeForce RTX 5060 Laptop GPU. The bundle includes
-PyTorch, CuPy, Qt, trained weights, geographic assets and evidence. It cannot supply the operating
-system's NVIDIA driver. A CPU-only computer can read all documents and inspect the source.
-
-The submitted Results page displays the five-run study. Live Scenario uses the validation-selected
-PPO actor (seed 8111, checkpoint 2500) on one selected scenario, so its numbers should not equal
-the five-run averages. Both constrained controllers use the same critical-service feasibility rule.
-The complete comparison passes against Fixed Rotation. Against Constrained Optimization, PPO
-improves fairness and daily reward but loses utilization; it does not pass the full comparison.
-These are synthetic decision-support results, not measurements or operational recommendations
-for Sudan's electrical grid. The constrained optimizer optimizes each hour, not the full day.
-
-The separate Follow-up comparison tab includes Critical-aware Fixed Rotation, the Fairness Rule
-teacher and critical-supply stress tests. This post-hoc audit preserves the original study and
-reports both improvements and energy/switching tradeoffs. Its protocol is
-`docs/COMMITTEE_BASELINE_PROTOCOL.md`; `docs/COMMITTEE_REVISION.md` maps the review corrections.
-
-## Source contents
-
-- `src/gridguard`: simulation, controllers, CUDA metrics/evaluation, evidence validation and Qt UI.
-- `tests`: unit, integration, real GPU, UI and packaging checks.
-- `data/evidence`: frozen results, training/diagnostic summaries, checksums and accepted source snapshots.
-- `data/model`: shipped actors, all five study selections, iteration-600 and imitation-only comparators.
-- `docs/FOCUSED_THESIS.md`: current manuscript with editable LaTeX formulas and Harvard references.
-- `docs/academic-cover.json`: shared cover fields; `docs/assets`: logos, fonts, screenshots and graphs.
-- `tools`, `scripts`, `packaging`: training, evaluation, academic authoring and Windows build scripts.
-- `pyproject.toml`, `uv.lock`: locked application and test environment.
-
-The code is copied as ordinary files. No virtual environment, Git working tree, cache, unrelated
-download or secret is included. Compact training telemetry is recoverable from the frozen record;
-optimizer state and bulky intermediate training runs are not required to replay the submitted models.
-The sibling research repository is not required. Its accepted source snapshots are already included.
-
-The old `RELEASE_MANIFEST.json`, historical chapters and original report/deck under `output/pdf`
-and `output/presentation` are retained as explicitly historical audit/test fixtures. They do not
-certify this submission. Use the top-level submission manifest and Verification report for the final
-identities. All current academic deliverables are in Documents and in Source's `output/*/updated`
-paths, except the current GUI PDF, which is directly under `output/pdf`.
-
-## Install and test source
-
-Use Python 3.12 and uv. The complete test suite also uses Git and PowerShell 7 to exercise
-temporary build/release fixtures; it does not require this folder to be a Git checkout.
-Initial dependency installation needs internet access or a pre-populated
-package cache; the packaged application above is already offline-ready.
+Install Python 3.12 and [uv](https://docs.astral.sh/uv/), then run these commands
+from the repository root:
 
 ```powershell
 uv sync --locked --extra dev --extra docs
-uv run --no-sync gridguard-doctor
-uv run --no-sync gridguard-evaluate --verify-evidence
-uv run --no-sync ruff check .
-uv run --no-sync ruff format --check .
-uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
 uv run --no-sync gridguard-desktop
 ```
 
-The source/GPU gate requires NVIDIA CUDA and must report zero skipped selected tests. The
-`source_archive` group is an optional audit of the separate original research Git repository.
-The historical `release_artifact` group validates that older release's exact Git commit and dist
-layout, not this portable submission. The submission's per-file integrity check is
-`Verify Submission.ps1`, next to START HERE.md; it requires only Windows PowerShell.
+Choose a shortage level in Live Scenario to compare controllers on the same day.
+Results shows the saved study; a single live scenario need not match its averages.
 
-## Reproduce the current evidence
+<details>
+<summary>Execution requirements</summary>
 
-Verify the frozen current study without changing it:
+The desktop application targets 64-bit Windows. Its simulation backend uses PyTorch
+and CuPy and requires a compatible NVIDIA graphics card and driver. Exact dependency
+versions are in `pyproject.toml` and `uv.lock`. The installed application runs offline;
+initial dependency installation needs internet access or a populated package cache.
+The thesis, presentation and saved results can be read without running the application.
+
+</details>
+
+## Reproduce the experiments
+
+The [research guide](docs/REVIEWER_GUIDE.md) identifies each study, its protocol and
+the corresponding results. Check the main experiment without overwriting it:
 
 ```powershell
-$trainingSha = (Get-FileHash data/evidence/focused-ppo-training.json -Algorithm SHA256).Hash.ToLower()
-$studySha = (Get-FileHash data/evidence/focused-ppo-study.json -Algorithm SHA256).Hash.ToLower()
+$trainingSha = (Get-Content data/evidence/focused-ppo-training.sha256).Split()[0]
+$studySha = (Get-Content data/evidence/focused-ppo-study.sha256).Split()[0]
 uv run --no-sync python tools/evaluate_focused_ppo.py --verify --training data/evidence/focused-ppo-training.json --training-sha256 $trainingSha --output data/evidence/focused-ppo-study.json --sha256 $studySha
 ```
 
-For fresh evaluation with the selected actors, use the same command without `--verify` and
-`--sha256`, and choose a new output such as `output/research/focused-replay.json`. Training and
-evaluation runners refuse to replace existing evidence. Re-training is a separate experiment:
+Check the additional comparisons separately:
 
 ```powershell
-uv run --no-sync python tools/train_focused_ppo.py --model-dir output/research/retrained-models --record output/research/retrained-training.json --monitor-dir output/research/retrained-monitor
-```
-
-The frozen seeds, training budget, model selection and uncertainty methods are documented in
-`docs/FOCUSED_PPO_PROTOCOL.md`. Re-training is not promised to be bitwise identical on different
-hardware; exact submitted model weights and full-precision evaluation evidence are included.
-
-Verify the follow-up audit independently without replacing its evidence:
-
-```powershell
-$auditSha = (Get-Content data/evidence/committee-baseline-audit.sha256).Split()[0]
-uv run --no-sync python tools/evaluate_committee_baseline.py --verify --sha256 $auditSha
-```
-
-This recomputes the statistical summaries from the stored trajectory results and checks the
-original-study replay. A new simulator replay can be written to a fresh path with `--output`.
-
-The thesis also reports a separate fresh learning-stage audit. It compares the five
-selected actors with their own imitation-only initializations and four deterministic
-baselines, without retraining or changing the original study. Verify its saved evidence:
-
-```powershell
+$baselineSha = (Get-Content data/evidence/committee-baseline-audit.sha256).Split()[0]
+uv run --no-sync python tools/evaluate_committee_baseline.py --verify --sha256 $baselineSha
 uv run --no-sync python tools/evaluate_thesis_learning_audit.py --verify
 ```
 
-For another complete simulator replay without overwriting the frozen receipt:
+These commands check saved evidence and reconstruct its summaries. A complete replay
+of the fresh learning-stage study can be run without replacing its saved receipt:
 
 ```powershell
 uv run --no-sync python -c "from tools.evaluate_thesis_learning_audit import OUTPUT, verify; verify(OUTPUT, replay=True)"
 ```
 
-The protocol, source freeze and replay receipt are retained as
-`docs/THESIS_LEARNING_AUDIT_PROTOCOL.md` and `data/evidence/thesis-learning-audit*`.
-These new conditions use the same synthetic generator; their results remain separate
-from the original benchmark and the app. To regenerate Figure 5.7 and the exact
-generator/learning-curve reductions, run
-`uv run --no-sync python tools/interpret_focused_study.py` on the documented CUDA setup.
-
-## Rebuild or edit the documents
-
-The finalized PDFs can be submitted directly. The editable deck includes native charts, tables,
-speaker notes and chart workbooks. Install the bundled Atkinson Hyperlegible regular/bold fonts
-from `src/gridguard/assets/fonts` when editing it to preserve typography. Use Microsoft PowerPoint
-for the verified rendering path; other viewers may lay out editable content differently.
-
-To export the editable deck as PDF using Microsoft PowerPoint on Windows:
+For a new training experiment, choose new output paths:
 
 ```powershell
-powershell -NoProfile -File scripts/export-submission-presentation.ps1
+uv run --no-sync python tools/train_focused_ppo.py --model-dir output/research/models --record output/research/training.json --monitor-dir output/research/monitor
 ```
 
-To regenerate thesis figures, LaTeX and GUI PDF from the included source/assets, install Node.js
-with npm, then run:
+The published policies are retained for exact replay. Retraining is a new experiment
+and may produce different weights. The earlier actor's configuration is documented in
+[training-provenance.yaml](data/model/training-provenance.yaml); it is separate from
+the five-run study used in the thesis.
+
+## Development
+
+```powershell
+uv run --no-sync pytest -m "not source_archive"
+uv run --no-sync ruff check .
+uv run --no-sync ruff format --check .
+```
+
+Tests use Git and PowerShell 7 for temporary packaging fixtures. Optional archive-parity
+tests use material outside this repository. GitHub runs the portable subset.
+
+## Documents and packaging
+
+The thesis source is [FOCUSED_THESIS.md](docs/FOCUSED_THESIS.md). It contains the
+LaTeX equations and references; results are filled from saved evidence. Figures,
+screenshots, institutional logos and licensed fonts are in `docs/assets/`.
+
+Rebuild the thesis and application-page PDFs with Node.js and npm installed:
 
 ```powershell
 powershell -NoProfile -File scripts/rebuild-academic.ps1 -InstallDependencies
 ```
 
-That script installs document-only plotting/rendering dependencies and reconstructs the original
-five telemetry logs byte-for-byte from the frozen training JSON. It does not retrain models.
-Subsequent builds can omit `-InstallDependencies`. For graphs only, use
-`tools/export_training_telemetry.py` and the existing `tools/plot_training_diagnostics.py --render-only`
-with the training hash above. The SD bands are not confidence intervals; the variance denominator
-is five minus one.
+The plotting script reconstructs training telemetry from the saved record rather than
+retraining. The original locality analysis can be regenerated with
+`uv run --no-sync python tools/interpret_focused_study.py`.
 
-The editable Word thesis retains the supplied academic template and uses native Office equations.
-Install the supplied Noto Naskh Arabic regular/bold fonts from `docs/assets/fonts` to preserve
-the Arabic abstract when editing or exporting Word; their OFL license is included.
-After rebuilding the PDF source and math assets, generate it with Microsoft Word installed:
+The [editable thesis](output/documents/updated/gridguard-khartoum-thesis.docx) uses native
+Word equations. The [editable presentation](output/presentation/updated/gridguard-khartoum-defense.pptx)
+contains charts, tables and speaker notes. Use Microsoft Office and the supplied fonts
+for the established export layout. Export helpers are in `scripts/`.
 
-```powershell
-uv run --no-sync python tools/build_focused_thesis_docx.py --source output/pdf/updated/gridguard-khartoum-thesis.source.md --layout output/pdf/updated/gridguard-khartoum-thesis.build.json
-pwsh -NoProfile -File scripts/export-submission-thesis.ps1 -DocumentPath output/documents/updated/gridguard-khartoum-thesis.docx -PdfPath tmp/reviewed-word-export.pdf
-```
-
-The second command requires PowerShell 7 and updates the Word contents, lists and cross-reference
-fields before saving. The Word export and designed thesis PDF share the resolved manuscript,
-equations, results and screenshots; their pagination differs. The unchanged supplied template is
-preserved in `docs/source/reviewed-thesis-template.docx`. Document generation uses Microsoft's
-locally installed math transform; that proprietary stylesheet is not redistributed.
-
-Refresh all 21 application screenshots from the real CUDA app and build the GUI PDF with:
-
-```powershell
-uv run --no-sync python tools/capture_current_app.py
-uv run --no-sync python tools/build_current_gui_pdf.py
-```
-
-The original `tools/build_focused_presentation.mjs` generator is also preserved for traceability.
-It uses OpenAI's Codex artifact authoring runtime and its finalizer and is not a standalone npm
-dependency. The portable editing/re-export route is the included PowerPoint and script above.
-
-## Build the Windows executable
-
-From the installed source environment:
+Build the Windows application with:
 
 ```powershell
 uv run --no-sync pyinstaller --noconfirm --clean --distpath output/app --workpath build/submission packaging/gridguard.spec
 ```
 
-This creates a one-directory distribution. Keep its `_internal` directory with the executable.
-Do not run a rebuild while the destination application is open. Validate source tests and the
-real CUDA doctor before rebuilding. The historical Git-attested release pipeline remains in
-`scripts/build-presentation.ps1`; it targets the older release contract and is not needed for
-the portable build command above.
-
-All fonts and geography retain their third-party attribution/license files. Included university
-logos are original assets from the supplied university reference document.
+Keep the generated application folder together. To check the included research files
+without installing the application, run `python tools/verify_review_package.py`.

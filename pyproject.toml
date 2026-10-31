@@ -96,7 +96,6 @@ pythonpath = [".", "src"]
 testpaths = ["tests"]
 markers = [
   "gpu: requires the presentation NVIDIA GPU and validated CUDA stack",
-  "release_artifact: requires the complete final Windows release tree and bound artifacts",
   "source_archive: requires the trusted read-only source research archive",
 ]
 

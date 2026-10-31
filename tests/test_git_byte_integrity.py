@@ -16,10 +16,7 @@ PUBLISHED_FILES = (
     "README.md",
     "SUBMISSION_README.md",
     "docs/REVIEWER_GUIDE.md",
-    "docs/REPOSITORY_REVIEW.md",
-    "docs/COMMITTEE_REVISION.md",
-    "docs/THESIS_REASSESSMENT.md",
-    "docs/source/REVIEWED_TEMPLATE.md",
+    "docs/LITERATURE_REVIEW_AUDIT.md",
     "docs/FOCUSED_THESIS.md",
     "docs/ALLOCATION_STUDY_PROTOCOL.md",
     "docs/CONSTRAINED_PPO_PROTOCOL.md",
@@ -27,8 +24,9 @@ PUBLISHED_FILES = (
     "docs/COMMITTEE_BASELINE_PROTOCOL.md",
     "docs/THESIS_LEARNING_AUDIT_PROTOCOL.md",
     "docs/PROPOSAL_EXTENSION.md",
-    "docs/PROPOSAL_RESULTS.md",
     "docs/academic-cover.json",
+    "docs/focused-ppo-validation.json",
+    "docs/focused-ppo-validation.sha256",
     "docs/review-package-manifest.json",
     "docs/source/graduation-project-proposal.pdf",
     "docs/source/literature-review-authors.docx",
@@ -56,15 +54,37 @@ PUBLISHED_FILES = (
     "tools/thesis_learning_content.py",
     "tools/interpret_focused_study.py",
 )
+LOCAL_ONLY_FILES = frozenset(
+    {"data/evidence/allocation-study.md", "data/evidence/allocation-validation.md"}
+)
+PUBLIC_ASSET_ROOTS = ("data/evidence", "data/model", "docs/assets")
+
+
+def _is_public_path(relative: str) -> bool:
+    """Keep local notes out of package inventories, including in a source archive.
+
+    Documentation is an explicit allowlist. Scientific records and current visual
+    assets remain directory-based so new records cannot be omitted accidentally.
+    This contract deliberately does not depend on an available Git worktree.
+    """
+    path = Path(relative)
+    if path.is_absolute() or ".." in path.parts or "\\" in relative:
+        return False
+    if "__pycache__" in path.parts or path.suffix == ".pyc":
+        return False
+    if relative in LOCAL_ONLY_FILES or relative.startswith("docs/assets/screenshots/"):
+        return False
+    if relative in PUBLISHED_FILES:
+        return True
+    if any(relative.startswith(f"{root}/") for root in PUBLIC_ASSET_ROOTS):
+        return True
+    return bool(path.parts and path.parts[0] in {"src", "tools", "scripts", "packaging", "tests"})
 
 
 def _is_project_file(value: object) -> bool:
     if not isinstance(value, str) or "/" not in value or "\\" in value:
         return False
-    path = Path(value)
-    if path.parts[0] not in {"data", "docs", "src", "tools", "scripts", "packaging", "tests"}:
-        return value in PUBLISHED_FILES and (ROOT / path).is_file()
-    return not path.is_absolute() and ".." not in path.parts and (ROOT / path).is_file()
+    return _is_public_path(value) and (ROOT / value).is_file()
 
 
 def _referenced_paths(value: object) -> set[str]:
@@ -86,21 +106,33 @@ def _referenced_paths(value: object) -> set[str]:
 
 def _published_paths() -> list[str]:
     paths = set(PUBLISHED_FILES)
-    for directory in ("data/evidence", "data/model", "docs/assets"):
+    for directory in PUBLIC_ASSET_ROOTS:
         paths.update(
             path.relative_to(ROOT).as_posix()
             for path in (ROOT / directory).rglob("*")
-            if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+            if path.is_file() and _is_public_path(path.relative_to(ROOT).as_posix())
         )
-    paths.update(path.relative_to(ROOT).as_posix() for path in (ROOT / "docs").glob("*.sha256"))
-    paths.update(
-        path.relative_to(ROOT).as_posix() for path in (ROOT / "docs").glob("*-validation.json")
-    )
     for relative in tuple(paths):
+        if relative == "docs/review-package-manifest.json":
+            # The generated inventory cannot make its old entries public inputs.
+            continue
         path = ROOT / relative
         if path.suffix == ".json":
             paths.update(_referenced_paths(json.loads(path.read_text(encoding="utf-8"))))
     return sorted(paths)
+
+
+def test_local_notes_do_not_reenter_the_public_inventory_through_a_receipt() -> None:
+    receipt = {
+        "files": [
+            {"path": "docs/release-validation.json", "sha256": "0" * 64},
+            {"path": "docs/REPOSITORY_REVIEW.md", "sha256": "0" * 64},
+            {"path": "data/evidence/allocation-study.md", "sha256": "0" * 64},
+            {"path": "docs/assets/screenshots/overview.png", "sha256": "0" * 64},
+        ]
+    }
+    assert not _referenced_paths(receipt)
+    assert not (LOCAL_ONLY_FILES & set(_published_paths()))
 
 
 def test_fresh_audit_frozen_dependencies_are_in_published_package() -> None:

@@ -3,13 +3,13 @@
   "files": [
     {
       "path": "README.md",
-      "size_bytes": 6969,
-      "sha256": "2997eee00f1f1f747cb1ef2f0a12ef78fe7672c92a7433af2967f0acb3fc7e74"
+      "size_bytes": 3759,
+      "sha256": "f07bdb976ff55179572c9c2c7740c21de11be3547bfee9cd7cbc44e0c6566407"
     },
     {
       "path": "SUBMISSION_README.md",
-      "size_bytes": 11678,
-      "sha256": "3be68d0d1bea8d7719772b3c4f2a39db30deaffd3c03e1e739cad0252520cfe4"
+      "size_bytes": 4329,
+      "sha256": "e05bad404720d080e0fb38cea6d2f6755f70a359ced0fbd65ce8f6a7a0dac9a5"
     },
     {
       "path": "data/evidence/accepted-sources/plot_training_diagnostics-3ac68a10ebff.py",
@@ -92,11 +92,6 @@
       "sha256": "f41adb611ae3e323644d38abdc6244f26f17f0c029f567d4621c5969c1e31060"
     },
     {
-      "path": "data/evidence/allocation-study.md",
-      "size_bytes": 6298,
-      "sha256": "222645e81aa9f4743b289e8bf344583b23de14c7abf27ddee0894b6b3014f81c"
-    },
-    {
       "path": "data/evidence/allocation-study.sha256",
       "size_bytes": 66,
       "sha256": "54eb22d2c3311ab145909c42626be7163c772da7bb691d276586a0cb5e4873c0"
@@ -105,11 +100,6 @@
       "path": "data/evidence/allocation-validation.json",
       "size_bytes": 12241569,
       "sha256": "292a3f734558a1de8c818e8ab2daec14b976ca5352b82b9bef398ca0cd30ca90"
-    },
-    {
-      "path": "data/evidence/allocation-validation.md",
-      "size_bytes": 2368,
-      "sha256": "829c8ff10a039ce8e0cd6da2c79445482389f40764ac6e44fef8f19897b51949"
     },
     {
       "path": "data/evidence/allocation-validation.sha256",
@@ -532,11 +522,6 @@
       "sha256": "92c4e247210225e62b9221229107fccd078a33ad23cffd4a8e5f4164bd7a1612"
     },
     {
-      "path": "docs/COMMITTEE_REVISION.md",
-      "size_bytes": 7912,
-      "sha256": "770992d362abecf86d92c32bd332a6a1a915c39680e1ff812bee8d9b9dac927e"
-    },
-    {
       "path": "docs/CONSTRAINED_PPO_PROTOCOL.md",
       "size_bytes": 13168,
       "sha256": "120227eefb004256851fa8d2f1f92a2e52ba496494413cec80ccf87280f63e59"
@@ -552,24 +537,19 @@
       "sha256": "f137fb4fcdc7f187d2f1fcf0274ec41fcba4af4acaeb3a7ad51f258fccd6fd34"
     },
     {
+      "path": "docs/LITERATURE_REVIEW_AUDIT.md",
+      "size_bytes": 3437,
+      "sha256": "8ab9cac83bd97f1836dca51792d56219177460795e8376d22ad9b9ab99eaaea1"
+    },
+    {
       "path": "docs/PROPOSAL_EXTENSION.md",
       "size_bytes": 14539,
       "sha256": "4aa3fd8ec2029a42365c24bd60db9d7c599bbd449ea9cb1fba052f103ed67ccd"
     },
     {
-      "path": "docs/PROPOSAL_RESULTS.md",
-      "size_bytes": 15509,
-      "sha256": "40c912ca009faff80509a7dfcb5a4f052659c61ad7b4a92a7f64344712991487"
-    },
-    {
-      "path": "docs/REPOSITORY_REVIEW.md",
-      "size_bytes": 5039,
-      "sha256": "30e7b2613557b36b8df073e04b34d87bfdceeba6302ee0200a4a8283498b12c4"
-    },
-    {
       "path": "docs/REVIEWER_GUIDE.md",
-      "size_bytes": 13144,
-      "sha256": "09e5d311f765166c31fd5464acc3ca39415971e240b0b6cc8672663ded760b8c"
+      "size_bytes": 3768,
+      "sha256": "8981a6a42d3f07bdbcea260ca1afc0a53f7ed7f2f8decd486619237a481e2731"
     },
     {
       "path": "docs/THESIS_LEARNING_AUDIT_PROTOCOL.md",
@@ -577,29 +557,9 @@
       "sha256": "b1d2572b4e29e772df5e200fe1bfb1382a8377603ec984bddf81a7ab61f585e1"
     },
     {
-      "path": "docs/THESIS_REASSESSMENT.md",
-      "size_bytes": 4061,
-      "sha256": "a6647f3465a6acca9dd4ec2fdc0dba00e3bf7f693fd592a98f883270eb7cb2d5"
-    },
-    {
       "path": "docs/academic-cover.json",
       "size_bytes": 1003,
       "sha256": "25c764752f78930d28675c55253633fd0d25c67b8084008217544e6fd1473d60"
-    },
-    {
-      "path": "docs/academic-refresh-validation.json",
-      "size_bytes": 7208,
-      "sha256": "989de9c0d175e1c98d13983c7a2281081676e11b82506ad9731c50ca61e0bd8e"
-    },
-    {
-      "path": "docs/academic-refresh-validation.sha256",
-      "size_bytes": 66,
-      "sha256": "e8aa444391922dff6d1c4d44313ee84065b3b53e24a9f2378bf742443836b451"
-    },
-    {
-      "path": "docs/allocation-study-validation.json",
-      "size_bytes": 1934,
-      "sha256": "84157697b39d746509cc864b5cfd75a9185adc4abf87ee04c3a2468796298439"
     },
     {
       "path": "docs/assets/app-regression-screenshots/live.png",
@@ -3152,26 +3112,6 @@
       "sha256": "3a6eaf6b7fb9d807e3241e0835276b551263186756d3421d6d224b8d463607d3"
     },
     {
-      "path": "docs/assets/screenshots/live.png",
-      "size_bytes": 120153,
-      "sha256": "b547276f50279af853c27405f72b11d3d77494c944f3f0223fe033e9e26c49b2"
-    },
-    {
-      "path": "docs/assets/screenshots/methodology.png",
-      "size_bytes": 142202,
-      "sha256": "4c1699fa5c057557d1d56bd1819a5e6de1c672915bd42801cab738b765949bee"
-    },
-    {
-      "path": "docs/assets/screenshots/overview.png",
-      "size_bytes": 108922,
-      "sha256": "d08bed2b63ba2d85931553b9122e1e8126aaad57cdc62adc6eedd2cd83c097b3"
-    },
-    {
-      "path": "docs/assets/screenshots/results.png",
-      "size_bytes": 85550,
-      "sha256": "0aba8b3518ec3fd8ba5b3a9088e50e97bc8ba77ef99c1c2ebaf17255f3d56067"
-    },
-    {
       "path": "docs/assets/university-branding/source.json",
       "size_bytes": 564,
       "sha256": "2d99456d9f2b0cfd5afd0b4b7c6a7397493f91800cfb40e60f6512e7bad9a2c2"
@@ -3182,21 +3122,6 @@
       "sha256": "2feb6575ec16335d867649d651281b2bc1aa2c5d8c6226cc2d862f9055b8dff9"
     },
     {
-      "path": "docs/committee-revision-validation.json",
-      "size_bytes": 10373,
-      "sha256": "a1d066034540bf889729213922df94b1608cb961c13fab3727c79bb11141b3c7"
-    },
-    {
-      "path": "docs/constrained-ppo-validation.json",
-      "size_bytes": 30460,
-      "sha256": "d1242346aba9da40327b5921f546a6328ea1d03fe2f8c1174687253b26af8f07"
-    },
-    {
-      "path": "docs/constrained-ppo-validation.sha256",
-      "size_bytes": 99,
-      "sha256": "2242b917aff7b58c840fd724c9fe87cc293d9729f3832fdd299272d4b12587bd"
-    },
-    {
       "path": "docs/focused-ppo-validation.json",
       "size_bytes": 30406,
       "sha256": "df1cc59a3a1cd94f8333f77693dc47ef1afb6007093d940dd9deab06383a1fe1"
@@ -3205,61 +3130,6 @@
       "path": "docs/focused-ppo-validation.sha256",
       "size_bytes": 95,
       "sha256": "d052c07c49fc9442e0e37a7f194bcd28c1e8d4d07c87432cec799ba227153fc7"
-    },
-    {
-      "path": "docs/focused-thesis-validation.json",
-      "size_bytes": 11495,
-      "sha256": "6213f3a10f5ab921e4905fdfbab00fdae7ccf76b4622c1c9d16a03254a778865"
-    },
-    {
-      "path": "docs/focused-thesis-validation.sha256",
-      "size_bytes": 66,
-      "sha256": "f885e065a91d1a2cff46c403d46dc156e64d4a09b621168d2c81d789455f81f3"
-    },
-    {
-      "path": "docs/gui-document-refresh-validation.json",
-      "size_bytes": 4483,
-      "sha256": "2214e1d2a4b831070f928d5a50893c48e9cf271ae03844e27f3205efa086bbc7"
-    },
-    {
-      "path": "docs/gui-document-refresh-validation.sha256",
-      "size_bytes": 66,
-      "sha256": "a9f18ba618eeda6a068aab210aa9a7817ca550f535a08d4b20bec2a311fee15d"
-    },
-    {
-      "path": "docs/live-ppo-deployment-validation.json",
-      "size_bytes": 6912,
-      "sha256": "0848526076c7fad85e6d759f8615602b4656b91ac1b19da63d9359c6bdbfe78d"
-    },
-    {
-      "path": "docs/live-ppo-deployment-validation.sha256",
-      "size_bytes": 66,
-      "sha256": "976af3c546b4f7962c23d7995275eba99263a2e5c912c10dd12f4ba59a11a52f"
-    },
-    {
-      "path": "docs/proposal-extension-validation.json",
-      "size_bytes": 3769,
-      "sha256": "e699e15b48b4304ed66b08edd460f7c137671a26f020c741eb9298063d1c4a02"
-    },
-    {
-      "path": "docs/release-machine-validation.json",
-      "size_bytes": 285330,
-      "sha256": "a264c1ff1ad8fbf3b776eb8ae5756d0f5feedb35a4127a2b49688de77a1e9329"
-    },
-    {
-      "path": "docs/release-visual-review.json",
-      "size_bytes": 12944,
-      "sha256": "f1f7aef6e7d30229f18a4e9624a0e002767e73dae86893978767abaccc14edfd"
-    },
-    {
-      "path": "docs/repository-validation.json",
-      "size_bytes": 2029,
-      "sha256": "bc70f56f5619367f5ef78ca1fd45907e8f22665669ce740195eae54467db137f"
-    },
-    {
-      "path": "docs/source/REVIEWED_TEMPLATE.md",
-      "size_bytes": 1082,
-      "sha256": "8b9f9f664197cbfc12a4fff09fa1b65cc7d2a12c5589b05cf8ba8e930a939ef0"
     },
     {
       "path": "docs/source/graduation-project-proposal.pdf",
@@ -3275,11 +3145,6 @@
       "path": "docs/source/reviewed-thesis-template.docx",
       "size_bytes": 2824127,
       "sha256": "d6f5cef5d56bdcb7f6c78989d68f8c586ba9b9289ecf5b765ebd34a8e26d3d59"
-    },
-    {
-      "path": "docs/thesis-reassessment-validation.json",
-      "size_bytes": 4572,
-      "sha256": "22a0d2f158cd622973283b9bfea4b9afee2697ed1f25975845716a463f63e3c0"
     },
     {
       "path": "output/documents/updated/gridguard-khartoum-thesis.docx",
@@ -3332,24 +3197,9 @@
       "sha256": "b75b81954fe131b3289bd9ab35005200e93df797d0d6240c7f181a8fd1fb50a6"
     },
     {
-      "path": "packaging/gridguard.spec",
-      "size_bytes": 14523,
-      "sha256": "fb4bfb3a2d5d0869973d228faf3f5766abeef0135365c7cd2cb2ceaa87ca2ea2"
-    },
-    {
-      "path": "packaging/gridguard_launcher.py",
-      "size_bytes": 17962,
-      "sha256": "91bc946cedb183afe94afe4d97d5c797cf00740d61699039151a58c7d425e2d2"
-    },
-    {
       "path": "scripts/export-submission-thesis.ps1",
       "size_bytes": 2807,
       "sha256": "5d9bfbd3246a9463dd45a350201928e1923cf8ba7f26130e47cdff295ff8ff97"
-    },
-    {
-      "path": "scripts/release-integrity.ps1",
-      "size_bytes": 139110,
-      "sha256": "05c33c197ab625615ddc3ab989e5ff8f24c074c0627f7803d5d4aa224ae516e8"
     },
     {
       "path": "src/gridguard/__init__.py",
@@ -3667,19 +3517,9 @@
       "sha256": "d46febbcfd10310f1d33720b26773ef1243963ea4b9805adc60a3ceb441dd65e"
     },
     {
-      "path": "tests/conftest.py",
-      "size_bytes": 1397,
-      "sha256": "e0127775d6b52ad137cdaefbdc03738ba91d8a2105a1caddd1222fb8c95498e2"
-    },
-    {
       "path": "tests/test_committee_baseline.py",
       "size_bytes": 7983,
       "sha256": "019227d88b14ebc38f2c019cb5767dd9043cabee5e8076484743f014abc10aff"
-    },
-    {
-      "path": "tests/test_portable_audit_selection.py",
-      "size_bytes": 791,
-      "sha256": "5bf14457849862f18461d3cd0c1a5979336b3a2ed29fbd9820602a7631a1a484"
     },
     {
       "path": "tests/test_thesis_learning_audit.py",

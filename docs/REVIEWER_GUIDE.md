@@ -1,180 +1,58 @@
-# Reviewer guide
+# Research guide
 
-GridGuard Khartoum is a graduation project at the University of Khartoum, Faculty of
-Mathematical Sciences and Informatics, for the Bachelor of Computer Science degree.
-The supervisor is Dr. Abubakr Siraj. The three project authors and index numbers are
-recorded in the [shared cover metadata](academic-cover.json) used by the academic documents.
+The [thesis](../output/pdf/updated/gridguard-khartoum-thesis.pdf) presents the model,
+methods and interpretation. The [presentation](../output/pdf/updated/gridguard-khartoum-project-presentation.pdf)
+summarizes the project, and the [application pages](../output/pdf/gridguard-khartoum-gui-pages.pdf)
+show the interface.
 
-## Suggested reading order
+## Experiments
 
-1. Read the [current thesis](../output/pdf/updated/gridguard-khartoum-thesis.pdf) for the
-   problem, methods, results and limitations. The [editable Word document](../output/documents/updated/gridguard-khartoum-thesis.docx)
-   shares its content with [FOCUSED_THESIS.md](FOCUSED_THESIS.md).
-2. Use the [presentation](../output/pdf/updated/gridguard-khartoum-project-presentation.pdf)
-   for the defense overview and the [GUI collection](../output/pdf/gridguard-khartoum-gui-pages.pdf)
-   for all application pages and detail tabs.
-3. Review the [current training/evaluation protocol](FOCUSED_PPO_PROTOCOL.md), then the
-   evidence files below. The protocol states the outcome criteria before final evaluation.
-4. Follow the implementation map and run the source checks. The
-   [submission guide](../SUBMISSION_README.md) provides longer build and reproduction commands.
+| Study | Comparison and sample | Evidence |
+| --- | --- | --- |
+| Main control experiment | Fixed Rotation, Constrained Optimization and five independently trained PPO policies on 960 matched conditions | [Results](../data/evidence/focused-ppo-study.json), [training](../data/evidence/focused-ppo-training.json), [protocol](FOCUSED_PPO_PROTOCOL.md) |
+| Additional baselines | Critical-aware Fixed Rotation and Fairness Rule on the original 960 conditions, plus critical-supply stress cases | [Results](../data/evidence/committee-baseline-audit.json), [protocol](COMMITTEE_BASELINE_PROTOCOL.md) |
+| Learning-stage comparison | Each selected PPO actor against its own imitation-only initialization and four deterministic baselines on 960 new conditions | [Results](../data/evidence/thesis-learning-audit.json), [protocol](THESIS_LEARNING_AUDIT_PROTOCOL.md) |
+| Demand forecasting | Ridge AR(3), persistence and a trailing mean on 320 held-out demand traces | [Results](../data/evidence/proposal-supplement.json) |
 
-## What the current comparison establishes
+Each set of 960 conditions consists of 320 independent base draws with three coupled
+shortage variants. Five policies are five independent training runs; conditions are
+not additional independent policies. Training and validation histories are separate
+from the final-test results.
 
-The main comparison is constrained PPO against Fixed Rotation and Constrained Optimization.
-Five independent PPO runs each completed 3,000 iterations, totaling 92,160,000 training
-transitions. Final evaluation uses 320 independent synthetic base draws, each with matched
-Mild, Moderate and Severe variants: 960 conditions. Five selected PPO policies, their five
-iteration-600 references and the two primary baselines give 11,520 evaluated trajectories.
+## Reading the results
 
-PPO passes the complete declared comparison against Fixed Rotation. Against the constrained
-current-hour optimizer, PPO improves fairness and daily reward, but its utilization loss
-means the overall comparison does not pass. A positive reward difference alone is not a
-successful overall comparison. The optimizer evaluates the same critical-feasible actions
-and history-only state as PPO; it does not solve the full-day optimum.
+PPO and the constrained optimizer share critical protection and feasible choices.
+Fixed Rotation has a different action design, so its critical-interruption disadvantage
+cannot establish a benefit from learning alone. Critical-aware rotation addresses
+that comparison directly.
 
-The **Results** page reports the equal-weight five-run study. **Live Scenario** uses the
-validation-selected policy, training seed 8111 at checkpoint 2500, for one user-selected
-scenario. These quantities have different aggregation levels and should not be expected
-to have identical values. Live results never replace frozen study values.
+The optimizer maximizes the current-hour objective. PPO improves the main study's
+mean daily reward and Jain fairness, while delivering less energy and switching more
+often. It does not meet the full declared improvement criterion against that optimizer.
+The study does not compare it with a full-day optimum.
 
-Fixed Rotation uses Off and Full Service and is supply-blind. The constrained methods
-explicitly protect critical service, so their advantage over Fixed Rotation cannot be
-attributed to learning alone. A separately frozen follow-up adds Critical-aware Fixed
-Rotation and the Fairness Rule teacher used to initialize PPO. It replays all original
-methods before comparing the added baselines on the same 960 conditions. PPO serves
-241.63 MWh/day more than critical-aware rotation, with zero critical interruption for both
-in normal scenarios. Against the teacher, PPO gains 0.0102 mean daily reward while serving
-16.68 MWh/day less; the reward difference also varies by shortage and training seed.
-Separate critical-supply stress tests report actual unmet demand. These analyses are
-post-hoc and do not replace the primary criteria or establish universal PPO superiority.
-The app's **Follow-up comparison** tab displays these additional results.
+The fresh learning-stage study measures fine-tuning plus validation selection, including
+additional computation. It does not isolate the PPO algorithm or compare equal training
+budgets. Its reward improvement coexists with lower energy delivery. Higher time-averaged
+Jain fairness also does not ensure higher final service to the worst-served locality.
 
-The thesis adds a separate fresh learning-stage audit in Section 5.9. It evaluates the
-same five selected actors against their own imitation-only initializations, the teacher,
-the optimizer and both rotating baselines on 960 new matched conditions. Fine-tuning
-and validation selection add 0.1801 daily reward and 3.914 Jain-fairness points over the
-initializations, while serving 77.20 fewer MWh/day. Higher time-averaged Jain fairness
-also coexists with lower final worst-locality service than the teacher and critical-aware
-rotation. This addition does not change the original criteria, models, app or presentation
-results. It is a descriptive same-generator replication, not an equal-budget algorithm
-ablation or a changed-distribution test.
+Primary intervals use the original study's adjusted 97.5% paired hierarchical bootstrap.
+The additional analyses report descriptive pointwise 95% intervals. Training-curve
+bands show between-run standard deviation, not confidence intervals.
 
-Training bands show mean plus/minus sample standard deviation; the between-run variance
-uses denominator four. Those bands are not confidence intervals. The two primary comparison
-claims use adjusted 97.5% paired hierarchical bootstrap intervals, as defined in the protocol.
+## Application and source
 
-All findings are limited to synthetic scenarios. There are five independent training runs,
-not 960 independent policies. Forecast evaluation is separate from control. Administrative
-geography supplies display context and does not model electrical-network topology.
+Live Scenario uses the validation-selected policy from training seed 8111, checkpoint
+2500. Results displays the five-run study and the additional-baseline comparison.
+The newer learning-stage analysis is reported separately in the thesis.
 
-## Evidence and document sources
+Scientific calculations are under `src/gridguard/`; presentation models and Qt views
+are under `src/gridguard/ui/`. Saved results, policy identities and experiment protocols
+allow a reviewer to trace each reported comparison to its inputs.
 
-| File | Role |
-| --- | --- |
-| [focused-ppo-training.json](../data/evidence/focused-ppo-training.json) | Training configuration, seeds, all checkpoint summaries, telemetry and selected model identities |
-| [focused-ppo-study.json](../data/evidence/focused-ppo-study.json) | Current full-precision outcomes, per-condition results, intervals and criterion decisions |
-| [focused-ppo-training-diagnostics.json](../data/evidence/focused-ppo-training-diagnostics.json) | Training diagnostic means, sample SD and between-run variance |
-| [focused-ppo-validation.json](focused-ppo-validation.json) | Independent replay and evidence-validation record |
-| [committee-baseline-audit.json](../data/evidence/committee-baseline-audit.json) | Matched follow-up baselines, paired differences and critical-shortfall stress results |
-| [COMMITTEE_BASELINE_PROTOCOL.md](COMMITTEE_BASELINE_PROTOCOL.md) | Follow-up design frozen before computing its outcomes; original test outcomes were already known |
-| [COMMITTEE_REVISION.md](COMMITTEE_REVISION.md) | Comment-by-comment revision map against the actual reviewed Word document |
-| [Committee revision validation](committee-revision-validation.json) | Preceding document revision and unchanged executable checks; exact scope is hash-bound |
-| [Thesis reassessment validation](thesis-reassessment-validation.json) | Current thesis rendering, source/CUDA tests and fresh audit verification |
-| [Further thesis revision map](THESIS_REASSESSMENT.md) | Additional explanations, locality results, learning-stage attribution and scope |
-| [Fresh learning-stage protocol](THESIS_LEARNING_AUDIT_PROTOCOL.md) | Design fixed before new evaluation, motivated by previously known results |
-| [thesis-learning-audit.json](../data/evidence/thesis-learning-audit.json) | All 13,440 fresh trajectories, same-run initialization comparisons and endpoint service outcomes |
-| [Learning-stage replay receipt](../data/evidence/thesis-learning-audit.validation.json) | Exact replay and independent CUDA reconstruction checks |
-| [Locality service derivation](assets/focused-study/locality-allocation.json) | Original-study endpoint ratios and Figure 5.7 provenance |
-| [proposal-supplement.json](../data/evidence/proposal-supplement.json) | Additional forecast and earlier three-controller evaluation; separate from the current five-run study |
-| [Deployed PPO weights](../data/model/focused-ppo-study/seed-8111-selected.npz) | The deployed actor; sibling files retain every run's selected, iteration-600 and imitation-only weights |
-| [Earlier GUI/document refresh validation](gui-document-refresh-validation.json) | Historical artifact identities before the committee revision; match its hashes before using it |
-| [Cover metadata](academic-cover.json) | Shared names, index numbers, institution, degree, supervisor and submission date |
+All demand and supply are synthetic. Administrative boundaries supply geographic
+context rather than an electrical-network model. These experiments assess a bounded
+decision-support simulation, not operation of a physical grid.
 
-Hashes bind evidence to its declared models and scientific sources. They detect a changed
-file; an unsigned checksum does not authenticate its author. Match any review or validation
-record to its exact scope and recorded hashes. A historical passing record does not certify
-later source edits.
-
-## Implementation map
-
-Scientific modules do not import Qt. The application presents validated results rather
-than calculating scientific outcomes inside widgets.
-
-```text
-domain -> scenarios -> controllers/simulation -> metrics/evaluation/evidence
-                                                    |
-                                                    v
-                                            presentation state -> Qt views
-```
-
-| Concern | Source |
-| --- | --- |
-| Scenario inputs and dispatch | [scenarios.py](../src/gridguard/scenarios.py), [simulation.py](../src/gridguard/simulation.py) |
-| Constrained action selection | [constrained.py](../src/gridguard/constrained.py), [constrained_ppo.py](../src/gridguard/constrained_ppo.py) |
-| PPO training and study | [ppo_training.py](../src/gridguard/ppo_training.py), [focused_training.py](../src/gridguard/focused_training.py) |
-| Current result integrity | [focused_results.py](../src/gridguard/focused_results.py) |
-| Follow-up calculation and display integrity | [committee_baseline.py](../src/gridguard/committee_baseline.py), [committee_results.py](../src/gridguard/committee_results.py) |
-| Deployed policy identity | [live_policy.py](../src/gridguard/live_policy.py) |
-| Forecasting and interruption durations | [forecast_model.py](../src/gridguard/forecast_model.py), [duration_metrics.py](../src/gridguard/duration_metrics.py) |
-| Live comparison and interface | [live_runner.py](../src/gridguard/ui/live_runner.py), [window.py](../src/gridguard/ui/window.py) |
-
-The [implementation contract](../SPEC.md) and [scope traceability](PROPOSAL_TRACEABILITY.md)
-retain the development history and accepted scope. The current study protocol above defines
-the constrained optimizer and longer PPO comparison used in the submitted thesis.
-
-## Verification and reproduction
-
-Start with `python tools/verify_review_package.py`. It verifies the files listed in
-[review-package-manifest.json](review-package-manifest.json), including the final documents,
-model weights, evidence and scientific sources. It uses only the Python standard library.
-This check establishes byte integrity; the tests and CUDA runs below check behavior.
-The [repository review map](REPOSITORY_REVIEW.md) explains the manifest and artifact scope.
-
-Run these commands from the repository root after the locked setup in the README:
-
-```powershell
-uv run --no-sync gridguard-doctor
-uv run --no-sync gridguard-evaluate --verify-evidence
-uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
-```
-
-The last command is the mandatory presentation-GPU gate and requires zero skipped selected
-tests. The portable CI command in the README excludes GPU tests and does not establish
-GPU readiness. The optional source-archive parity gate audits the separate read-only research
-archive. The normal package build does not require the sibling research archive.
-
-The strict post-build `release_artifact` gate belongs to the historical Git-attested release
-layout and manifest. It is distinct from the current source/GPU gate and from a portable
-submission's per-file inventory verifier. This distinction preserves the historical gate
-rather than changing its expected inputs to fit a later package.
-
-Verify the current focused study directly against its pinned training and result hashes:
-
-```powershell
-$trainingSha = (Get-Content data/evidence/focused-ppo-training.sha256).Split()[0]
-$studySha = (Get-Content data/evidence/focused-ppo-study.sha256).Split()[0]
-uv run --no-sync python tools/evaluate_focused_ppo.py --verify --training data/evidence/focused-ppo-training.json --training-sha256 $trainingSha --output data/evidence/focused-ppo-study.json --sha256 $studySha
-```
-
-The [submission guide](../SUBMISSION_README.md#reproduce-the-current-evidence) explains fresh
-evaluation and retraining into new paths. It also describes the portable academic rebuild:
-thesis formulas and graphs can be regenerated from the included sources; the editable
-PowerPoint can be exported through Microsoft PowerPoint with the supplied fonts.
-
-Check the fresh learning-stage evidence with
-`uv run --no-sync python tools/evaluate_thesis_learning_audit.py --verify`.
-For an additional full replay without replacing the existing receipt, run
-`uv run --no-sync python -c "from tools.evaluate_thesis_learning_audit import OUTPUT, verify; verify(OUTPUT, replay=True)"`.
-The included receipt already records the completed full replay. Regenerate the original
-study's descriptive locality plot and generator/training reductions with
-`uv run --no-sync python tools/interpret_focused_study.py`.
-
-## Historical files
-
-[PROJECT_HISTORY.md](PROJECT_HISTORY.md) preserves the earlier overview and detailed release
-contracts. The original [report](../output/pdf/gridguard-khartoum-final-report.pdf),
-[deck](../output/presentation/gridguard-khartoum-defense.pptx),
-[training provenance](../data/model/training-provenance.yaml) and
-[release manifest](../RELEASE_MANIFEST.json) are historical test and audit fixtures.
-Their model, scenario counts and claims differ from the current focused study. Review the
-current documents linked at the top of this guide for the submission conclusions.
+See [setup and reproduction](../SUBMISSION_README.md) for commands and
+[bibliographic notes](LITERATURE_REVIEW_AUDIT.md) for reference distinctions used in the thesis.

@@ -39,7 +39,7 @@ def test_quality_portable_selector_explicitly_hides_cuda() -> None:
     portable_step = workflow.split("- name: Run portable tests", 1)[1].split("- name:", 1)[0]
 
     assert 'CUDA_VISIBLE_DEVICES: "-1"' in portable_step
-    assert '-m "not gpu and not source_archive and not release_artifact"' in portable_step
+    assert '-m "not gpu and not source_archive"' in portable_step
 
 
 def test_doctor_main_reports_gpu_and_evidence(
