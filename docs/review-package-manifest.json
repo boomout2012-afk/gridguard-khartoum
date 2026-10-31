@@ -3,13 +3,13 @@
   "files": [
     {
       "path": "README.md",
-      "size_bytes": 3759,
-      "sha256": "f07bdb976ff55179572c9c2c7740c21de11be3547bfee9cd7cbc44e0c6566407"
+      "size_bytes": 3983,
+      "sha256": "4915360eefa349d5f74ba0bfac5f0886133fb46009ed04c1d964ae75ec87d4ab"
     },
     {
       "path": "SUBMISSION_README.md",
-      "size_bytes": 4329,
-      "sha256": "e05bad404720d080e0fb38cea6d2f6755f70a359ced0fbd65ce8f6a7a0dac9a5"
+      "size_bytes": 4433,
+      "sha256": "3ee9c166f668a02f5b8e41b58c69d4eb114c0748131efade3a85c0f7e5409d25"
     },
     {
       "path": "data/evidence/accepted-sources/plot_training_diagnostics-3ac68a10ebff.py",
@@ -85,6 +85,16 @@
       "path": "data/evidence/accepted-sources/src/gridguard/statistics.py",
       "size_bytes": 7279,
       "sha256": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9"
+    },
+    {
+      "path": "data/evidence/additional-baselines.json",
+      "size_bytes": 2111321,
+      "sha256": "42a8216dd8fce86b980bb0929a6184cbbbf0a58de1941552b4b826084247eb80"
+    },
+    {
+      "path": "data/evidence/additional-baselines.sha256",
+      "size_bytes": 66,
+      "sha256": "d6fd700f47905a4fb3e6b751f63d95b4930732ffc61785bdee8893e570804345"
     },
     {
       "path": "data/evidence/allocation-study.json",
@@ -533,8 +543,8 @@
     },
     {
       "path": "docs/FOCUSED_THESIS.md",
-      "size_bytes": 103495,
-      "sha256": "f137fb4fcdc7f187d2f1fcf0274ec41fcba4af4acaeb3a7ad51f258fccd6fd34"
+      "size_bytes": 114853,
+      "sha256": "f8b1e9563e369f25379d1a259024cdb897e43cf947bbb18e0fed0cac29cdf56b"
     },
     {
       "path": "docs/LITERATURE_REVIEW_AUDIT.md",
@@ -548,8 +558,8 @@
     },
     {
       "path": "docs/REVIEWER_GUIDE.md",
-      "size_bytes": 3768,
-      "sha256": "8981a6a42d3f07bdbcea260ca1afc0a53f7ed7f2f8decd486619237a481e2731"
+      "size_bytes": 4486,
+      "sha256": "f1d26d858b849b6eb745bfea5db6d0646509040a3f9b500d876fa2ba7ad6d50f"
     },
     {
       "path": "docs/THESIS_LEARNING_AUDIT_PROTOCOL.md",
@@ -708,23 +718,23 @@
     },
     {
       "path": "docs/assets/focused-study/controller-outcomes.png",
-      "size_bytes": 281429,
-      "sha256": "b0132b5ccbef5795b24521a91e4d9b9323a1f2774cd7b5f10c2c778576198413"
+      "size_bytes": 286160,
+      "sha256": "ec58ca3114cf63309ddbf2b4cd01ee8cbb6a020541df4c98d9d8959ba99b4c74"
     },
     {
       "path": "docs/assets/focused-study/controller-outcomes.svg",
-      "size_bytes": 34017,
-      "sha256": "a4b4f3573dba3bad32fb0aa6a9f02bf6890f432b01b1c4f0664a7cce3d4ec243"
+      "size_bytes": 34033,
+      "sha256": "35be895b6d7fb32df2b20b21b6d3912ca329dd7ebcb66339eefbbeca35da6428"
     },
     {
       "path": "docs/assets/focused-study/forecast-errors.png",
-      "size_bytes": 310860,
-      "sha256": "092b3111422263e1bf50a0e70313b026db66f65a4a4cb8994510f01bca5acfc5"
+      "size_bytes": 332169,
+      "sha256": "30c52673ec970b82fb02e40384443d00fc3fb68cb91db281968f4b1bedd7374f"
     },
     {
       "path": "docs/assets/focused-study/forecast-errors.svg",
-      "size_bytes": 33106,
-      "sha256": "83ff74384bec275fe5896cc4714543af255b50cd2fab7be881fb56f04bb081be"
+      "size_bytes": 37382,
+      "sha256": "40aa809a753dc443be7b162a8f9e1ceb1f4c3db3836cb4aa2a39d6bd1230e699"
     },
     {
       "path": "docs/assets/focused-study/interpretation-details.json",
@@ -770,6 +780,21 @@
       "path": "docs/assets/focused-study/math/00ae45e6c314096af4e0.svg",
       "size_bytes": 1955,
       "sha256": "3f4b2dafb890c91cd628b18e10096b384edbbd285f0923089a9eec4ce84a88ec"
+    },
+    {
+      "path": "docs/assets/focused-study/math/015acf76448991dc30da.mml",
+      "size_bytes": 1746,
+      "sha256": "55c3d00fa523964e57ad5186960382acf0538b8a58162ede16a26aa3dd1e2b5e"
+    },
+    {
+      "path": "docs/assets/focused-study/math/015acf76448991dc30da.png",
+      "size_bytes": 55184,
+      "sha256": "7abaa5b34fa81997fa142ec48436ca9f7d20613bc76781eb9715ec70fa2b35f5"
+    },
+    {
+      "path": "docs/assets/focused-study/math/015acf76448991dc30da.svg",
+      "size_bytes": 29297,
+      "sha256": "b7febf43a23ec5c025752247aee3a96a9483bad00f23c23883d58c4ddc162268"
     },
     {
       "path": "docs/assets/focused-study/math/019dd42e0f16085088db.mml",
@@ -845,6 +870,21 @@
       "path": "docs/assets/focused-study/math/0b22c1a554714bcab965.svg",
       "size_bytes": 3153,
       "sha256": "b979c06753fbc88aa28654e78e348d65f14194aaa9e79af7ac73f116e5af3a23"
+    },
+    {
+      "path": "docs/assets/focused-study/math/0ef2daeacc6e43013445.mml",
+      "size_bytes": 212,
+      "sha256": "250ea2065f83df8c27debc55b3596d60932f7882ec329dc9e30dca8ff85a0386"
+    },
+    {
+      "path": "docs/assets/focused-study/math/0ef2daeacc6e43013445.png",
+      "size_bytes": 3778,
+      "sha256": "858387783a343479de5c914b78a34d5ca85795a7709afebce16304ce428e27a2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/0ef2daeacc6e43013445.svg",
+      "size_bytes": 2469,
+      "sha256": "09d999077f505b97a574f6da56e14e13dae4e7ada8eb486b9eee73657ad085cf"
     },
     {
       "path": "docs/assets/focused-study/math/1175fe9f1b73539935c2.mml",
@@ -1220,6 +1260,21 @@
       "path": "docs/assets/focused-study/math/3e08962d75022b6f8f80.svg",
       "size_bytes": 7687,
       "sha256": "6bf1eefc787fac7225896823617762444d1f7f141d5233d028866757b7ecb289"
+    },
+    {
+      "path": "docs/assets/focused-study/math/4276af7817638b79c104.mml",
+      "size_bytes": 214,
+      "sha256": "1475b34beeccca8a46551a11aadf473078e710a0267039f051cd6ca90db7bb08"
+    },
+    {
+      "path": "docs/assets/focused-study/math/4276af7817638b79c104.png",
+      "size_bytes": 6995,
+      "sha256": "3d583995cb3f888dd3a0f49dfb1351d2b0f41f28ee91b1ac9744b859c9983d8f"
+    },
+    {
+      "path": "docs/assets/focused-study/math/4276af7817638b79c104.svg",
+      "size_bytes": 3991,
+      "sha256": "5437e48cac637e768e128609984d89046a8813c30885d9764cabbd6560616031"
     },
     {
       "path": "docs/assets/focused-study/math/45fc092866cca7d3bd37.mml",
@@ -1852,6 +1907,21 @@
       "sha256": "983e2dbf2cb5e1a43000b5276dd422e3ff89d7e19e133a4147789dcb76f90c79"
     },
     {
+      "path": "docs/assets/focused-study/math/9056edf5a228a91c1fa7.mml",
+      "size_bytes": 214,
+      "sha256": "8c270d91fcb44dce3fc28f04652ff89b9110f12e2d8343c852f7a10267dbdd41"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9056edf5a228a91c1fa7.png",
+      "size_bytes": 6591,
+      "sha256": "25b767e23ee96054db3db3e669f6cfd0788b5311a9b5ad990d071cc2af3bef73"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9056edf5a228a91c1fa7.svg",
+      "size_bytes": 3992,
+      "sha256": "66c4f7c52fb4e6c786bf9522edf1545cc3102a5a721c90355b6abf8b487c7613"
+    },
+    {
       "path": "docs/assets/focused-study/math/93147121bc071e47eaf1.mml",
       "size_bytes": 266,
       "sha256": "0f3ccdf09b19fcf98fb05f066a0546d482e95ad93f3cdf14c5b5d73705da6cdf"
@@ -1925,6 +1995,21 @@
       "path": "docs/assets/focused-study/math/956292f3bde41df9aaec.svg",
       "size_bytes": 1034,
       "sha256": "b61bdac92bea4a8049863503358b2a0b6a255536579f04ab8ee2d56672110aa6"
+    },
+    {
+      "path": "docs/assets/focused-study/math/98c41e0916f675fb9395.mml",
+      "size_bytes": 961,
+      "sha256": "a8ef9fe071f5f47545a72dbffef4a19050e501876e2359ad922c777be711efbf"
+    },
+    {
+      "path": "docs/assets/focused-study/math/98c41e0916f675fb9395.png",
+      "size_bytes": 25901,
+      "sha256": "7bd88f58385ff9c4146b1d62a55c9a8ae8ecf14ef4a185724766f2d0f1534d87"
+    },
+    {
+      "path": "docs/assets/focused-study/math/98c41e0916f675fb9395.svg",
+      "size_bytes": 15322,
+      "sha256": "c86914dfb8b791b37a863a7f4f3b7ed26c16d5fea7cc9ade7c55c967e8db1e7f"
     },
     {
       "path": "docs/assets/focused-study/math/9aee623c12112f71af1a.mml",
@@ -2452,6 +2537,21 @@
       "sha256": "69d090949eaae784a08e331467371d858ed9675824ae60aa390de1b291766061"
     },
     {
+      "path": "docs/assets/focused-study/math/d113a61446bb401013b0.mml",
+      "size_bytes": 173,
+      "sha256": "576dcc262455474c77832f75a6fcae05d66db940a4be18c731acd94fd89dea90"
+    },
+    {
+      "path": "docs/assets/focused-study/math/d113a61446bb401013b0.png",
+      "size_bytes": 1377,
+      "sha256": "bd0e0ee232bf793a69b2ffb2fe5e82d01259aafe1d950b3fda6217bc4d4bc7c3"
+    },
+    {
+      "path": "docs/assets/focused-study/math/d113a61446bb401013b0.svg",
+      "size_bytes": 778,
+      "sha256": "cb332562b67afc96ff0039e5a47be7c63c6788f5e32e5a0443933ed47fa39f84"
+    },
+    {
       "path": "docs/assets/focused-study/math/d1616d6407dfd9a47fdd.mml",
       "size_bytes": 214,
       "sha256": "5e9587e9b6f54ebb3730347e3534ef74f3cbbcb506ac110e994870e0e2322150"
@@ -2707,6 +2807,21 @@
       "sha256": "48ad4648c9a29be7c7e725a30c01ed95e2af55b8c5ae72480a573cbdadee9704"
     },
     {
+      "path": "docs/assets/focused-study/math/f5abf847d5dc5756dc58.mml",
+      "size_bytes": 211,
+      "sha256": "a934bf473a2363f6cc08ba48f26839ea47a9ce1f0047bf8ee38a2cbd450064a0"
+    },
+    {
+      "path": "docs/assets/focused-study/math/f5abf847d5dc5756dc58.png",
+      "size_bytes": 4525,
+      "sha256": "58b47c7f3b134be16035c8a77ccfa86c058a2f121c0d67b76aee23900563158e"
+    },
+    {
+      "path": "docs/assets/focused-study/math/f5abf847d5dc5756dc58.svg",
+      "size_bytes": 2719,
+      "sha256": "e8240eafa03c671982d8573be2ff27957a051fb257f269cd600d2eb9a7edb13c"
+    },
+    {
       "path": "docs/assets/focused-study/math/f718ec0cae33f297167a.mml",
       "size_bytes": 205,
       "sha256": "f5a4c140f5e5e05168400a038a621a51cf56d15204b83f08b06b4fc6c4b34dde"
@@ -2797,34 +2912,49 @@
       "sha256": "e6ecb4fb73aa35ffe9148f7b03b20f62da49421b90e6543b75a16223d24d6903"
     },
     {
+      "path": "docs/assets/focused-study/math/fe2bb246333f5df1e910.mml",
+      "size_bytes": 214,
+      "sha256": "fe0bbe3ccfbe79e04a9aed9772e91c61a1eddccc98d1a4f747e9149a122929e7"
+    },
+    {
+      "path": "docs/assets/focused-study/math/fe2bb246333f5df1e910.png",
+      "size_bytes": 6118,
+      "sha256": "bcec492ccb4372d4ad5111dce51883979de5c75f0ecfbf15621ddadaafad2b27"
+    },
+    {
+      "path": "docs/assets/focused-study/math/fe2bb246333f5df1e910.svg",
+      "size_bytes": 3640,
+      "sha256": "3273a93cedc5bece78d3d7d0a0dd47fb326e69e6c56da30089ca7856cc59a201"
+    },
+    {
       "path": "docs/assets/focused-study/paired-effects.png",
-      "size_bytes": 211258,
-      "sha256": "ca52213a4c33f604f8bf178079bbbc5f95474ffe84257e6eb0bf76a879b83697"
+      "size_bytes": 212942,
+      "sha256": "ea4d514d924929f161f542ee76c4174f849791d9d6ad6ec804768c828fee7aa2"
     },
     {
       "path": "docs/assets/focused-study/paired-effects.svg",
-      "size_bytes": 30611,
-      "sha256": "27c1126c6bdf79de4aeaa28dd655ad5d8ed41a2cc1686a65ab741c1ba68a0888"
+      "size_bytes": 30614,
+      "sha256": "99c54ed23dd02d0b5e79c6c8b88d7165d046065698513ea1825ba2f14e378039"
     },
     {
       "path": "docs/assets/focused-study/research-workflow.png",
-      "size_bytes": 138006,
-      "sha256": "6816dfd4ef1101325a41b34256f1227c828d78c9696cc0ac2e50e6877b230de4"
+      "size_bytes": 131559,
+      "sha256": "82b5a45ea88bdf8f4993a74de12fa0af347fc79de63633298af5a46ada4fbaa0"
     },
     {
       "path": "docs/assets/focused-study/research-workflow.svg",
-      "size_bytes": 5882,
-      "sha256": "b457b74389970af7d46aa0949d199c0bf264fcf56dddf9341f39250fe36391e4"
+      "size_bytes": 7328,
+      "sha256": "c51a834279abca3c5c52aa74e093f5dac874e5c1ad8f27452faee82cb9a138e2"
     },
     {
       "path": "docs/assets/focused-study/tensorboard-diagnostics.png",
-      "size_bytes": 931055,
-      "sha256": "90fa992943aed7c59f3928f0c5d33dfe988d9755bf5691ec047ad5115428113f"
+      "size_bytes": 676131,
+      "sha256": "26f15f9a7f11c1d4dabacbd3c0e7408b14e7a12466100773186797d5547d7e06"
     },
     {
       "path": "docs/assets/focused-study/tensorboard-diagnostics.svg",
-      "size_bytes": 200616,
-      "sha256": "6a6c2835b6da810fae0c14cc6e5aced042952a2a2fa6994d99ec4bb0e5b59d1c"
+      "size_bytes": 195000,
+      "sha256": "095a90b96db28c28931266f1a1d34b2c908de4d93bf1f2a560e6fad109c70d65"
     },
     {
       "path": "docs/assets/focused-study/training-curves.png",
@@ -2834,7 +2964,7 @@
     {
       "path": "docs/assets/focused-study/training-curves.svg",
       "size_bytes": 44887,
-      "sha256": "ba08ef45182d2eb6424692909425043f5ffa5ce3afc25270d8fc79a412a45ff3"
+      "sha256": "170128de9716991cfc60f0df47bce784fc3e04d828f2cb6692443c7b31f19c81"
     },
     {
       "path": "docs/assets/focused-study/training-variance.png",
@@ -3148,13 +3278,13 @@
     },
     {
       "path": "output/documents/updated/gridguard-khartoum-thesis.docx",
-      "size_bytes": 3329525,
-      "sha256": "47ae38f7d8fc8b15c8837c89dda3ae8164e27d03ce4992bb529769aac40ea0d3"
+      "size_bytes": 3107547,
+      "sha256": "8f7129b4a4d6123724a6922a230679922bed239e0f5c2c105161e613a220d679"
     },
     {
       "path": "output/documents/updated/gridguard-khartoum-thesis.docx.build.json",
-      "size_bytes": 1269,
-      "sha256": "c9c4a8871ca3db85926b655cca2cb1e152a4296c9c20bb3a92868bb56a566f7f"
+      "size_bytes": 1250,
+      "sha256": "ff2d80b1bc78c8b701de08a108bbeffa117c6afaa58e7dc62bffadaf7d37663e"
     },
     {
       "path": "output/pdf/gridguard-khartoum-gui-pages.build.json",
@@ -3173,18 +3303,18 @@
     },
     {
       "path": "output/pdf/updated/gridguard-khartoum-thesis.build.json",
-      "size_bytes": 30573,
-      "sha256": "a0fff2c7ce34cc449cfe81e1c42386697a8e9570d4975dd7ce37fdff9d06f23b"
+      "size_bytes": 31444,
+      "sha256": "a54cea96c37914bf397ee037b6742593d586ddb5ba04d4efe37558f231145f00"
     },
     {
       "path": "output/pdf/updated/gridguard-khartoum-thesis.pdf",
-      "size_bytes": 5975399,
-      "sha256": "7553fba37f4d7577d1e294e362479d56ca2955fbd9b2fa018319c121bb758654"
+      "size_bytes": 5917575,
+      "sha256": "f52d9d86fc2ba1f61f4317b1b16b30153a3a7cf13204adeb45824534998a1bb7"
     },
     {
       "path": "output/pdf/updated/gridguard-khartoum-thesis.source.md",
-      "size_bytes": 126357,
-      "sha256": "60be9bbdce0b456b701937982fac5e428baeadbef1a787abcdbdf78ddd51b5e4"
+      "size_bytes": 145946,
+      "sha256": "c1514295922e2d6e2368f90a0d68e520aab3a1cc23d2f97257f43e7fd8752dd6"
     },
     {
       "path": "output/presentation/updated/gridguard-khartoum-defense.build.json",
@@ -3528,8 +3658,8 @@
     },
     {
       "path": "tools/assemble_focused_thesis_content.py",
-      "size_bytes": 32292,
-      "sha256": "a7cb938626a7d965c01e8e24b10ebbb3d64268be85e643f4cc76d815e12f927f"
+      "size_bytes": 44686,
+      "sha256": "691f505531afef3fa79fbbfd8701e37211500c3275d1bc2454ceac448315cc4e"
     },
     {
       "path": "tools/build_current_gui_pdf.py",
@@ -3543,18 +3673,23 @@
     },
     {
       "path": "tools/build_focused_thesis.py",
-      "size_bytes": 38891,
-      "sha256": "2c5ffed790992811e05100f19e641d36f700769038429527bfd5f03c5d4b5399"
+      "size_bytes": 39229,
+      "sha256": "191dfc219598e8c47d69d2c6a403ed998c6b16bb61905e1feb603d8fb9d14c13"
     },
     {
       "path": "tools/build_focused_thesis_docx.py",
-      "size_bytes": 21108,
-      "sha256": "7146de0156c388f0b099e7907e07cb090eadbf17a541867e7a38da9cc8887fa0"
+      "size_bytes": 22324,
+      "sha256": "0a41a10c412daf7184a4f3f749c150fed910dae9ec455874124ed94da5fde745"
     },
     {
       "path": "tools/capture_current_app.py",
       "size_bytes": 12144,
       "sha256": "5453956649f832edb900738f2a89a830a687ed6054d40467e35e0af9dba9f130"
+    },
+    {
+      "path": "tools/evaluate_additional_baselines.py",
+      "size_bytes": 23970,
+      "sha256": "e5b64542d904629480150ce742d2d0d926014a24a98b890b01671245aa4f8b05"
     },
     {
       "path": "tools/evaluate_allocation_study.py",
@@ -3593,13 +3728,13 @@
     },
     {
       "path": "tools/plot_focused_thesis.py",
-      "size_bytes": 7793,
-      "sha256": "fb28b88abc602440673ed3ca727a60cb9e92b0c987f7d79b673833a7ec7c96d2"
+      "size_bytes": 8413,
+      "sha256": "4b4b6f25e955f23b45dee37d8395de9027b42852e3036d6524826922d001b2a8"
     },
     {
       "path": "tools/plot_training_diagnostics.py",
-      "size_bytes": 17787,
-      "sha256": "568b8456e30a6410aae7f09f1d8b93b5a4474fcfc5b3be1a16249aaf2ef847e4"
+      "size_bytes": 17777,
+      "sha256": "c48a43aa845b30789033ff25cb11153ad4ae2a346886f1d16b5e6d1ece558bd1"
     },
     {
       "path": "tools/render_thesis_math.cjs",
@@ -3608,8 +3743,8 @@
     },
     {
       "path": "tools/thesis_learning_content.py",
-      "size_bytes": 12767,
-      "sha256": "7a0296bfb16bea7eb103af159336e680f0d66aad9f7ed39aaf1755d345711301"
+      "size_bytes": 13648,
+      "sha256": "b4a36b2e39be318d7fae9b15157350356ad3bf5016f4621da3e422502e9fd419"
     },
     {
       "path": "tools/train_constrained_ppo.py",

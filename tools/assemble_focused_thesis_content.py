@@ -20,6 +20,8 @@ LEARNING_VALIDATION = "data/evidence/thesis-learning-audit.validation.json"
 LEARNING_VALIDATION_HASH = "de79e31a219762802a68da5a6ace2fcd6c2067300f1497076bc1d3ac3392493c"
 SUPPLEMENT = "data/evidence/proposal-supplement.json"
 SUPPLEMENT_HASH = "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e"
+ADDITIONAL = "data/evidence/additional-baselines.json"
+ADDITIONAL_HASH = "42a8216dd8fce86b980bb0929a6184cbbbf0a58de1941552b4b826084247eb80"
 FIXED = "PPO - Fixed Rotation"
 OPT = "PPO - Constrained Optimization"
 BUDGET = "PPO - PPO at600"
@@ -82,7 +84,7 @@ def followup_text(audit):
         "original results. No new primary pass/fail claim is registered.",
         "Table 13 compares the five procedures. All four critical-protected procedures "
         "have zero critical interruption, zero complete critical outage and zero power "
-        "violations in every nominal condition. Critical-aware rotation alone removes "
+        "violations in every nominal condition. Critical-aware Fixed Rotation alone removes "
         "the original schedule's critical interruptions, showing that protection does "
         "not require learning. Differences in the remaining service outcomes concern "
         "how noncritical supply is allocated.",
@@ -117,7 +119,7 @@ def followup_text(audit):
     ]
     parts.append(
         table(
-            ["Outcome", "PPO - critical-aware rotation", "PPO - Fairness Rule"],
+            ["Outcome", "PPO - Critical-aware Fixed Rotation", "PPO - Fairness Rule"],
             [
                 [
                     label,
@@ -149,6 +151,8 @@ def followup_text(audit):
         "The reward interval's lower endpoint remains below the earlier +0.01 reference. "
         "The utilization interval is entirely below the earlier -0.2-point margin. "
         "These references provide context, not a newly declared confirmatory test. "
+        "The pointwise intervals are not adjusted for all outcomes, shortage levels and "
+        "training-run comparisons, so they do not establish a familywise significance claim. "
         "A positive pooled reward difference is insufficient to claim uniform "
         "superiority over the teacher or an operational improvement."
     )
@@ -216,9 +220,187 @@ def followup_text(audit):
         "limit; high fairness and zero total blackouts do not mean adequate critical "
         "service. Every method records zero power-balance violations within the stated "
         "0.001 MW tolerance. This verifies a defined response to infeasibility, not "
-        "successful critical protection when supply is insufficient."
+        "successful critical protection when supply is insufficient. No protected "
+        "assignment is physically feasible at these supply levels. The implementation "
+        "therefore enables one all-Critical-Only fallback, which dispatch scales "
+        "proportionally. Identical protected-controller outcomes are forced by that "
+        "fallback; they do not demonstrate equal decision quality or a PPO advantage."
     )
     return "\n\n".join(parts)
+
+
+def additional_comparisons(supplement):
+    """Keep later comparisons separate from the original primary experiment."""
+    rule = supplement["rule_vs_optimizer"]
+    if not all(rule["gates"].values()):
+        raise ValueError("The supplemental interpretation requires the recorded service gates")
+    intervals = rule["intervals"]
+    body = (
+        "A further post-hoc calculation applies the numerical service requirements in "
+        "Section 5.4 to Fairness Rule minus Constrained Optimization on the original 960 "
+        "conditions. It resamples 320 base draws within generation-seed strata, keeping "
+        "the three shortage variants together, with 10,000 paired resamples. The "
+        "97.5% pointwise intervals reuse the original interval level but do not create "
+        "a new confirmatory family. Daily reward changes by "
+        + ci_text(intervals["episode_reward"], digits=4)
+        + "; utilization changes by "
+        + ci_text(intervals["utilization"], 100, 3)
+        + " percentage points. All numerical service requirements pass, including the "
+        "shortage-level guardrails and zero critical interruption and power violations. "
+        "Table 22 reports the intervals. This retrospective result supports the simple "
+        "rule as a stronger practical comparator within this simulator; it does not "
+        "change the original PPO verdict or establish general superiority."
+        "\n\nThe below-critical stress test is supplemented by an action-availability "
+        "boundary test on the same 320 base demand draws. Supply equals total critical "
+        "demand plus 0.99, 1.01 or 2.00 times the smallest locality's noncritical demand. "
+        "This brackets the first Full Service upgrade: merely setting supply slightly "
+        "above critical demand may leave only one feasible assignment. Tables 23 and 24 "
+        "give the choice counts and outcomes. At 0.99 every protected method has one "
+        "choice and behaves identically. At 1.01 there are two or three choices per "
+        "hour; PPO's mean reward is 22.4999 versus 22.6728 for Constrained Optimization. "
+        "At 2.00 there are eight choices; PPO reaches 22.6198 versus 22.5261 for the "
+        "optimizer, while Critical-aware Fixed Rotation reaches 22.7567. All protected "
+        "methods retain zero critical interruption and power violations. These "
+        "constructed challenges expose changing rankings, not a uniform PPO advantage."
+    )
+    appendix = [
+        "Table 22 applies the original numerical service margins retrospectively to "
+        "Fairness Rule minus Constrained Optimization. Both are deterministic, so there "
+        "is no training-run resampling or validation-selection requirement. The table "
+        "contains pointwise 97.5% paired intervals, not a multiplicity-adjusted family "
+        "for the additional comparisons. All shortage-level mean guardrails also pass.",
+        "**Table 22. Post-hoc Fairness Rule effects against Constrained Optimization.**",
+        table(
+            ["Outcome", "Mean difference and 97.5% interval", "Required endpoint"],
+            [
+                [
+                    "Daily reward",
+                    ci_text(intervals["episode_reward"], digits=4),
+                    "Lower above zero",
+                ],
+                [
+                    "Jain fairness (pp)",
+                    ci_text(intervals["fairness"], 100, 3),
+                    "Lower at least -0.2",
+                ],
+                [
+                    "Utilization (pp)",
+                    ci_text(intervals["utilization"], 100, 3),
+                    "Lower at least -0.2",
+                ],
+                ["Served energy (MWh)", ci_text(intervals["served_mwh"], digits=2), "Descriptive"],
+                [
+                    "Switching rate (pp)",
+                    ci_text(intervals["switching_rate"], 100, 3),
+                    "Descriptive",
+                ],
+            ],
+        ),
+        "For the boundary challenge, let the critical set of sectors be $\\mathcal C$. "
+        "For each hourly demand array, define the first discretionary-service quantum "
+        "and supply by",
+        "$$\nq_t=\\min_i\\sum_{s\\notin\\mathcal C}d_{t,i,s},\\qquad "
+        "S_t=\\sum_i\\sum_{s\\in\\mathcal C}d_{t,i,s}+\\alpha q_t,\\quad "
+        "\\alpha\\in\\{0.99,1.01,2.00\\}.\n$$",
+        "No training or model selection uses these post-hoc challenges. Each family "
+        "contains 320 conditions and nine controllers, for 8,640 trajectories in total. "
+        "Each input hour contributes once to Table 23; the five actors are averaged "
+        "equally for the PPO procedure in Table 24. The first upgrade needs about 35% "
+        "headroom above critical demand on average, reflecting locality-level action "
+        "granularity. These are action-availability boundaries, not a study of supply "
+        "within 1% of critical demand.",
+        "**Table 23. Admissible assignments in the constructed boundary families.**",
+    ]
+    summaries = supplement["boundary"]["summaries"]
+    appendix.append(
+        table(
+            [
+                "Multiplier",
+                "Mean supply / critical (%)",
+                "Choice count range",
+                "Hours with multiple choices",
+            ],
+            [
+                [
+                    alpha,
+                    f"{100 * block['supply_to_critical_ratio']['mean']:.2f}",
+                    f"{block['feasible_action_count']['min']}–{block['feasible_action_count']['max']}",
+                    f"{block['feasible_action_count']['hours_with_multiple_choices']:,} / 7,680",
+                ]
+                for alpha, block in summaries.items()
+            ],
+        )
+    )
+    appendix.append("**Table 24. Protected controller outcomes on the boundary challenges.**")
+    rows = []
+    for alpha, block in summaries.items():
+        for label in (
+            "Critical-aware Fixed Rotation",
+            "Constrained Optimization",
+            "Fairness Rule",
+            "PPO",
+        ):
+            values = (
+                block["ppo_procedure_mean"] if label == "PPO" else block["controller_means"][label]
+            )
+            rows.append(
+                [
+                    alpha,
+                    label,
+                    f"{values['episode_reward']:.4f}",
+                    f"{values['served_mwh']:.2f}",
+                    f"{100 * values['fairness']:.2f}",
+                    f"{100 * values['utilization']:.2f}",
+                ]
+            )
+    appendix.append(
+        table(
+            ["Multiplier", "Procedure", "Reward", "Served (MWh)", "Jain (%)", "Utilization (%)"],
+            rows,
+        )
+    )
+    appendix.append(
+        "Every protected procedure records zero critical interruption and zero "
+        "power-balance violations. The unprotected Fixed Rotation outcomes, individual "
+        "PPO actors, action hashes and per-condition records are retained alongside "
+        "these summaries in `data/evidence/additional-baselines.json`. Reproduction and "
+        "portable verification use `tools/evaluate_additional_baselines.py`. The same "
+        "artifact records the training-fitted hourly profile and sufficient forecast "
+        "error statistics for all four methods in Table 16. It first reproduces the "
+        "three original forecasting methods on the original targets."
+    )
+    appendix.insert(1, appendix.pop())
+    methods = supplement["forecast"]["methods"]
+    forecast = (
+        "**Table 16. Forecast error on 320 held-out traces; "
+        "the hourly mean is a post-hoc baseline.**\n\n"
+        + table(
+            [
+                "Forecast method",
+                "Cell MAE (MW)",
+                "Cell RMSE (MW)",
+                "System MAE (MW)",
+                "System RMSE (MW)",
+            ],
+            [
+                [
+                    label,
+                    *[
+                        f"{methods[name][scope][metric]:.4f}"
+                        for scope in ("locality_sector", "system_total")
+                        for metric in ("mae_mw", "rmse_mw")
+                    ],
+                ]
+                for name, label in (
+                    ("trailing_mean_3h", "Three-hour trailing mean"),
+                    ("persistence_1h", "One-hour persistence"),
+                    ("ridge_ar3", "Ridge AR(3)"),
+                    ("hour_of_day_mean", "Training hour-of-day mean"),
+                )
+            ],
+        )
+    )
+    return body, "\n\n".join(appendix), forecast
 
 
 def main(training_sha, study_sha):
@@ -229,6 +411,8 @@ def main(training_sha, study_sha):
     followup_sha = (ROOT / FOLLOWUP).with_suffix(".sha256").read_text().split()[0]
     followup = load(FOLLOWUP, followup_sha)
     learning_audit = load(LEARNING_AUDIT, LEARNING_AUDIT_HASH)
+    additional = load(ADDITIONAL, ADDITIONAL_HASH)
+    additional_body, additional_appendix, forecast_table = additional_comparisons(additional)
     learning_validation = load(LEARNING_VALIDATION, LEARNING_VALIDATION_HASH)
     if (
         learning_validation["artifact_sha256"] != LEARNING_AUDIT_HASH
@@ -262,7 +446,7 @@ def main(training_sha, study_sha):
     selected = [run["selected"]["iteration"] for run in runs]
     main_metrics = [
         ("Critical interruption (locality-hours)", "critical_interruption_locality_hours", 1, 2),
-        ("Jain service fairness (%)", "fairness", 100, 2),
+        ("Jain fairness (%)", "fairness", 100, 2),
         ("Supply utilization (%)", "utilization", 100, 2),
         ("Daily reward", "episode_reward", 1, 4),
         ("Switching rate (%)", "switching_rate", 100, 2),
@@ -274,7 +458,7 @@ def main(training_sha, study_sha):
         "**Table 6. Final-test controller outcomes on 960 matched conditions; "
         "PPO averages five selected runs.**\n\n"
         + table(
-            ["Outcome", "Fixed Rotation", "Constrained optimizer", "PPO"],
+            ["Outcome", "Fixed Rotation", "Constrained Optimization", "PPO"],
             [
                 [label, *[f"{row[metric] * scale:.{digits}f}" for row in rows]]
                 for label, metric, scale, digits in main_metrics
@@ -300,7 +484,7 @@ def main(training_sha, study_sha):
         "\n\n**Table 7. Final-test interruption durations and disparities, averaged after "
         "calculation within each episode.**\n\n"
         + table(
-            ["Duration outcome", "Fixed Rotation", "Constrained optimizer", "PPO"],
+            ["Duration outcome", "Fixed Rotation", "Constrained Optimization", "PPO"],
             [[label, *[f"{row[metric]:.3f}" for row in rows]] for label, metric in durations],
         )
     )
@@ -310,7 +494,7 @@ def main(training_sha, study_sha):
         "evidence of equal Full Service. "
         f"Mean available energy was {fixed['available_mwh']:.2f} MWh per condition. "
         f"Mean served energy was {fixed['served_mwh']:.2f} MWh for Fixed Rotation, "
-        f"{opt['served_mwh']:.2f} MWh for the constrained optimizer and "
+        f"{opt['served_mwh']:.2f} MWh for Constrained Optimization and "
         f"{ppo['served_mwh']:.2f} MWh for PPO. "
         "These energy totals differ from the reported mean of hourly utilization ratios."
     )
@@ -322,7 +506,7 @@ def main(training_sha, study_sha):
         ]
         values.append(study["procedure_shortage_means"][level]["PPO"])
         for name, value in zip(
-            ("Fixed Rotation", "Constrained optimizer", "PPO"), values, strict=True
+            ("Fixed Rotation", "Constrained Optimization", "PPO"), values, strict=True
         ):
             shortage_rows.append(
                 [
@@ -352,7 +536,7 @@ def main(training_sha, study_sha):
     primary_parts = []
     effect_metrics = (
         ("Critical interruption (locality-hours)", "critical_interruption_locality_hours", 1),
-        ("Jain service fairness (pp)", "fairness", 100),
+        ("Jain fairness (pp)", "fairness", 100),
         ("Supply utilization (pp)", "utilization", 100),
         ("Daily reward", "episode_reward", 1),
         ("Switching rate (pp)", "switching_rate", 100),
@@ -428,10 +612,10 @@ def main(training_sha, study_sha):
     )
     budget_pass = claims[BUDGET]["passed"]
     budget_table += "\n\n" + (
-        "The predeclared additional-training criterion passed: the selected longer-run "
+        "The declared additional-training criterion passed: the selected longer-run "
         "policies improved daily reward while meeting the service and safety guardrails."
         if budget_pass
-        else "The full predeclared additional-training criterion did not pass. A larger budget "
+        else "The full declared additional-training criterion did not pass. A larger budget "
         "alone therefore does not establish improvement on every declared requirement."
     )
     if not budget_pass:
@@ -445,6 +629,22 @@ def main(training_sha, study_sha):
         "percentage points. The mean utilization loss is therefore about 0.24 percentage "
         "points, and its interval breaches the allowed 0.2-point loss."
     )
+    budget_severity_effects = {
+        level: 100
+        * (
+            study["procedure_shortage_means"][level]["PPO"]["utilization"]
+            - study["procedure_shortage_means"][level]["PPO at600"]["utilization"]
+        )
+        for level in study["shortages"]
+    }
+    budget_table += (
+        " Shortage-level utilization changes are "
+        + ", ".join(
+            f"{level.title()} {value:+.3f} points"
+            for level, value in budget_severity_effects.items()
+        )
+        + "; Moderate and Severe breach the mean-loss guardrail of 0.2 points."
+    )
 
     abstract = (
         f"Across 960 fresh matched conditions, PPO averaged "
@@ -453,7 +653,7 @@ def main(training_sha, study_sha):
         f"{100 * ppo['utilization']:.2f}% utilization. Fixed Rotation recorded "
         f"{fixed['critical_interruption_locality_hours']:.2f}, "
         f"{100 * fixed['fairness']:.2f}% and {100 * fixed['utilization']:.2f}%, respectively; "
-        f"the constrained optimizer recorded {opt['critical_interruption_locality_hours']:.2f}, "
+        f"Constrained Optimization recorded {opt['critical_interruption_locality_hours']:.2f}, "
         f"{100 * opt['fairness']:.2f}% and {100 * opt['utilization']:.2f}%. "
         f"PPO's daily-reward difference from the optimizer was "
         f"{ci_text(inference[OPT]['episode_reward'], digits=4)} "
@@ -469,15 +669,21 @@ def main(training_sha, study_sha):
         " A post-hoc matched audit finds improved allocation over a critical-aware "
         "rotating rule. Against the Fairness Rule teacher, PPO gains 0.0102 daily reward "
         "but loses 0.308 utilization percentage points and 16.68 served MWh per day; "
-        "the pooled gain is concentrated in Severe shortage. Stress tests verify "
-        "partial critical-service fallback when the supply cannot cover critical demand."
+        "the pooled gain is concentrated in Severe shortage. The teacher achieves about "
+        "80% of PPO's reward advantage over the optimizer with a smaller utilization loss. "
+        "The infeasible-supply test verifies the common fallback rather than distinguishing "
+        "protected controllers. A later descriptive application of the original numerical "
+        "service margins to Fairness Rule versus the optimizer passes those checks; "
+        "this was not an original confirmatory comparison."
     )
     stage = learning_audit["paired_inference"]["PPO - own Behavior Cloning"]
     abstract += (
         " A separate fresh 960-condition audit of the same five runs finds that "
         f"fine-tuning and validation selection add {stage['episode_reward']['mean']:.4f} "
         "daily reward over imitation alone, while serving "
-        f"{-stage['served_mwh']['mean']:.2f} fewer MWh per day. Higher mean Jain fairness "
+        f"{-stage['served_mwh']['mean']:.2f} fewer MWh per day. The imitation-only actors "
+        "start 0.1704 below the teacher, so most of the stage gain closes that gap; "
+        "selected PPO ends only 0.0097 above it. Higher mean Jain fairness "
         "does not ensure higher final service to the worst-served locality."
     )
 
@@ -485,13 +691,13 @@ def main(training_sha, study_sha):
     interpretation.append(
         "The complete constrained PPO system "
         + ("met" if claims[FIXED]["passed"] else "did not meet")
-        + " the predeclared improvement criterion against Fixed Rotation. This comparison "
+        + " the declared improvement criterion against Fixed Rotation. This comparison "
         "includes differences in action choices and critical-service constraints, so it "
         "does not isolate the neural policy as the sole cause of the observed difference."
     )
     opt_reward = inference[OPT]["episode_reward"]
     interpretation.append(
-        f"Against the constrained optimizer, the mean daily-reward difference was "
+        f"Against Constrained Optimization, the mean daily-reward difference was "
         f"{ci_text(opt_reward, digits=4)}. The full comparison criterion "
         f"{'passed' if claims[OPT]['passed'] else 'did not pass'}. "
         "Both controllers use the same critical-feasible action choices. The optimizer "
@@ -561,6 +767,36 @@ def main(training_sha, study_sha):
         interpretation.append(
             "The unmet optimizer-comparison conditions were: " + "; ".join(failed) + "."
         )
+        severity_losses = {
+            level: 100
+            * (
+                study["procedure_shortage_means"][level]["PPO"]["utilization"]
+                - study["shortage_means"][level]["Constrained Optimization"]["utilization"]
+            )
+            for level in study["shortages"]
+        }
+        interpretation.append(
+            "The shortage-level utilization guardrail fails under "
+            + " and ".join(
+                f"{level.title()} ({value:+.2f} percentage points)"
+                for level, value in severity_losses.items()
+                if value < -0.2
+            )
+            + ", alongside the overall utilization interval."
+        )
+    teacher_mean = followup["controller_means"]["Fairness Rule"]
+    teacher_reward_gain = teacher_mean["episode_reward"] - opt["episode_reward"]
+    teacher_share = 100 * teacher_reward_gain / reward_difference
+    interpretation.append(
+        "The post-hoc audit in Section 5.7 qualifies the learning interpretation. "
+        f"Fairness Rule obtains {teacher_reward_gain:+.4f} daily reward over "
+        f"Constrained Optimization, approximately {teacher_share:.0f}% "
+        f"of PPO's {reward_difference:+.4f} advantage. Its utilization difference is "
+        f"{100 * (teacher_mean['utilization'] - opt['utilization']):+.2f} percentage points. "
+        "Thus most of the observed reward advantage is also available from a transparent "
+        "rule. The ratio describes these mean differences; it is not a causal share "
+        "attributed to an individual learning component."
+    )
     interpretation.append(
         "All three shortage levels are reported in Section 5.6. Severity-specific intervals are "
         "exploratory, so a favorable subgroup does not replace the overall declared result. "
@@ -575,7 +811,9 @@ def main(training_sha, study_sha):
     training_summary = (
         f"Five fresh training seeds completed 3,000 iterations each: 18,432,000 transitions "
         f"per run and 92,160,000 overall. Total recorded training time was {seconds / 60:.2f} "
-        f"minutes; final evaluation took {study['elapsed_seconds']:.2f} seconds. "
+        f"minutes (the rounded per-run entries sum to "
+        f"{sum(round(run['seconds'] / 60, 2) for run in runs):.2f}); "
+        f"final evaluation took {study['elapsed_seconds']:.2f} seconds. "
         f"Validation selected iterations {', '.join(map(str, selected))} for seeds "
         f"{', '.join(str(run['seed']) for run in runs)}, respectively. "
         f"{eligible_text} met "
@@ -600,6 +838,9 @@ def main(training_sha, study_sha):
         )
     )
     replacements = {
+        "ADDITIONAL_COMPARISONS": additional_body,
+        "ADDITIONAL_APPENDIX": additional_appendix,
+        "FORECAST_TABLE": forecast_table,
         "SUPERVISOR": json.loads((ROOT / "docs/academic-cover.json").read_text())["supervisor"],
         "ABSTRACT_RESULTS": abstract,
         "TRAINING_SUMMARY": training_summary,
@@ -620,6 +861,7 @@ def main(training_sha, study_sha):
     }
     payload = {
         "evidence_sha256": {
+            ADDITIONAL: ADDITIONAL_HASH,
             TRAINING: training_sha,
             STUDY: study_sha,
             SUPPLEMENT: SUPPLEMENT_HASH,

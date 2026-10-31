@@ -76,7 +76,7 @@ A compact navigation fixture.
 
 # 1 Introduction
 
-See Figure 3.1, Table 1 and Section 3.1.
+See Figure 1, Table 1 and Section 3.1.
 
 # 3 Methodology
 
@@ -98,12 +98,11 @@ See Figure 3.1, Table 1 and Section 3.1.
     assert "List of tables" in text
     assert "List of abbreviations" in text
     assert "3.1 Research workflow" in text
-    assert f"Figure 3.1 (p. {pages['figure-3-1']})" in text
-    assert f"Table 1 (p. {pages['table-1']})" in text
-    assert f"Section 3.1 (p. {pages['section-3-1']})" in text
-    figure_page = reader.pages[pages["figure-3-1"] - 1].extract_text()
+    assert "See Figure 1, Table 1 and Section 3.1." in text
+    assert "(p. " not in text
+    figure_page = reader.pages[pages["figure-1"] - 1].extract_text()
     table_page = reader.pages[pages["table-1"] - 1].extract_text()
-    assert "Figure 3.1. Research workflow" in figure_page
+    assert "Figure 1. Research workflow" in figure_page
     assert "Table 1. Matched scenario units" in table_page
     destinations = [
         annotation.get_object().get("/Dest")

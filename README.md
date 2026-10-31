@@ -50,8 +50,10 @@ PPO improves fairness and daily reward over the current-hour optimizer, but serv
 declared improvement criterion is not met. Critical protection comes from the shared
 constraint; it should not be attributed to learning alone.
 
-Comparisons with critical-aware rotation, Fairness Rule and imitation-only policies
-also examine service to the worst-served locality.
+Further comparisons show that Fairness Rule obtains about 80% of PPO's reward advantage
+over the optimizer without training, and meets the numerical service criteria in a
+post-hoc assessment. A training-fitted hourly demand profile also outperforms Ridge AR(3).
+The [research guide](docs/REVIEWER_GUIDE.md) separates these later analyses from the main study.
 
 Demand and supply are synthetic; this is decision-support research without operational
 validation on Khartoum's electrical network.

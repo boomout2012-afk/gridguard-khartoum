@@ -283,14 +283,14 @@ def plot_figures(payload: dict, rows_by_seed: list[list[dict]], out: Path) -> No
 
     labels = (
         ("Rollout daily reward", "Canonical score / episode"),
-        ("Policy loss", "Negative clipped surrogate"),
+        ("Policy loss", "Negative surrogate"),
         ("Value loss", "Half mean squared error"),
         ("Policy entropy", "Nats"),
         ("Approximate KL", r"$\mathbb{E}[\rho - 1 - \log\rho]$"),
         ("Clipped fraction", "Fraction of samples"),
     )
-    fig, axes = plt.subplots(2, 3, figsize=(11.7, 7.2))
-    fig.suptitle("Training diagnostics across five independent PPO runs", fontsize=16, y=0.99)
+    fig, axes = plt.subplots(3, 2, figsize=(7.2, 8.2))
+    fig.suptitle("Training diagnostics across five PPO runs", fontsize=15, y=0.99)
     x = TELEMETRY_ITERATIONS[1:]
     for ax, metric, (title, unit) in zip(axes.flat, METRICS, labels, strict=True):
         for rows, color in zip(rows_by_seed, SEED_COLORS, strict=True):
@@ -301,7 +301,7 @@ def plot_figures(payload: dict, rows_by_seed: list[list[dict]], out: Path) -> No
         upper = [point["mean"] + point["sample_sd"] for point in summaries]
         ax.fill_between(x, lower, upper, color=TEAL, alpha=0.16, linewidth=0)
         ax.plot(x, means, color=TEAL, linewidth=1.7)
-        ax.set_title(title, loc="left", fontsize=14)
+        ax.set_title(title, loc="left", fontsize=13)
         ax.set_ylabel(unit)
         ax.set_xlabel("PPO iteration")
         ax.set_xlim(0, ITERATIONS)
@@ -319,18 +319,22 @@ def plot_figures(payload: dict, rows_by_seed: list[list[dict]], out: Path) -> No
         ]
     )
     fig.legend(
-        handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0.05), ncols=7, frameon=False
+        handles=handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.035),
+        ncols=4,
+        frameon=False,
+        fontsize=10,
     )
     fig.text(
         0.5,
         0.014,
-        "120 recorded updates per seed · every 25 iterations · no smoothing · "
-        "SD is not a confidence interval",
+        "Every 25 iterations · no smoothing · SD is not a confidence interval",
         ha="center",
-        fontsize=12,
+        fontsize=10,
         color="#5C7475",
     )
-    fig.subplots_adjust(left=0.075, right=0.985, top=0.9, bottom=0.19, wspace=0.36, hspace=0.5)
+    fig.subplots_adjust(left=0.12, right=0.97, top=0.93, bottom=0.20, wspace=0.52, hspace=0.72)
     save(fig, "tensorboard-diagnostics")
 
     fig, axes = plt.subplots(3, 1, figsize=(10.5, 7.3), sharex=True)

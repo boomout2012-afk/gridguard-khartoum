@@ -98,7 +98,7 @@ def _validate(audit: dict) -> None:
 
 
 def learning_stage_text(audit: dict) -> str:
-    """Return Section 5.9 and Tables 17–18 from verified portable audit summaries.
+    """Return Section 5.10 and Tables 17–18 from verified portable audit summaries.
 
     The caller must also verify ``thesis-learning-audit.validation.json`` before
     publishing the separate full-replay statement. That receipt is not an input
@@ -179,8 +179,10 @@ def learning_stage_text(audit: dict) -> str:
     ):
         raise ValueError("teacher shortage-pattern narrative is unsupported")
 
+    bc_reward = audit["procedure_means"]["Behavior Cloning"]["episode_reward"]
+    teacher_reward = audit["controller_means"]["Fairness Rule"]["episode_reward"]
     sections = [
-        "### Fresh matched audit of the learning stage",
+        "## 5.10 Fresh audit of the learning stage",
         "The teacher comparison does not measure improvement over the imperfect cloned actor. "
         "A separate follow-up therefore compares each selected PPO actor with its own retained "
         "behavior-cloning (BC) initialization. The protocol was frozen before outcome generation, "
@@ -216,7 +218,7 @@ def learning_stage_text(audit: dict) -> str:
         "ratios within each condition, averaged afterward. It is distinct from time-averaged "
         "Jain fairness and from the minimum of averaged locality ratios. **PPO's higher Jain "
         "fairness coexists with worse final service for the least-served locality than the "
-        "teacher or critical-aware rotation.** The respective final-minimum effects are "
+        "teacher or Critical-aware Fixed Rotation.** The respective final-minimum effects are "
         f"{_interval(teacher['final_minimum_locality_service_ratio'], scale=100, digits=3)} and "
         f"{_interval(rotation['final_minimum_locality_service_ratio'], scale=100, digits=3)} "
         "percentage points. These adverse endpoints prevent a blanket equity claim.",
@@ -226,11 +228,22 @@ def learning_stage_text(audit: dict) -> str:
         "Mild and Moderate reward effects favor the teacher; Severe favors PPO. The reference "
         "is context, not a new acceptance gate. The four fixed-comparator contrasts are "
         "replication diagnostics and replace none of the original primary decisions.",
+        "The size of the learning-stage gain also reflects its starting point. "
+        f"Behavior cloning scores {bc_reward:.4f}, "
+        f"compared with {teacher_reward:.4f} "
+        "for the teacher. The resulting deficit is "
+        f"{teacher_reward - bc_reward:.4f} "
+        "daily reward, while selected PPO ends only "
+        f"{teacher['episode_reward']['mean']:.4f} above the teacher. Most of the "
+        f"{stage['episode_reward']['mean']:.4f} stage gain therefore closes the imitation "
+        "gap arithmetically. This does not identify how much is caused by PPO rather "
+        "than extra computation or checkpoint selection. Further imitation under "
+        "an equal budget is an untested alternative, not an established substitute.",
         "All protected methods, including BC, have zero critical interruption below 99% service, "
         "zero complete critical outage and zero power violations in every fresh condition. "
-        "The separate validation receipt records exact replay of all 13,440 trajectories and "
-        "CUDA reconstruction of means and intervals. The audit and receipts are retained as "
-        "`data/evidence/thesis-learning-audit*`. These fresh seeds test the same synthetic "
+        "A separate validation record confirms exact replay of all 13,440 trajectories and "
+        "reconstruction of means and intervals; Appendix A.4 identifies those records. "
+        "These fresh seeds test the same synthetic "
         "profiles and perturbations, not changed demand mechanisms or real-grid operation. "
         "Five training runs still limit uncertainty estimation; "
         "the original evidence remains unchanged.",

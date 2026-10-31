@@ -11,6 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from reportlab.graphics import renderPDF
 from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
@@ -51,88 +52,81 @@ REFERENCE_PATTERN = re.compile(
 )
 FIGURE_DETAILS = {
     "workflow": (
-        "3.1",
+        "1",
         "Research workflow",
         None,
         "Common synthetic inputs support matched control evaluation. Demand prediction "
         "is evaluated separately; forecasts are not fed into the controllers.",
     ),
     "overview": (
-        "4.1",
+        "2",
         "Desktop overview",
         SCREENSHOTS / "overview.png",
         "The seven-locality map and saved evidence support offline inspection "
         "of synthetic scenarios.",
     ),
     "live": (
-        "4.2",
+        "3",
         "Live Scenario inspection",
         SCREENSHOTS / "live-ppo.png",
         "The validation-selected seed-8111 checkpoint-2500 policy runs one matched episode. "
         "This demonstration is distinct from the frozen five-run results.",
     ),
     "outcomes": (
-        "5.1",
+        "4",
         "Main controller outcomes",
         FIGURES / "controller-outcomes.png",
         "Results use 960 fresh matched test conditions. PPO is the equal-weight mean "
         "of five validation-selected policies. Each panel has its own units.",
     ),
     "intervals": (
-        "5.2",
+        "5",
         "Paired PPO effects against Constrained Optimization",
         FIGURES / "paired-effects.png",
-        "Panels show critical interruption, Jain fairness, utilization and daily reward. "
-        "Effects subtract the optimizer from PPO; intervals have 97.5% coverage for the "
-        "two primary comparisons. Percentage outcomes use percentage-point differences.",
+        "PPO minus Constrained Optimization, with adjusted 97.5% paired intervals. "
+        "Fairness and utilization differences are in percentage points.",
     ),
     "training": (
-        "5.3",
+        "6",
         "Validation learning trajectories",
         FIGURES / "training-curves.png",
-        "Top: daily reward. Middle: Jain service fairness. Bottom: supply utilization. "
-        "Each curve represents one training seed on fixed validation scenarios. Dots mark "
-        "selected checkpoints; the dashed line marks iteration 600. These are not test results.",
+        "Five runs on common validation conditions. Dots mark selected checkpoints; "
+        "the dashed line marks iteration 600. These are validation results.",
     ),
     "diagnostics": (
-        "5.4",
+        "7",
         "TensorBoard training diagnostics",
         FIGURES / "tensorboard-diagnostics.png",
-        "Rollout reward, policy loss, value loss, policy entropy, approximate KL and clipped "
-        "fraction are recorded every 25 iterations without smoothing. The thick line is "
-        "the five-run mean and shading is one sample standard deviation, "
-        "not a confidence interval.",
+        "Unsmoothed values every 25 iterations. The thick line is the five-run mean; "
+        "shading is one sample standard deviation, not a confidence interval.",
     ),
     "variance": (
-        "5.5",
+        "8",
         "Between-run validation variance",
         FIGURES / "training-variance.png",
-        "Panels show sample variance of run-mean daily reward, fairness and utilization "
-        "at 31 matched checkpoints. The denominator is four. Units are squared score or "
-        "squared percentage points; this is not within-scenario variance "
-        "or critic explained variance.",
+        "Sample variance across five run means at 31 validation checkpoints, using "
+        "denominator four. Units are squared score or squared percentage points.",
     ),
     "forecast": (
-        "5.6",
+        "9",
         "Held-out forecasting error",
         FIGURES / "forecast-errors.png",
-        "MAE and RMSE compare locality-sector and system-total targets on 320 held-out "
-        "synthetic traces. Forecast evaluation is separate from the controller comparison.",
+        "MAE and RMSE on 320 held-out traces. The training-fitted hourly profile is "
+        "a post-hoc clock-aware baseline; forecasting is separate from control.",
     ),
     "locality": (
-        "5.7",
+        "10",
         "Locality service at the end of the day",
         FIGURES / "locality-allocation.png",
-        "Left: mean per-condition 24-hour served/demand ratios for the original 960 matched "
-        "conditions; annotations show PPO minus Constrained Optimization in percentage "
-        "points. Right: mean of the minimum locality ratio calculated within each condition. "
-        "PPO weights its five validation-selected actors equally. These descriptive endpoint "
-        "measures are distinct from hourly-mean Jain fairness and pooled energy ratios.",
+        "Mean final locality service ratios and within-condition minimum, on 960 matched "
+        "conditions. Annotations show PPO minus Constrained Optimization in percentage "
+        "points. These endpoint measures differ from hourly-mean Jain fairness.",
     ),
 }
 ABBREVIATIONS = (
     ("AI", "Artificial intelligence"),
     ("API", "Application programming interface"),
+    ("AR(3)", "Autoregression with three lags"),
     ("BC", "Behavior cloning"),
     ("CI", "Confidence interval"),
     ("CPU", "Central processing unit"),
@@ -150,6 +144,8 @@ ABBREVIATIONS = (
     ("RL", "Reinforcement learning"),
     ("RMSE", "Root mean square error"),
     ("SD", "Sample standard deviation"),
+    ("SGD", "Stochastic gradient descent"),
+    ("UI", "User interface"),
     ("SHA-256", "Secure Hash Algorithm, 256-bit digest"),
 )
 
@@ -217,9 +213,7 @@ def linked_references(markup: str) -> str:
         destination = REFERENCE_TARGETS.get(label)
         if destination is None:
             return label
-        page = REFERENCE_PAGES.get(destination)
-        suffix = f" (p. {page})" if page is not None else " (p. 00)"
-        return f'<link href="#{destination}" color="#137B73">{label}{suffix}</link>'
+        return f'<link href="#{destination}" color="#137B73">{label}</link>'
 
     return REFERENCE_PATTERN.sub(link, markup)
 
@@ -499,10 +493,10 @@ def styles():
         "ArabicBody",
         parent=s["body"],
         fontName="GridGuardArabicRegular",
-        fontSize=13,
-        leading=18,
+        fontSize=12,
+        leading=15.5,
         alignment=2,
-        spaceAfter=7,
+        spaceAfter=6,
     )
     s["arabic_chapter"] = ParagraphStyle(
         "ArabicChapter",
@@ -580,51 +574,64 @@ def cover(s):
 
 def workflow():
     width = A4[0] - 36 * mm
-    d = Drawing(width, 185)
+    d = Drawing(width, 225)
     cards = [
         (
             0,
-            112,
-            "1  SYNTHETIC SCENARIOS",
-            ["7 localities · 5 sectors", "24 hours · 3 shortage levels"],
+            145,
+            "1  SCENARIOS",
+            ["7 localities · 5 sectors", "24 hours · 3 shortages"],
+            110,
         ),
         (
-            171,
-            112,
-            "2  MATCHED DECISIONS",
-            ["Fixed Rotation · constrained", "optimizer · PPO with constraints"],
+            127,
+            145,
+            "2  CONTROLLERS",
+            ["Rules and optimization", "PPO after imitation"],
+            110,
         ),
         (
-            342,
-            112,
-            "3  MEASURED OUTCOMES",
-            ["Critical downtime · fairness", "utilization · daily reward"],
+            254,
+            145,
+            "3  SHARED DISPATCH",
+            ["Tier requests and supply", "Proportional scaling"],
+            110,
+        ),
+        (
+            381,
+            145,
+            "4  OUTCOMES",
+            ["Critical interruption", "Fairness · energy"],
+            110,
         ),
         (
             0,
             12,
             "PREDICTION STUDY",
-            ["History-only ridge forecast", "Evaluated separately from control"],
+            ["Ridge and baseline forecasts", "Evaluated separately from control"],
+            151,
         ),
         (
             171,
             12,
             "TRAIN THEN FREEZE",
             ["5 PPO seeds · validation choice", "Fresh final matched scenarios"],
+            151,
         ),
         (
             342,
             12,
             "OFFLINE APPLICATION",
             ["Locality map · live scenario", "Verified saved evidence"],
+            151,
         ),
     ]
-    for x, y, title, lines in cards:
+    for x, y, title, lines, card_width in cards:
         d.add(
             Rect(
                 x,
                 y,
-                151,
+                card_width,
                 63,
                 rx=7,
                 ry=7,
@@ -635,24 +642,39 @@ def workflow():
         )
         d.add(
             String(
-                x + 9, y + 46, title, fontName=design.F.body_bold, fontSize=8, fillColor=design.TEAL
+                x + 7,
+                y + 46,
+                title,
+                fontName=design.F.body_bold,
+                fontSize=7.8,
+                fillColor=design.TEAL,
             )
         )
         for index, line in enumerate(lines):
             d.add(
                 String(
-                    x + 9,
+                    x + 7,
                     y + 29 - index * 13,
                     line,
                     fontName=design.F.body,
-                    fontSize=8.2,
+                    fontSize=7.6 if card_width == 110 else 8.2,
                     fillColor=design.DEEP,
                 )
             )
-    for x in (155, 326):
-        d.add(Line(x, 143, x + 12, 143, strokeColor=design.TEAL, strokeWidth=1.2))
-        d.add(Line(x + 12, 143, x + 8, 146, strokeColor=design.TEAL, strokeWidth=1.2))
-        d.add(Line(x + 12, 143, x + 8, 140, strokeColor=design.TEAL, strokeWidth=1.2))
+    for x in (112, 239, 366):
+        d.add(Line(x, 176, x + 12, 176, strokeColor=design.TEAL, strokeWidth=1.2))
+        d.add(Line(x + 12, 176, x + 8, 179, strokeColor=design.TEAL, strokeWidth=1.2))
+        d.add(Line(x + 12, 176, x + 8, 173, strokeColor=design.TEAL, strokeWidth=1.2))
+    d.add(
+        String(
+            0,
+            112,
+            "Hourly allocation uses identical inputs and dispatch rules",
+            fontName=design.F.body,
+            fontSize=8.5,
+            fillColor=design.MUTED,
+        )
+    )
     return d
 
 
@@ -703,9 +725,14 @@ def flowables(markdown, s):
         elif table_caption:
             result.append(caption("table", table_caption[1], table_caption[2], "", s))
         elif part.startswith("$$"):
+            if result and isinstance(result[-1], Paragraph):
+                result[-1].keepWithNext = True
             result.append(equation(part[2:-2].strip()))
         elif part.strip():
             for item in report.markdown_text_flowables(part, s):
+                if isinstance(item, PageBreak):
+                    while result and isinstance(result[-1], Spacer):
+                        result.pop()
                 if (
                     isinstance(item, KeepTogether)
                     and result
@@ -713,8 +740,6 @@ def flowables(markdown, s):
                 ):
                     result.append(KeepTogether([result.pop(), *item._content]))
                     continue
-                if isinstance(item, Paragraph) and item.getPlainText().startswith("6.4 "):
-                    result.append(CondPageBreak(360))
                 if isinstance(item, Paragraph) and item.getPlainText().endswith(
                     "Computation and verification"
                 ):
@@ -772,8 +797,8 @@ def document_story(markdown: str, s):
                 leftIndent=0,
                 rightIndent=42,
                 fontSize=9.5,
-                leading=13.5,
-                spaceBefore=3,
+                leading=11.5,
+                spaceBefore=1,
             )
         ]
         story += [PageBreak(), Paragraph("List of " + kind + "s", s["chapter"]), entries]
@@ -872,21 +897,29 @@ def build(output: Path, content_path: Path):
     # Export the same vector workflow used in the PDF for the editable Word edition.
     workflow_svg = FIGURES / "research-workflow.svg"
     workflow_png = workflow_svg.with_suffix(".png")
-    workflow_svg.write_text(workflow().asString("svg"), encoding="utf-8")
-    node_modules = (
-        Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules"
+    workflow_svg.write_text(
+        workflow()
+        .asString("svg")
+        .replace(
+            "font-family: GridGuardAtkinsonBold;",
+            "font-family: Atkinson Hyperlegible; font-weight: 700;",
+        )
+        .replace("font-family: GridGuardAtkinson;", "font-family: Atkinson Hyperlegible;"),
+        encoding="utf-8",
     )
+    # Rasterize the embedded-font PDF so the Word figure uses the same glyph metrics.
+    # SVG rasterizers can silently substitute a wider font for ReportLab's font alias.
+    workflow_pdf = ROOT / "tmp/research-workflow-render.pdf"
+    renderPDF.drawToFile(workflow(), str(workflow_pdf))
     subprocess.run(
         [
-            "node",
-            "-e",
-            "require(process.env.GRIDGUARD_SHARP_PATH || process.argv[1])"
-            "(process.argv[2], {density: 300})"
-            ".png().toFile(process.argv[3])"
-            ".catch(e => { console.error(e); process.exit(1); });",
-            str(node_modules / "sharp"),
-            str(workflow_svg),
-            str(workflow_png),
+            "pdftoppm",
+            "-r",
+            "300",
+            "-singlefile",
+            "-png",
+            str(workflow_pdf),
+            str(workflow_png.with_suffix("")),
         ],
         check=True,
     )
@@ -915,6 +948,7 @@ def build(output: Path, content_path: Path):
         "front_matter": [
             "Declaration",
             "Dedication",
+            "Acknowledgements",
             "Abstract",
             "Arabic abstract",
             "Contents",

@@ -1,0 +1,84 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>q</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <munder>
+    <mo data-mjx-texclass="OP" movablelimits="true">min</mo>
+    <mi>i</mi>
+  </munder>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>s</mi>
+      <mo>&#x2209;</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">C</mi>
+      </mrow>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>d</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>t</mi>
+      <mo>,</mo>
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>s</mi>
+    </mrow>
+  </msub>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>S</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mi>i</mi>
+  </munder>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>s</mi>
+      <mo>&#x2208;</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">C</mi>
+      </mrow>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>d</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>t</mi>
+      <mo>,</mo>
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>s</mi>
+    </mrow>
+  </msub>
+  <mo>+</mo>
+  <mi>&#x3B1;</mi>
+  <msub>
+    <mi>q</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="1em"></mspace>
+  </mstyle>
+  <mi>&#x3B1;</mi>
+  <mo>&#x2208;</mo>
+  <mo fence="false" stretchy="false">{</mo>
+  <mn>0.99</mn>
+  <mo>,</mo>
+  <mn>1.01</mn>
+  <mo>,</mo>
+  <mn>2.00</mn>
+  <mo fence="false" stretchy="false">}</mo>
+  <mo>.</mo>
+</math>

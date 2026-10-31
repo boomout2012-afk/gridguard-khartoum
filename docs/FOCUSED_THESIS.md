@@ -20,7 +20,9 @@ To our families, whose patience and support made this work possible.
 
 To the people of Sudan, whose resilience in the face of energy hardship inspired this study.
 
-To our supervisor, {{SUPERVISOR}}, for guidance and encouragement.
+# Acknowledgements
+
+We thank our supervisor, {{SUPERVISOR}}, for guidance and encouragement throughout this project.
 
 # Abstract
 
@@ -30,7 +32,7 @@ The simulation represents seven localities, five sectors and 24 hourly decisions
 
 {{ABSTRACT_RESULTS}}
 
-A separate forecasting experiment compares Ridge AR(3), persistence and a three-hour trailing mean on unseen synthetic targets. Ridge AR(3) has the lowest error on all four measures, but forecasts are not controller inputs. The application presents locality context, matched replay and verified results offline. The contribution is an inspectable decision-support system and outcome-specific evidence, not a real-grid controller or a general proof that learning surpasses optimization.
+A separate forecasting experiment finds lower error for Ridge AR(3) than for persistence and a three-hour trailing mean on unseen synthetic targets. However, a later hour-of-day mean baseline, fitted only on the same training traces, has lower error than Ridge AR(3) on all four measures. The fixed daily profiles therefore favor a simple time-based predictor; an advantage from autoregression is not established against this stronger baseline. Forecasts are not controller inputs. The contribution is an inspectable decision-support system and outcome-specific evidence, not a real-grid controller or a general proof that learning surpasses optimization.
 
 **Keywords:** load shedding; energy management; PPO; constrained optimization; critical services; fairness; prediction; Khartoum.
 
@@ -42,13 +44,13 @@ A separate forecasting experiment compares Ridge AR(3), persistence and a three-
 
 بلغ متوسط PPO صفرا من ساعات انقطاع الخدمات الأساسية على مستوى المحليات، و97.02% للإنصاف و97.02% لاستغلال الإمداد. حقق النظام المقيد معيار المقارنة المعلن مقابل التناوب الثابت، لكن حماية الخدمات الأساسية تعود إلى القيد الصريح وليست دليلا منفردا على فائدة التعلم. مقارنة بالتحسين المقيد الذي يعظم مكافأة الساعة الحالية، زاد PPO متوسط الإنصاف بمقدار 2.24 نقطة مئوية والمكافأة اليومية بمقدار 0.0499، بفاصل ثقة معدل بنسبة 97.5% من 0.0406 إلى 0.0577. في المقابل انخفض استغلال الإمداد بمقدار 0.40 نقطة مئوية وزاد تبديل مستويات الخدمة، ولذلك لم يتحقق معيار التحسن الكامل المشروط بمؤشرات الخدمة. هذه النتائج لا تثبت تفوق التعلم على التحسين لجميع الأهداف أو على تخطيط أمثل لليوم الكامل.
 
-أضاف تحليل لاحق مقارنات على حالات الاختبار نفسها. تحسن تخصيص PPO مقارنة بقاعدة تناوب تحمي الطلب الأساسي. وأمام قاعدة الإنصاف المستخدمة لتوليد أمثلة التدريب، زادت المكافأة اليومية بمقدار 0.0102، لكن انخفض استغلال الإمداد بمقدار 0.308 نقطة مئوية والطاقة المقدمة بمقدار 16.68 ميغاواط ساعة يوميا. تركزت زيادة المكافأة في النقص الحاد؛ ولا يمثل التحليل اختبارا تأكيديا مستقلا جديدا. وأكدت اختبارات الإجهاد استمرار انقطاعات جزئية للخدمات الأساسية عندما يقل الإمداد عن طلبها.
+أضاف تحليل لاحق مقارنات على حالات الاختبار نفسها. تحسن تخصيص PPO مقارنة بقاعدة تناوب تحمي الطلب الأساسي. وتحقق قاعدة الإنصاف وحدها نحو 80% من زيادة المكافأة التي حققها PPO مقارنة بالتحسين المقيد، مع انخفاض أقل في استغلال الإمداد. كما استوفت القاعدة الهوامش العددية الأصلية للمكافأة والخدمة في مقارنة لاحقة بأثر رجعي، دون اعتبارها اختبارا تأكيديا معلنا مسبقا. وأمام قاعدة الإنصاف المستخدمة لتوليد أمثلة التدريب، زادت المكافأة اليومية بمقدار 0.0102، لكن انخفض استغلال الإمداد بمقدار 0.308 نقطة مئوية والطاقة المقدمة بمقدار 16.68 ميغاواط ساعة يوميا. تركزت زيادة المكافأة في النقص الحاد؛ ولا يمثل التحليل اختبارا تأكيديا مستقلا جديدا. وتتحقق اختبارات نقص الإمداد الأساسي من تنفيذ الإجراء الاحتياطي، ولا تميز بين قرارات الطرق المقيدة لأن الإجراء الاحتياطي واحد.
 
-خفض نموذج الانحدار الذاتي المنتظم «Ridge AR(3)» خطأ التنبؤ بالطلب الاصطناعي مقارنة باستمرار آخر قيمة ومتوسط الساعات الثلاث السابقة. لا تدخل هذه التنبؤات في سياسة التحكم. تتمثل مساهمة المشروع في نظام قابل للفحص ونتائج محددة النطاق توضح المفاضلات، وليس في إثبات الجاهزية التشغيلية لشبكة كهربائية حقيقية.
+خفض نموذج الانحدار الذاتي المنتظم «Ridge AR(3)» خطأ التنبؤ بالطلب الاصطناعي مقارنة باستمرار آخر قيمة ومتوسط الساعات الثلاث السابقة. لكن خط أساس لاحقا يعتمد متوسط الطلب حسب ساعة اليوم، ويُقدّر من بيانات التدريب نفسها فقط، حقق خطأ أقل من Ridge AR(3) في المقاييس الأربعة. لذلك لم يثبت تفوق الانحدار الذاتي على هذا البديل الأبسط في مولد ذي أنماط يومية ثابتة. لا تدخل هذه التنبؤات في سياسة التحكم. تتمثل مساهمة المشروع في نظام قابل للفحص ونتائج محددة النطاق توضح المفاضلات، وليس في إثبات الجاهزية التشغيلية لشبكة كهربائية حقيقية.
 
-وفي تدقيق منفصل على تسعمئة وستين حالة جديدة، زادت مرحلة التعلم المعزز واختيار السياسة بالتحقق المكافأة اليومية بمقدار 0.1801 مقارنة بتهيئة التقليد الخاصة بكل تشغيل، لكنها قدمت طاقة أقل بمقدار 77.20 ميغاواط ساعة يوميا. ولا يضمن ارتفاع متوسط مؤشر جاين للإنصاف تحسن الخدمة النهائية للمحلية الأقل حصولا عليها. تقيس هذه المقارنة المرحلة كاملة، ولا تعزل أثر خوارزمية PPO عن الاختيار والحساب الإضافي.
+وفي تدقيق منفصل على تسعمئة وستين حالة جديدة، زادت مرحلة التعلم المعزز واختيار السياسة بالتحقق المكافأة اليومية بمقدار 0.1801 مقارنة بتهيئة التقليد الخاصة بكل تشغيل، لكنها قدمت طاقة أقل بمقدار 77.20 ميغاواط ساعة يوميا. حسابيا، يعوض معظم هذا الفرق نقص مكافأة نموذج التقليد البالغ 0.1704 مقارنة بقاعدة الإنصاف؛ وتنتهي السياسة المختارة أعلى من القاعدة بمقدار 0.0097 فقط. ولا يضمن ارتفاع متوسط مؤشر جاين للإنصاف تحسن الخدمة النهائية للمحلية الأقل حصولا عليها. تقيس هذه المقارنة المرحلة كاملة، ولا تعزل أثر خوارزمية PPO عن الاختيار والحساب الإضافي.
 
-**الكلمات المفتاحية:** فصل الأحمال؛ إدارة الطاقة؛ التعلم المعزز؛ التحسين المقيد؛ الخدمات الأساسية؛ الإنصاف؛ الخرطوم.
+**الكلمات المفتاحية:** فصل الأحمال؛ إدارة الطاقة؛ PPO؛ التحسين المقيد؛ الخدمات الأساسية؛ الإنصاف؛ التنبؤ؛ الخرطوم.
 
 # 1 Introduction
 
@@ -74,7 +76,7 @@ The study addresses five research questions:
 4. Under matching critical constraints, does PPO improve declared outcomes over the optimizer, and what tradeoffs remain?
 5. How can an offline interface explain the decisions and evidence clearly?
 
-These questions evaluate AI without requiring a predetermined advantage over other methods. A result favoring a transparent optimizer is useful. An improvement on one outcome is also useful when its scope and costs are explicit. Direct duration measures assess blackout inequality alongside Jain service fairness; the two are not treated as interchangeable.
+These questions evaluate AI without requiring a predetermined advantage over other methods. A result favoring a transparent optimizer is useful. An improvement on one outcome is also useful when its scope and costs are explicit. Direct duration measures assess blackout inequality alongside Jain fairness; the two are not treated as interchangeable.
 
 ## 1.3 Scope and contribution
 
@@ -89,7 +91,29 @@ against an unprotected schedule is not presented as the central learning contrib
 Matched inputs support procedure comparisons, while independent runs expose training
 variability and the follow-up audit tests stronger transparent alternatives.
 
-The Fixed Rotation comparison evaluates the complete system. It cannot assign every improvement to learning because Fixed Rotation lacks Critical Only actions and a critical-feasibility mask. PPO and Constrained Optimization, by contrast, share the same feasible assignments and information available at decision time. That comparison is stronger for assessing learned scheduling, while still not establishing superiority over a full-day optimum or every optimization method. Section 5.7 adds a post-hoc matched comparison with the Fairness Rule teacher and a critical-aware rotating baseline; it does not reclassify that follow-up as part of the original confirmatory design.
+The Fixed Rotation comparison evaluates the complete system. It cannot assign every improvement to learning because Fixed Rotation lacks Critical Only actions and a critical-feasibility mask. PPO and Constrained Optimization, by contrast, share the same feasible assignments and information available at decision time. That comparison is stronger for assessing learned scheduling, while still not establishing superiority over a full-day optimum or every optimization method. Section 5.7 adds a post-hoc matched comparison with the Fairness Rule teacher and Critical-aware Fixed Rotation; it does not reclassify that follow-up as part of the original confirmatory design.
+## 1.4 Key terms and thesis organisation
+
+A locality receives one of three service tiers: Off requests no power, Critical Only
+requests Hospital, Water and Bakery demand, and Full Service requests all five sectors.
+A locality-hour is one locality affected for one hour; seven localities over 24 hours
+give 168 locality-hours. Critical interruption means less than 99% of critical demand
+is served. Complete critical outage means no critical power is delivered. Jain service
+fairness describes equality of cumulative served-to-demanded ratios; it is neither the
+fraction of demand served nor a direct measure of interruption duration.
+
+Constrained Optimization denotes the exact current-hour comparator. Critical-aware
+Fixed Rotation adds critical protection to a rotating allocation order. Fairness Rule
+is the deterministic teacher used for imitation before PPO. Nonanticipative observations
+use only information available at decision time.
+
+Chapter 2 reviews related work. Chapter 3 defines the simulator, controllers, reward and
+training procedure. Chapter 4 describes the application. Chapter 5 presents the design
+and results, separating the original comparisons from subsequent audits. Chapter 6
+interprets the tradeoffs and limitations, and Chapter 7 answers the five research
+questions. Appendix A provides the exact generator and reproduction details; Appendix B
+identifies the source code and academic package.
+
 # 2 Related work
 
 {{LITERATURE_REVIEW_STATUS}}
@@ -131,7 +155,7 @@ not isolate the benefit of PPO fine-tuning. Section 5.7 compares the current fro
 policies with this teacher on matched conditions; Appendix A retains the earlier,
 separate teacher comparison, including its negative result.
 
-Section 5.9 additionally compares each selected policy with its own imitation-only
+Section 5.10 additionally compares each selected policy with its own imitation-only
 initialization on new matched conditions, separating the measured learning-stage change
 from the broader comparison with its teacher.
 
@@ -211,7 +235,7 @@ energy is the sum over the 24 steps. The model uses one shared supply pool and i
 network distance or transfer-capacity cost between localities. Administrative geometry
 has no role in the calculations.
 
-Figure 3.1 connects the common controller inputs, shared dispatch and outcome calculations.
+Figure 1 connects the common controller inputs, shared dispatch and outcome calculations.
 The forecasting branch is evaluated separately and supplies no future information to PPO.
 
 {{RESEARCH_WORKFLOW_FIGURE}}
@@ -350,7 +374,7 @@ which localities receive the remaining noncritical supply.
 
 ## 3.7 Constrained Optimization
 
-Constrained Optimization enumerates all 128 assignments defined above, filters by the same feasibility condition, applies shared dispatch and scores the canonical current-hour reward. It receives current demand, supply, cumulative demand and served energy, and previous tiers. Exact score ties select the lowest candidate index. It receives no future demand or supply. The computation remains on CUDA and evaluates every candidate rather than sampling a subset.
+Constrained Optimization enumerates all 128 assignments defined above, filters by the same feasibility condition, applies shared dispatch and scores the canonical current-hour reward. It receives current demand, supply, cumulative demand and served energy, and previous tiers. Exact score ties select the lowest candidate index. It receives no future demand or supply and evaluates every candidate rather than sampling a subset.
 
 This method solves its immediate decision exactly. It does not solve the complete 24-hour schedule. Each choice changes the cumulative service and switching history seen at the next step, so maximizing immediate reward need not maximize daily reward or every public metric. PPO can demonstrate a benefit only through measured episode outcomes; it cannot exceed the exact one-step maximum for an identical state, objective and action set.
 
@@ -539,7 +563,9 @@ Each run collects 455 demonstration episodes per shortage level, giving 1,365 ep
 and 32,760 supervised states. Behavior cloning lasts ten epochs with minibatches of
 1,024, including the last partial minibatch. Its loss combines masked action
 cross-entropy and 0.25 times the mean squared critic error against teacher return-to-go.
-A fresh PPO optimizer starts after this initialization. The retained behavior-cloning
+The cloning stage uses Adam with a constant learning rate of $3\times10^{-4}$,
+$\epsilon=10^{-5}$ and maximum gradient norm 0.5. A fresh PPO optimizer starts after
+this initialization. The retained behavior-cloning
 checkpoint makes the procedure's starting point inspectable.
 
 Five training runs use seeds 1729, 2718, 3141, 5772 and 8111. Each run completes 3,000
@@ -596,6 +622,18 @@ Baselines use the same three-hour mean or last-hour persistence on identical tar
 Evaluation uses 320 separate demand traces once each because shortage variants share
 demand. This forecast remains separate from PPO observations and the display projection.
 
+A later post-hoc comparison adds an hour-of-day mean for each locality-sector series.
+It estimates each hourly value from the same 768 training traces, without using test
+targets or the generator's analytic profile:
+
+$$
+\widehat d_{i,k,h}=\frac{1}{768}\sum_{n=1}^{768}d_{i,k,h}^{(n)}.
+$$
+
+The target hour is known at forecast time. Evaluation retains the original held-out
+hours 3–23 and the same error aggregation, so the additional baseline tests whether
+recent demand history improves on a simple training-fitted daily template.
+
 Mean absolute error (MAE) and root mean squared error (RMSE) are reported in MW for
 locality-sector and system-total targets. System error sums the 35 signed residuals
 before taking absolute values or squares. Saved counts and error sums reconstruct
@@ -617,12 +655,9 @@ The scientific arrays remain on the GPU until the artifact or presentation trans
 This structure supports repeated matched experiments while keeping model calculations
 out of interface widgets.
 
-The primary presentation and benchmark path requires the validated NVIDIA CUDA runtime.
-Startup checks the GPU environment and required model and evidence resources. When a
-required resource cannot be verified, the software reports the problem instead of
-presenting fabricated results. Small host-side checks support development and artifact
-assembly; they do not substitute a different scientific pipeline for the published
-GPU experiment.
+Startup checks the required model and evidence resources. When a required resource
+cannot be verified, the software reports the problem instead of presenting results
+from an unidentified model or a mismatched study.
 
 ## 4.2 The desktop workflow
 
@@ -634,20 +669,22 @@ from training seed 8111 at iteration 2500, alongside Fixed Rotation and Constrai
 Optimization. Results retains the frozen five-run study; one live policy and scenario
 do not replace its matched-scenario averages.
 
-The visual design uses an open pale canvas, restrained teal controls, clear typography
-and a contrasting selection color. The map, locality selector and time slider support
+The map, locality selector and time slider support
 inspection of one locality and hour without hiding the whole-day comparison. Textual
 service labels accompany color, and keyboard navigation provides access to the main
 pages and locality choices. The interface remains an explanatory tool: a polished map
 does not add physical realism to the underlying model.
 
-Figure 4.1 shows locality context and navigation in the application overview. It is a
+Figure 2 shows locality context and navigation in the application overview. It is a
 software demonstration, not evidence of operation on the Khartoum electrical network.
 
 {{SCREENSHOT_OVERVIEW}}
 
-Figure 4.2 shows the selected locality, service tier and hourly PPO replay. The desktop
+Figure 3 shows the selected locality, service tier and hourly PPO replay. The desktop
 demonstrates one validation-selected policy; the main study averages five independent runs.
+Its display-only next-hour estimate is a trailing mean of the selected locality's
+observed demand, using up to the latest three hours. It is separate from the evaluated
+Ridge AR(3) model and does not influence controller decisions.
 
 {{SCREENSHOT_LIVE}}
 
@@ -679,7 +716,7 @@ Tests cover controller action rules, mask feasibility at the supply boundary, th
 critical-only fallback, reward and metric identities, terminal advantage estimation,
 stored action probabilities, checkpoint selection and independence of scenario splits.
 GUI checks cover page navigation, map interaction, selection, replay states and the
-minimum presentation layout. Real CUDA tests confirm the intended computation path.
+minimum presentation layout. Integration tests exercise the scientific computation path.
 
 The fifth research question is addressed through interface design and technical checks.
 No participant study measured comprehension or usability.
@@ -687,7 +724,7 @@ No participant study measured comprehension or usability.
 Independent replay provides a further check between selected model files and recorded
 results. It regenerates scenarios, executes saved controllers and compares actions and
 outcomes. The final verification status for the current experiment is summarized in
-Section 5.10; detailed hashes and reproduction references belong in Appendix A rather
+Section 5.11; detailed hashes and reproduction references belong in Appendix A rather
 than interrupting the scientific argument.
 
 # 5 Experimental design and results
@@ -741,7 +778,7 @@ Table 5 defines the units and interpretation of the public outcomes.
 | Outcome | Unit | Interpretation |
 | --- | --- | --- |
 | Critical interruption | Locality-hours/day | Lower burden is favorable |
-| Jain service fairness | Percent | Higher equality of cumulative service ratios |
+| Jain fairness | Percent | Higher equality of cumulative service ratios |
 | Supply utilization | Percent | Higher delivery of usable supply |
 | Zero-service blackout | Locality-hours/day | Positive demand with exactly zero delivery |
 | Blackout duration range / pairwise gap | Hours | Disparity in zero-service duration |
@@ -817,13 +854,14 @@ zero-power-violation checks in every condition. All five selections must be elig
 and each selected iteration must exceed 600. Otherwise the result is reported as a
 tradeoff, inconclusive comparison or earlier-checkpoint selection, as appropriate.
 
-These rules, the training configuration and scientific source hashes were frozen in the
-23 October 2026 protocol **before training and validation**. All five runs and their
-validation selections were frozen before generating or inspecting the final-test
-scenarios. This is a recorded internal protocol, not external preregistration or
-independent custody. The uncertainty describes this generator and five training runs;
-960 conditions are not 960 independent policies. The later audit in Section 5.7 is
-explicitly post-hoc and does not change these original decision rules.
+The internal record dates the protocol and source freeze to 23 October 2026 and records
+training and validation selection before final-test generation. However, the earliest
+available Git commit containing the protocol is dated 31 October. The retained hashes
+identify the material used; they do not independently prove that the criteria were set
+before outcomes were seen. Appendix A.4 gives the identities and dates. This is an
+internally recorded design, not external preregistration or independent custody.
+The uncertainty describes this generator and five training runs; 960 conditions are not
+960 independent policies. The later audit in Section 5.7 remains explicitly post-hoc.
 
 ## 5.5 Main controller results
 
@@ -831,14 +869,14 @@ Table 6 compares all three procedures on common conditions. PPO values weight th
 
 {{RESULTS_TABLE}}
 
-Figure 5.1 displays the three main service outcomes with separate units. Critical
+Figure 4 displays the three main service outcomes and daily reward in four panels. Critical
 protection and distribution quality are not compressed into one visual score.
 
 {{RESULTS_FIGURE}}
 
 {{PRIMARY_INTERVALS}}
 
-Figure 5.2 plots PPO minus Constrained Optimization effects with adjusted 97.5% intervals.
+Figure 5 plots PPO minus Constrained Optimization effects with adjusted 97.5% intervals.
 The two primary comparisons both appear in Tables 8 and 9; this figure shows only the
 optimizer comparison and does not present validation learning curves.
 
@@ -846,17 +884,13 @@ optimizer comparison and does not present validation learning curves.
 
 {{RESULTS_INTERPRETATION}}
 
-These comparisons assess allocation under the controllers' different protection rules.
-Zero blackouts under Critical Only do not imply equal Full Service; the shortage analysis
-therefore retains fairness, utilization and energy alongside interruption measures.
-
 ## 5.6 Shortage levels and learning progression
 
 Mild conditions allow more Full Service combinations. The Severe shortage window restricts the number fitting within supply. Table 10 reports each level so a favorable overall mean cannot conceal a weaker condition.
 
 {{RESULTS_BY_SHORTAGE}}
 
-Figure 5.3 shows each run's mean daily validation reward, Jain fairness and utilization,
+Figure 6 shows each run's mean daily validation reward, Jain fairness and utilization,
 with selected checkpoints and the same-run iteration-600 reference. The largest reward
 and fairness gains occur early, followed by smaller improvements, while utilization
 declines. Thus the learning curves already show the tradeoff between reward and service examined
@@ -886,9 +920,9 @@ $$
 s_j^2=\frac{1}{4}\sum_{k=1}^{5}\left(x_{k,j}-\bar{x}_j\right)^2.
 $$
 
-Figure 5.4 displays these unsmoothed training diagnostics, including the mean and
+Figure 7 displays these unsmoothed training diagnostics, including the mean and
 sample-standard-deviation band. It is a training plot, distinct from the validation
-curves in Figure 5.3 and the final-test intervals in Figure 5.2.
+curves in Figure 6 and the final-test intervals in Figure 5.
 
 [[FIGURE:diagnostics]]
 
@@ -897,8 +931,16 @@ all 31 checkpoint evaluations, including the
 behavior-cloning starting point. It measures variability across independently trained
 policies on the same validation conditions. Fairness and utilization are converted to
 percentage points before calculating their variances; their axes therefore use squared
-percentage points. Figure 5.5 displays those variances. These descriptive curves do not
+percentage points. Figure 8 displays those variances. These descriptive curves do not
 replace the paired final-test intervals.
+
+Iteration zero follows ten epochs of behavior cloning; it is not an untrained common
+initialization. The five retained actors have distinct weights. Their initial sample
+variances are small but nonzero: $9.11\times10^{-6}$ in daily reward,
+$2.27\times10^{-3}$ in Jain fairness (squared percentage points), and
+$7.96\times10^{-5}$ in utilization (squared percentage points). The shared teacher and
+common validation conditions provide context for their similar performance, but the
+curves alone do not identify the cause of that similarity.
 
 [[FIGURE:variance]]
 
@@ -908,12 +950,10 @@ Between-run reward variance peaked at $7.31\times10^{-4}$ at iteration 100 and e
 
 {{BUDGET_COMPARISON_TABLE}}
 
-The budget comparison is interpreted through its paired effects, service margins and selected iterations. A small score increase is not automatically a meaningful improvement in service. Unfavorable or inconclusive findings remain part of the result.
-
 ## 5.7 Post-hoc matched baseline and feasibility audit
 
-The committee review prompted an additional comparison with Fairness Rule and a
-critical-aware rotating baseline. It reuses the original 960 final-test conditions and
+To test dependence on the comparator, a post-hoc audit adds Fairness Rule and
+Critical-aware Fixed Rotation. It reuses the original 960 final-test conditions and
 the five frozen selected PPO actors; no actor is retrained or selected using its results.
 This audit is post-hoc, not a fresh confirmatory holdout, and it does not change the
 original criteria in Section 5.4. Its purpose is to expose comparator dependence and
@@ -921,34 +961,44 @@ separate critical protection from discretionary allocation.
 
 {{FOLLOWUP_AUDIT}}
 
+{{ADDITIONAL_COMPARISONS}}
+
 ## 5.8 Learned forecasting results
 
 The prediction experiment uses 320 demand traces from seeds 91001–91010, separate from the forecasting fit. Each method predicts hours 3–23, giving 235,200 locality-sector targets and 6,720 system targets. Common targets and training-only normalization prevent leakage through different windows or preprocessing.
 
 Table 16 reports pooled errors on the common held-out target set.
 
-**Table 16. Forecast error on 320 held-out demand traces; 235,200 locality-sector and 6,720 system targets.**
+{{FORECAST_TABLE}}
 
-| Forecast method | Cell MAE (MW) | Cell RMSE (MW) | System MAE (MW) | System RMSE (MW) |
-| --- | ---: | ---: | ---: | ---: |
-| Three-hour trailing mean | 2.3385 | 3.7436 | 42.7512 | 49.9759 |
-| One-hour persistence | 1.3465 | 2.1776 | 24.3809 | 28.5917 |
-| Ridge AR(3) | 0.6573 | 1.1882 | 9.3376 | 11.9242 |
+Ridge AR(3) has the lowest error among the three original methods on all four measures.
+The additional training-fitted hour-of-day mean performs better: locality-sector MAE
+and RMSE are 0.3344 and 0.5425 MW, while system MAE and RMSE are 2.5478 and 3.2500 MW.
+It uses the same training traces and held-out targets, but was added after the original
+results were known. The comparison is therefore descriptive and post-hoc.
 
-Ridge AR(3) has the lowest error on all four measures. This demonstrates learned prediction benefit for the selected synthetic comparison, not real-demand calibration or superiority over every architecture. The figures are descriptive pooled errors; no forecast confidence interval is asserted.
+The generator repeats fixed daily profiles with independent perturbations, so the
+hourly mean captures predictable structure directly. Ridge AR(3)'s improvement over
+persistence does not establish added predictive value over this stronger, simpler
+baseline. Generalization to shifted profiles or measured demand remains untested.
+Both models are fitted only on training data, but the hourly mean uses known clock
+time while Ridge AR(3) uses lagged demand without a clock feature. A controlled
+comparison adding clock features to Ridge was not performed, so this result does not
+isolate model class from information representation. No forecast confidence interval
+is asserted.
 
 Saved evidence retains fitted parameters and per-seed counts, absolute-error sums and squared-error sums, not the full runtime prediction arrays. Errors can be reconstructed from these sufficient statistics. Forecasts remain separate from the policy and current display projection, so no controller improvement is attributed to them.
 
-Figure 5.6 visualizes the same MAE and RMSE values from Table 16; it concerns prediction
+Figure 9 visualizes the same MAE and RMSE values from Table 16; it concerns prediction
 accuracy rather than the controller reward.
 
 [[FIGURE:forecast]]
 
-## 5.9 Locality service and the learning-stage audit
+## 5.9 Locality service at the end of the day
 
-The original final-test evidence also retains each locality's end-of-day service ratio: its total served MWh divided by its total demanded MWh over 24 hours. Figure 5.7 averages these ratios across the 960 matched conditions, with equal weights for the five selected PPO actors. It is a mean of per-condition ratios, not a pooled energy ratio or the hourly-mean Jain index used in the main results. No new scenarios or policies are introduced for this descriptive analysis.
+The original final-test evidence also retains each locality's end-of-day service ratio: its total served MWh divided by its total demanded MWh over 24 hours. Figure 10 averages these ratios across the 960 matched conditions, with equal weights for the five selected PPO actors. It is a mean of per-condition ratios, not a pooled energy ratio or the hourly-mean Jain index used in the main results. No new scenarios or policies are introduced for this descriptive analysis.
 
-PPO's mean endpoint service ranges from 54.83% for Jebel Awlia to 66.59% for Khartoum. Relative to the constrained optimizer, the mean ratio rises in Bahri, East Nile and Ombada, but falls in the other four localities. For example, it increases by 1.97 percentage points in East Nile and decreases by 2.42 points in Khartoum. Higher aggregate fairness therefore describes redistribution, not a service gain for every locality or 97% of demand being supplied.
+PPO's mean endpoint service ranges from 54.83% for Jebel Awlia to 66.59% for Khartoum. Relative to Constrained Optimization, the mean ratio rises in Bahri, East Nile and Ombada, but falls in the other four localities. For example, it increases by 1.97 percentage points in East Nile and decreases by 2.42 points in Khartoum. Higher aggregate fairness therefore describes redistribution, not a service gain for every locality or 97% of demand being supplied.
 
 The mean service ratio of the worst-served locality within each condition is 36.02% for Fixed Rotation, 44.90% for Constrained Optimization and 48.82% for PPO. Here the minimum is taken across the seven localities separately for each run and condition, before averaging; taking the minimum of the displayed locality means would answer a different question. PPO's 3.92-point improvement over the optimizer in this endpoint measure coexists with the 19.88 MWh lower mean energy delivery already reported. This is an allocation tradeoff, not evidence about fairness within a locality or the social value of that tradeoff.
 
@@ -956,19 +1006,29 @@ The mean service ratio of the worst-served locality within each condition is 36.
 
 {{LEARNING_STAGE_AUDIT}}
 
-## 5.10 Computation and verification
+## 5.11 Computation and verification
 
 {{TRAINING_SUMMARY}}
 
-The recorded runs used an NVIDIA GeForce RTX 5060 Laptop GPU with approximately 7.93 GiB of reported device memory, PyTorch 2.8.0 with CUDA 12.8, and CuPy 14.1.1. Training used float32, deterministic algorithms, disabled TF32, and the cuBLAS workspace setting `:4096:8`. These timings describe this hardware and execution configuration; they exclude the disclosed interrupted attempt and are not single-decision latency measurements.
-
-Verification checks retained weights against validation records, common input identities across methods, action constraints and metric summaries. Statistical reconstruction checks intervals and decisions. Replay connects saved actors to regenerated inputs, recorded actions and outcomes. These checks address different failure modes; an evidence hash alone does not validate the scientific model.
+These timings describe the recorded execution configuration in Appendix A.4. They
+exclude the disclosed interrupted attempt and are not single-decision latency measurements.
 
 # 6 Discussion
 
 ## 6.1 What AI and optimization contribute
 
-The forecast and control studies provide separate evidence. Ridge AR(3) improves synthetic prediction; PPO is judged against Fixed Rotation and Constrained Optimization on the declared outcomes.
+The central finding is comparator dependence. PPO improves the chosen daily objective
+over the current-hour optimizer, but most of that reward advantage is also available
+from the transparent Fairness Rule. The forecasting study addresses a separate task:
+lower prediction error does not explain the control results because controllers do not
+receive those forecasts.
+
+The stronger forecasting comparison reinforces the need for an informative baseline.
+An hour-of-day mean fitted on training traces outperforms Ridge AR(3) on every reported
+error measure. Under fixed daily profiles, knowing the hour can be more useful than
+extrapolating from the last three observations. This result limits the contribution of
+the chosen learned forecaster; it does not establish that autoregression is ineffective
+for other demand-generating processes.
 
 The optimizer selects the best feasible current action:
 
@@ -982,38 +1042,101 @@ $$
 \mathbb{E}\!\left[\sum_{t=0}^{23}r_t\right]
 $$
 
-PPO cannot exceed this one-step maximum at the same state. A daily gain can arise from
-changed service history and switching; no energy is stored. Section 5.5 quantifies the
-gain as 0.0499 reward units alongside about 19.88 fewer served MWh per synthetic day
-and increased switching. The reward weights value the fairness change sufficiently to
-raise the score, but the declared service criterion still rejects the comparison.
-Optimization therefore remains a credible choice when utilization and transparent
-decision rules matter. A composite score does not settle those priorities for operators.
+PPO cannot exceed this one-step maximum at the same state. A daily gain can arise
+because actions change cumulative service and later switching costs. This distinguishes
+sequential allocation from storage: foregoing a Full Service upgrade does not save its
+electricity for tomorrow, but it changes which locality is disadvantaged at the next
+decision. The experiment therefore tests a learned policy against a myopic objective,
+not against the optimum of the same full-day planning problem.
+
+Section 5.5 reports a 0.0499 daily-reward gain with 19.88 fewer served MWh and more
+switching. The Fairness Rule obtains 0.0397 of that gain, approximately 80%, with a
+smaller utilization loss. Its tolerance admits a slightly lower current reward when
+this helps the currently worst-served locality. A simple rule can consequently create
+useful service-history effects without learning a long-horizon value function. The
+remaining PPO-minus-rule difference is a comparison of complete procedures, not an
+isolated causal estimate of learning. The teacher is preferable on reward under Mild
+and Moderate shortage; PPO's pooled increment comes from Severe shortage.
+
+The later retrospective comparison also finds that Fairness Rule meets the numerical
+reward and service margins used for the optimizer comparison, whereas PPO does not.
+That result is descriptive because this additional comparison was not part of the
+original primary family. Even with that qualification, the rule supplies a direct
+counterexample to the suggestion that learning is necessary to obtain a favorable
+reward-and-utilization tradeoff in this simulation.
+
+These results do not establish that the neural policy's added complexity is justified
+by operational benefits. PPO requires demonstrations, training, validation selection
+and retained weights; the Fairness Rule specifies its decisions directly. The present
+study neither prices those costs nor establishes a decision-latency advantage. A
+decision maker who values utilization or auditability may prefer the optimizer or
+teacher even when the reported reward favors PPO. A higher score alone cannot settle
+that choice, because its weights encode research priorities rather than a validated
+economic or social valuation.
 
 Findings do not establish superiority to full-horizon optimization, model predictive
 control or all adaptive rules. Section 5.7 directly examines the current frozen actors
-against the Fairness Rule teacher and critical-aware rotation. The earlier negative
+against the Fairness Rule teacher and Critical-aware Fixed Rotation. The earlier negative
 teacher comparison remains separately identified in Appendix A.
 
-The fresh audit in Section 5.9 makes the next distinction explicit. Relative to each
+The fresh audit in Section 5.10 makes the next distinction explicit. Relative to each
 run's own imitation-only actor, fine-tuning and validation selection increase daily reward
 by 0.1801 and Jain fairness by 3.914 percentage points, but reduce energy delivery by
 77.20 MWh/day. This is a measured stage benefit for the chosen objective, with a service
 cost. It includes the additional training and checkpoint selection; it is not an
 equal-budget test isolating the PPO algorithm.
 
+The imitation-only actors begin 0.1704 reward below their teacher, while the selected
+policies finish 0.0097 above it. Thus about 95% of the measured stage increase closes
+the teacher gap arithmetically. This does not show that PPO merely memorizes the rule,
+or that more imitation would necessarily reach the same result. It shows why the
+starting point matters: a large improvement over an imperfect clone can coexist with
+a small improvement over the rule that generated its labels. Equal-budget comparisons
+with further imitation and training from scratch are needed to distinguish those
+explanations.
+
 ## 6.2 Critical protection and fair service
 
 Critical protection comes from the mask and Critical Only. Default supply also permits a deterministic rule to protect these sectors. PPO allocates remaining supply; its Fixed Rotation advantage cannot be attributed solely to learning.
 
-Equal partial service can produce high Jain fairness. Critical Only can remove blackouts while Residential and Commercial demand remains unmet. High utilization may repeatedly exclude a locality. Duration, burden and energy must be interpreted together.
+Jain fairness measures dispersion across cumulative service ratios, not the amount of
+service available. Equal partial service can produce a high index while substantial
+demand remains unmet. Critical Only can eliminate complete blackouts while Residential
+and Commercial demand receives nothing. Utilization answers a different question:
+how much usable supply is delivered. A controller can score well on one measure and
+poorly on another without a numerical inconsistency.
 
 The fresh endpoint analysis supplies a concrete counterexample: PPO has higher
-time-averaged Jain fairness than Fairness Rule and critical-aware rotation, but lower
+time-averaged Jain fairness than Fairness Rule and Critical-aware Fixed Rotation, but lower
 mean final service to the worst-served locality. The latter is 48.81% for PPO, 50.90%
-for the teacher and 51.72% for critical-aware rotation. Choosing an equity measure
+for the teacher and 51.72% for Critical-aware Fixed Rotation. Choosing an equity measure
 therefore changes which procedure appears preferable; these measures cannot resolve
 stakeholder priorities on their own.
+
+Timing also matters. The reward averages Jain fairness after each hour, whereas the
+final minimum considers the least-served locality after all 24 hours. A policy can
+improve equality early in the day yet finish with a lower minimum ratio. Averaging
+first across scenarios would conceal which locality is worst within each episode;
+the reported endpoint therefore takes the minimum before averaging. The locality
+plot further shows that improved aggregate equality need not improve every locality.
+Assessing fairness requires specifying both the unit of comparison and the time
+horizon, alongside a minimum level of acceptable service.
+
+The infeasible-supply test addresses a separate issue. When supply is below critical
+demand, no protected assignment fits. The implementation explicitly enables one
+all-Critical-Only fallback and dispatches it proportionally. Agreement among protected
+controllers is then forced by the fallback, so it validates the declared response to
+infeasibility rather than the relative quality of PPO decisions. Testing discretionary
+allocation near this boundary requires enough supply for at least one Full Service
+upgrade, not merely a nominal percentage above critical demand.
+
+The additional boundary experiment makes this distinction visible by scaling spare
+supply relative to the smallest locality's noncritical upgrade. Below that threshold,
+there is only one feasible assignment. Just above it, two or three choices become
+available and PPO's mean reward is lower than Constrained Optimization's. With eight
+choices, PPO exceeds that optimizer, but Critical-aware Fixed Rotation has the highest
+mean reward. These constructed conditions reveal sensitivity to action granularity,
+not a stable ranking that can be extended to other supply regimes.
 
 No equipment wear, restoration delay or consumer switching cost is modeled. The 99% critical threshold and reward weights are research choices; operational priorities, facility requirements and tradeoffs need agreement.
 
@@ -1059,53 +1182,78 @@ Protocols and hashes support reproduction, not independent custody or field vali
 
 ## 6.5 Implications for further work
 
-Representative data and feasible network actions should precede planning with forecasts. Give competing methods equivalent forecasts and evaluate service under prediction error. Longer-horizon optimization and strong transparent rules should remain comparators.
+The most informative next learning experiment would compare further imitation,
+imitation followed by PPO, and PPO trained from scratch under explicit common budgets.
+Training and validation effort should both count. Reporting reward, energy and
+worst-locality service would test whether the teacher gap can be closed without the
+observed service cost, rather than rewarding whichever method receives more tuning.
 
-The offline application meanwhile supports research by making assumptions, choices and matched outcomes understandable.
+A longer-horizon comparator would test the remaining sequential claim. An exact or
+certified relaxation could provide an upper bound on achievable full-day reward;
+beam search would provide another feasible heuristic unless accompanied by a valid
+bound. Any comparator using future demand must be identified as a perfect-information
+reference, or supplied forecasts with the same information available to the other
+methods. Otherwise an apparent gain would mix planning ability with privileged inputs.
+
+The hour-of-day result should be followed by tests with shifted peaks, changed demand
+scales and measured traces. Such a design separates exploiting a fixed daily template
+from adapting to unfamiliar demand. Forecast-in-the-loop control
+should then give every controller equivalent forecasts and measure how prediction
+errors affect service, rather than treating a lower forecasting error as sufficient
+evidence of better allocation.
+
+The boundary experiment should be extended to changing demand profiles and different
+locality sizes, recording admissible-action counts as well as outcomes. This would test
+whether its controller ranking persists beyond the present action granularity.
+Representative facility data, feasible network
+actions and stakeholder priorities remain prerequisites for interpreting any of these
+simulation improvements as operational benefits.
+
 # 7 Conclusion
 
-GridGuard Khartoum integrates shortage simulation, history-only prediction,
-critical-priority allocation, constrained optimization, PPO and offline communication.
-Its contribution is a reproducible comparison that identifies both objective gains
-and service costs. Ridge AR(3) separately improves synthetic prediction error over the
-selected simple baselines; its forecasts are not controller inputs.
+The results answer the five research questions as follows.
 
-On the original 960 matched conditions, the complete constrained PPO system met the
-declared comparison against Fixed Rotation. Critical protection follows from the action
-mask and sufficient supply, so the reduction from 102.05 to zero critical-interruption
-locality-hours is not a standalone demonstration that learning is necessary.
+**RQ1 — transparent scenarios.** A seeded generator represents seven localities,
+five sectors and coupled Mild, Moderate and Severe shortages using explicit hourly
+profiles and bounded perturbations. The equations in Chapter 3 and Appendix A.3 make
+the assumptions reproducible. These are illustrative scenarios, not estimated Khartoum
+operating conditions.
 
-Against the constrained optimizer, PPO increased fairness by 2.24 percentage points and
-daily reward by 0.0499, with a 97.5% reward interval of [0.0406, 0.0577]. Both protected
-critical service. PPO used 0.40 percentage points less available supply and switched more
-often, so it failed the full declared service-guarded improvement criterion. The evidence
-therefore supports a measured benefit of this trained procedure in fairness and the
-daily objective against this current-hour optimizer, with an efficiency tradeoff.
-It does not establish universal superiority to optimization or an operationally
-preferable allocation.
+**RQ2 — forecasting.** Ridge AR(3) lowers all four reported errors relative to
+persistence and a three-hour trailing mean on held-out synthetic targets, but the later
+training-fitted hour-of-day mean outperforms Ridge AR(3) on all four. Thus the initial
+comparison favors autoregression only against the weaker baselines; added value over
+the daily template is not demonstrated. Forecasts do not enter the control experiment.
 
-Completing the planned fivefold training budget improved daily reward by 0.0295 relative to the
-same runs at iteration 600, but also reduced utilization by 0.24 percentage points. More
-training strengthened the learned objective without satisfying every service requirement.
+**RQ3 — comparison with Fixed Rotation.** Both constrained controllers improve
+critical interruption, Jain fairness, utilization and blackout-duration
+disparities relative to the original schedule. PPO meets the declared composite
+criterion. Critical-aware Fixed Rotation also eliminates the critical interruptions,
+so the fall from 102.05 locality-hours to zero primarily demonstrates the benefit of
+critical protection, rather than a need for learning.
 
-The post-hoc audit strengthens the comparator analysis: PPO improves discretionary
-allocation over critical-aware rotation, but its 0.0102 reward advantage over Fairness
-Rule is accompanied by 16.68 fewer served MWh per day, lower utilization and more
-switching. Reward gains occur in Severe shortage while Mild and Moderate results favor
-the teacher. These findings do not establish uniform superiority or isolate the effect
-of PPO fine-tuning from imitation. Under inadequate critical supply, the fallback
-distributes the shortfall without exceeding capacity, while recording the unavoidable
-critical interruptions.
+**RQ4 — comparison with Constrained Optimization.** PPO raises Jain fairness by
+2.24 percentage points and daily reward by 0.0499, with an adjusted 97.5% reward interval
+of [0.0406, 0.0577]. It serves 19.88 fewer MWh per day, loses 0.40 utilization points
+and switches more often. It therefore fails the complete declared criterion. Fairness
+Rule obtains approximately 80% of that reward advantage with a smaller utilization
+loss. PPO's additional 0.0102 reward over the teacher is concentrated in Severe shortage;
+Mild and Moderate favor the teacher. These outcomes support a limited objective gain
+with service costs, not overall superiority of learning. Fairness Rule satisfies the
+same numerical service margins in a later retrospective comparison; that comparison
+does not acquire the status of an original confirmatory test.
 
-A separate fresh audit evaluates 13,440 trajectories on 960 new matched conditions.
-Against their own imitation-only initializations, the selected PPO actors gain 0.1801
-daily reward, with a descriptive paired 95% interval of [0.1722, 0.1878], while serving
-77.20 fewer MWh/day. The stage improves the chosen objective but does not dominate
-service outcomes: its final worst-locality service remains below the teacher and
-critical-aware rotation despite higher time-averaged Jain fairness. This evidence
-supports a bounded benefit from fine-tuning and selection, not a universal AI advantage.
+**RQ5 — explanation through an interface.** The offline application presents locality
+context, hourly matched replay and saved comparative results. Technical tests support
+its implementation, but no participant study establishes that the interface improves
+understanding. That part of the answer concerns design and functioning software rather
+than measured usability.
 
-The resulting software and evidence provide an inspectable academic decision-support system. The work does not claim national-grid calibration, operational readiness or universal AI superiority. Advancing toward those goals requires measured data, physically feasible actions and external engineering assessment.
+Fine-tuning and validation selection add 0.1801 reward over each run's imitation-only
+actor, mostly closing its 0.1704 teacher deficit, while delivering 77.20 fewer MWh per day.
+The selected procedure ends 0.0097 above the teacher. Additional training also fails the
+utilization guardrails. These results support a bounded comparison of allocation
+procedures, not a general advantage from additional learning.
 
 # Appendix A Supporting studies and reproducibility
 
@@ -1189,12 +1337,19 @@ environment; checking the supplied file manifest requires only Python.
 
 The source literature review is retained at `docs/source/literature-review-authors.docx`,
 with bibliographic and claim checks recorded in `docs/LITERATURE_REVIEW_AUDIT.md`. The
-current control protocol is `docs/FOCUSED_PPO_PROTOCOL.md`. The research archive also
+current control protocol is `docs/FOCUSED_PPO_PROTOCOL.md`. Its SHA-256 is
+`e3e04b018846714490db047ec519ed963a371b738957ef09368fd4732be535f8`.
+The internal freeze record states 23 October 2026 at 09:28:05 UTC. The earliest available
+Git commit containing that protocol is
+[`10ecbb425ddb05e36e602505a160a46345a4e635`](https://github.com/boomout2012-afk/gridguard-khartoum/commit/10ecbb425ddb05e36e602505a160a46345a4e635),
+dated 31 October 2026. Thus Git confirms the preserved protocol's later identity, not
+independent custody before training; no earlier public commit is asserted.
+The research archive also
 retains the forecasting study, earlier optimization comparisons and previous teacher
 comparison alongside their supporting evidence.
 
 The separately hashed `data/evidence/committee-baseline-audit.json` records the post-hoc
-teacher, critical-aware rotation and infeasibility comparisons, including paired,
+teacher, Critical-aware Fixed Rotation and infeasibility comparisons, including paired,
 per-run and shortage-specific results. It preserves the original model identities
 and exact replay of unchanged methods. Its descriptive 95% intervals and later audit
 recipe do not replace the original protocol or adjusted primary intervals.
@@ -1213,13 +1368,34 @@ Model weights, configuration, source identities and scenario/action hashes bind 
 Training and evaluation elapsed times describe experimental cost, not single-decision
 latency. Comparing controller speed would require common hardware, batch size and
 synchronization rules; this study makes no speed-superiority claim.
+
+The recorded runs used an NVIDIA GeForce RTX 5060 Laptop GPU with approximately
+7.93 GiB of reported device memory, PyTorch 2.8.0 with CUDA 12.8, and CuPy 14.1.1.
+Training used float32, deterministic algorithms, disabled TF32, and the cuBLAS
+workspace setting `:4096:8`.
+
+## A.5 Additional baseline analyses
+
+{{ADDITIONAL_APPENDIX}}
+
 # Appendix B Source code and review package
 
 The complete project source and review documents are available in the
 [GridGuard Khartoum GitHub repository](https://github.com/boomout2012-afk/gridguard-khartoum).
 The repository README is the entry point for the thesis, presentation, current GUI
-captures and reviewer guide. It also distinguishes current evidence from historical
-release artifacts.
+captures and research guide. Setup and experiment commands are collected separately
+so that the repository overview remains concise.
+
+The [public validation run](https://github.com/boomout2012-afk/gridguard-khartoum/actions/runs/41225175729)
+at commit `a2b98ec` completed 1,086 portable tests without failures on 31 October 2026.
+The additional baseline analysis also passes 19 focused tests, including analytic
+hourly-profile examples, held-out isolation, action-boundary cases and evidence tampering.
+
+Verification checks retained weights against validation records, common input identities
+across methods, action constraints and metric summaries. Statistical reconstruction checks
+intervals and decisions. Replay connects saved actors to regenerated inputs, recorded
+actions and outcomes. These checks address different failure modes; an evidence hash
+alone does not validate the scientific model.
 
 The `src/gridguard/` package contains the domain model, scenario generation, dispatch,
 controllers, metrics, forecasting and PySide6 interface. The `tests/` directory contains
@@ -1284,11 +1460,11 @@ Nduhuura, P., Garschagen, M. and Zerga, A. (2021) ‘Impacts of electricity outa
 
 Nti, I.K., Teimeh, M., Nyarko-Boateng, O. and Adekoya, A.F. (2020) ‘Electricity load forecasting: A systematic review’, *Journal of Electrical Systems and Information Technology*, 7, article 13. https://doi.org/10.1186/s43067-020-00021-8.
 
-Okuta, R., Unno, Y., Nishino, D., Hido, S. and Loomis, C. (2017) ‘CuPy: A NumPy-compatible library for NVIDIA GPU calculations’, *Workshop on Machine Learning Systems at NIPS 2017*.
+Okuta, R., Unno, Y., Nishino, D., Hido, S. and Loomis, C. (2017) ‘CuPy: A NumPy-compatible library for NVIDIA GPU calculations’, *Workshop on Machine Learning Systems at NIPS 2017*. Available at: https://learningsys.org/nips17/assets/papers/paper_16.pdf.
 
 Oluwasuji, O.I., Malik, O., Zhang, J. and Ramchurn, S.D. (2020) ‘Solving the fair electric load shedding problem in developing countries’, *Autonomous Agents and Multi-Agent Systems*, 34, article 12. https://doi.org/10.1007/s10458-019-09428-8.
 
-Paszke, A., Gross, S., Massa, F. et al. (2019) ‘PyTorch: An imperative style, high-performance deep learning library’, *Advances in Neural Information Processing Systems*, 32.
+Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., Killeen, T., Lin, Z., Gimelshein, N., Antiga, L., Desmaison, A., Köpf, A., Yang, E., DeVito, Z., Raison, M., Tejani, A., Chilamkurthy, S., Steiner, B., Fang, L., Bai, J. and Chintala, S. (2019) ‘PyTorch: An imperative style, high-performance deep learning library’, *Advances in Neural Information Processing Systems*, 32. Available at: https://papers.neurips.cc/paper/9015-pytorch-an-imperative-stylehigh-performance-deep-learning-library.pdf.
 
 Poudel, S. and Dubey, A. (2019) ‘Critical load restoration using distributed energy resources for resilient power distribution system’, *IEEE Transactions on Power Systems*, 34(1), pp. 52–63. https://doi.org/10.1109/TPWRS.2018.2860256.
 

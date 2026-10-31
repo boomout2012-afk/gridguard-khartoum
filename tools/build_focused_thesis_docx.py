@@ -17,6 +17,7 @@ from docx import Document
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
@@ -75,6 +76,8 @@ class ThesisWordBuilder:
         self.math_count = 0
         self.figures = []
         self.tables = []
+        self.in_abstract = False
+        self.in_references = False
         self.cover = json.loads((ROOT / "docs/academic-cover.json").read_text(encoding="utf-8"))
         self.width = (
             self.document.sections[0].page_width
@@ -113,7 +116,9 @@ class ThesisWordBuilder:
             style = document.styles.add_style(f"toc {level}", WD_STYLE_TYPE.PARAGRAPH, builtin=True)
             style.style_id = f"TOC{level}"
             style.base_style = document.styles["Normal"]
-            style.paragraph_format.space_after = Pt(3)
+            style.font.size = Pt(11)
+            style.paragraph_format.line_spacing = Pt(13)
+            style.paragraph_format.space_after = Pt(2)
             if level == 2:
                 style.paragraph_format.left_indent = Pt(12)
         for name, size, bold in (
@@ -121,7 +126,7 @@ class ThesisWordBuilder:
             ("Table Caption", 10, True),
             ("Frontmatter Heading", 16, True),
             ("Contents Heading", 16, True),
-            ("Arabic Thesis", 13, False),
+            ("Arabic Thesis", 11.5, False),
         ):
             style = document.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
             style.base_style = document.styles["Normal"]
@@ -143,7 +148,7 @@ class ThesisWordBuilder:
         settings.append(update)
         document.core_properties.author = "; ".join(a["name"] for a in self.cover["authors"])
         document.core_properties.title = self.cover["project_title"]
-        document.core_properties.subject = "Graduation project thesis, committee revision"
+        document.core_properties.subject = "Graduation project thesis"
         document.core_properties.comments = ""
 
     def bookmark(self, paragraph, label: str):
@@ -188,9 +193,6 @@ class ThesisWordBuilder:
         run.append(text)
         hyperlink.append(run)
         paragraph._p.append(hyperlink)
-        paragraph.add_run(" (p. ")
-        field(paragraph, f"PAGEREF {key(label)} \\h", "00")
-        paragraph.add_run(")")
 
     def inline(self, paragraph, text: str, *, references: bool = True):
         for token in INLINE.split(text):
@@ -208,7 +210,17 @@ class ThesisWordBuilder:
                 run.font.size = Pt(10)
             elif token.startswith("["):
                 match = re.fullmatch(r"\[([^]]+)\]\(([^)]+)\)", token)
-                paragraph.add_run(match[1] + " (" + match[2] + ")")
+                hyperlink = OxmlElement("w:hyperlink")
+                hyperlink.set(
+                    qn("r:id"),
+                    self.document.part.relate_to(match[2], RT.HYPERLINK, is_external=True),
+                )
+                run = OxmlElement("w:r")
+                text_node = OxmlElement("w:t")
+                text_node.text = match[1]
+                run.append(text_node)
+                hyperlink.append(run)
+                paragraph._p.append(hyperlink)
             elif references and REFERENCE.fullmatch(token):
                 self.reference(paragraph, token)
             else:
@@ -218,30 +230,42 @@ class ThesisWordBuilder:
         arabic = bool(re.search(r"[\u0600-\u06ff]", text))
         paragraph = self.document.add_paragraph(style="Arabic Thesis" if arabic else style)
         paragraph.paragraph_format.widow_control = True
+        if self.in_references:
+            paragraph.paragraph_format.keep_together = True
         paragraph.paragraph_format.space_after = Pt(8)
         if arabic:
             properties = paragraph._p.get_or_add_pPr()
             properties.append(OxmlElement("w:bidi"))
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            paragraph.paragraph_format.line_spacing = Pt(16)
-            paragraph.paragraph_format.space_after = Pt(7)
+            paragraph.paragraph_format.line_spacing = Pt(14.5)
+            paragraph.paragraph_format.space_after = Pt(6)
         else:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         self.inline(paragraph, text)
+        if self.in_abstract and not arabic:
+            paragraph.paragraph_format.line_spacing = Pt(14)
+            paragraph.paragraph_format.space_after = Pt(6)
+            for run in paragraph.runs:
+                run.font.size = Pt(11)
         if arabic:
             for run in paragraph.runs:
+                run.font.size = Pt(11.5)
                 properties = run._r.get_or_add_rPr()
                 fonts = OxmlElement("w:rFonts")
                 fonts.set(qn("w:cs"), "Noto Naskh Arabic")
                 properties.append(fonts)
+                size = OxmlElement("w:szCs")
+                size.set(qn("w:val"), "23")
+                properties.append(size)
                 rtl = OxmlElement("w:rtl")
                 properties.append(rtl)
         return paragraph
 
     def heading(self, level: int, title: str):
+        if level == 1:
+            self.in_abstract = title in {"Abstract", "الملخص"}
+            self.in_references = title == "References"
         paragraph = self.document.add_paragraph(style="Heading " + str(min(level, 3)))
-        if title.startswith("6.4 "):
-            paragraph.paragraph_format.page_break_before = True
         if re.search(r"[\u0600-\u06ff]", title):
             paragraph.add_run(title).font.name = "Noto Naskh Arabic"
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -356,6 +380,8 @@ class ThesisWordBuilder:
                 index += 1
                 continue
             if line.startswith("$$"):
+                if self.document.paragraphs and self.document.paragraphs[-1].text.strip():
+                    self.document.paragraphs[-1].paragraph_format.keep_with_next = True
                 formula = [line[2:]]
                 index += 1
                 while "$$" not in formula[-1]:

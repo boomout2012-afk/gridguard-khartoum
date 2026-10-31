@@ -10,9 +10,10 @@ show the interface.
 | Study | Comparison and sample | Evidence |
 | --- | --- | --- |
 | Main control experiment | Fixed Rotation, Constrained Optimization and five independently trained PPO policies on 960 matched conditions | [Results](../data/evidence/focused-ppo-study.json), [training](../data/evidence/focused-ppo-training.json), [protocol](FOCUSED_PPO_PROTOCOL.md) |
-| Additional baselines | Critical-aware Fixed Rotation and Fairness Rule on the original 960 conditions, plus critical-supply stress cases | [Results](../data/evidence/committee-baseline-audit.json), [protocol](COMMITTEE_BASELINE_PROTOCOL.md) |
+| Protected schedule and rule | Critical-aware Fixed Rotation and Fairness Rule on the original 960 conditions, plus critical-supply stress cases | [Results](../data/evidence/committee-baseline-audit.json), [protocol](COMMITTEE_BASELINE_PROTOCOL.md) |
 | Learning-stage comparison | Each selected PPO actor against its own imitation-only initialization and four deterministic baselines on 960 new conditions | [Results](../data/evidence/thesis-learning-audit.json), [protocol](THESIS_LEARNING_AUDIT_PROTOCOL.md) |
 | Demand forecasting | Ridge AR(3), persistence and a trailing mean on 320 held-out demand traces | [Results](../data/evidence/proposal-supplement.json) |
+| Additional baselines | Training-fitted hourly forecast, retrospective Fairness Rule criteria and discretionary-action boundary challenges | [Results](../data/evidence/additional-baselines.json), [reproduction](../tools/evaluate_additional_baselines.py) |
 
 Each set of 960 conditions consists of 320 independent base draws with three coupled
 shortage variants. Five policies are five independent training runs; conditions are
@@ -37,8 +38,14 @@ budgets. Its reward improvement coexists with lower energy delivery. Higher time
 Jain fairness also does not ensure higher final service to the worst-served locality.
 
 Primary intervals use the original study's adjusted 97.5% paired hierarchical bootstrap.
-The additional analyses report descriptive pointwise 95% intervals. Training-curve
+The baseline and learning-stage audits report descriptive pointwise 95% intervals. Training-curve
 bands show between-run standard deviation, not confidence intervals.
+
+The latest supplement uses descriptive pointwise 97.5% intervals for the retrospective
+Fairness Rule comparison. It meets the numerical service gates; that does not turn the
+comparison into an original confirmatory test. The hourly forecast is fitted only on
+training traces and uses clock time, whereas Ridge uses demand lags. Boundary challenges
+show that controller rankings change when additional service assignments become feasible.
 
 ## Application and source
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import matplotlib
@@ -41,9 +42,21 @@ def forecast_figure():
         "data/evidence/proposal-supplement.json",
         "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e",
     )["forecast"]["methods"]
-    methods = ("trailing_mean_3h", "persistence_1h", "ridge_ar3")
-    labels = ("3-hour\nmean", "Persistence", "Ridge AR(3)")
-    fig, axes = plt.subplots(2, 2, figsize=(9.5, 6.2), layout="constrained")
+    additional = read_verified(
+        "data/evidence/additional-baselines.json",
+        "42a8216dd8fce86b980bb0929a6184cbbbf0a58de1941552b4b826084247eb80",
+    )["forecast"]["methods"]
+    if any(
+        not math.isclose(additional[name][scope][metric], value, rel_tol=0, abs_tol=1e-12)
+        for name, values in forecast.items()
+        for scope, metrics in values.items()
+        for metric, value in metrics.items()
+    ):
+        raise ValueError("Additional baselines differ from the original forecast results")
+    forecast = additional
+    methods = ("trailing_mean_3h", "persistence_1h", "ridge_ar3", "hour_of_day_mean")
+    labels = ("3-hour\nmean", "Persistence", "Ridge\nAR(3)", "Hourly\nprofile")
+    fig, axes = plt.subplots(2, 2, figsize=(8, 6.2), layout="constrained")
     fig.suptitle("Next-hour demand prediction · 320 held-out synthetic traces", fontsize=14)
     for ax, scope, metric, title in zip(
         axes.flat,
@@ -53,9 +66,9 @@ def forecast_figure():
         strict=True,
     ):
         values = [forecast[method][scope][metric] for method in methods]
-        bars = ax.bar(range(3), values, color=COLORS, width=0.57, zorder=3)
+        bars = ax.bar(range(4), values, color=[*COLORS, "#5F6AAE"], width=0.57, zorder=3)
         ax.bar_label(bars, labels=[f"{v:.2f}" for v in values], padding=5)
-        ax.set_xticks(range(3), labels)
+        ax.set_xticks(range(4), labels)
         ax.set_title(title, loc="left", fontsize=13, pad=12)
         ax.set_ylabel("Prediction error (MW) · lower is better")
         ax.set_ylim(0, max(values) * 1.18)
@@ -140,7 +153,7 @@ def main(forecast_only=False):
         values = [r[metric] * scale for r in rows]
         bars = ax.bar(range(3), values, color=COLORS, width=0.57, zorder=3)
         ax.bar_label(bars, labels=[f"{v:.2f}" for v in values], padding=5, fontsize=11)
-        ax.set_xticks(range(3), ["Fixed\nRotation", "Constrained\noptimizer", "PPO"])
+        ax.set_xticks(range(3), ["Fixed\nRotation", "Constrained\nOptimization", "PPO"])
         ax.set_title(title, loc="left", fontsize=13, pad=12)
         ax.set_ylabel(units)
         ax.set_ylim(0, (max(values) or 1) * 1.17)
@@ -149,7 +162,7 @@ def main(forecast_only=False):
 
     comparisons = ("PPO - Constrained Optimization",)
     fig, axes = plt.subplots(2, 2, figsize=(9.5, 6.4), layout="constrained")
-    fig.suptitle("PPO versus constrained optimizer · paired 97.5% intervals", fontsize=14)
+    fig.suptitle("PPO versus Constrained Optimization · paired 97.5% intervals", fontsize=14)
     for ax, (metric, title, units, scale) in zip(axes.flat, metrics, strict=True):
         for index, name in enumerate(comparisons):
             data = evidence["primary_family_adjusted_inference"][name][metric]

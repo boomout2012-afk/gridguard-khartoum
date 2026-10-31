@@ -41,6 +41,7 @@ Check the additional comparisons separately:
 $baselineSha = (Get-Content data/evidence/committee-baseline-audit.sha256).Split()[0]
 uv run --no-sync python tools/evaluate_committee_baseline.py --verify --sha256 $baselineSha
 uv run --no-sync python tools/evaluate_thesis_learning_audit.py --verify
+uv run --no-sync python tools/evaluate_additional_baselines.py --verify
 ```
 
 These commands check saved evidence and reconstruct its summaries. A complete replay
@@ -78,7 +79,8 @@ The thesis source is [FOCUSED_THESIS.md](docs/FOCUSED_THESIS.md). It contains th
 LaTeX equations and references; results are filled from saved evidence. Figures,
 screenshots, institutional logos and licensed fonts are in `docs/assets/`.
 
-Rebuild the thesis and application-page PDFs with Node.js and npm installed:
+Rebuild the thesis and application-page PDFs with Node.js, npm and Poppler's
+`pdftoppm` available on `PATH`:
 
 ```powershell
 powershell -NoProfile -File scripts/rebuild-academic.ps1 -InstallDependencies
