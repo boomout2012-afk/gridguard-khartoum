@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
+from typing import Any
+
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFrame,
     QHBoxLayout,
     QHeaderView,
+    QMessageBox,
     QPushButton,
     QSizePolicy,
     QTableWidget,
@@ -23,6 +27,7 @@ from gridguard.claim_contract import (
 )
 from gridguard.ui.components import format_metric_value
 from gridguard.ui.presentation_model import PresentationSnapshot
+from gridguard.ui.proposal_results import ProposalResultsDialog, build_proposal_results_view
 from gridguard.ui.results_components import (
     INK,
     LINE,
@@ -37,8 +42,17 @@ from gridguard.ui.results_components import (
 class ResultsPage(QWidget):
     """Three evidence-derived comparisons, paired inference, and inspectable provenance."""
 
-    def __init__(self, snapshot: PresentationSnapshot, parent=None) -> None:
+    def __init__(
+        self,
+        snapshot: PresentationSnapshot,
+        parent=None,
+        *,
+        proposal_loader: Callable[[], Mapping[str, Any]] | None = None,
+    ) -> None:
         super().__init__(parent)
+        self._proposal_loader = proposal_loader
+        self.proposal_dialog: ProposalResultsDialog | None = None
+        self.proposal_error_dialog: QMessageBox | None = None
         self.setObjectName("ResultsPage")
         self.setAccessibleName("Results page")
         self.setAccessibleDescription(
@@ -91,7 +105,16 @@ class ResultsPage(QWidget):
         self.evidence_details_button.setObjectName("ResultsEvidenceButton")
         self.evidence_details_button.setAccessibleName("Open frozen holdout evidence details")
         self.evidence_details_button.setMinimumHeight(44)
-        actions.addWidget(self.evidence_details_button)
+        buttons = QHBoxLayout()
+        buttons.setSpacing(8)
+        buttons.addWidget(self.evidence_details_button)
+        self.extended_study_button = QPushButton("Extended study")
+        self.extended_study_button.setObjectName("ResultsEvidenceButton")
+        self.extended_study_button.setAccessibleName("Open extended controller and forecast study")
+        self.extended_study_button.setMinimumHeight(44)
+        self.extended_study_button.clicked.connect(self._open_proposal_results)
+        buttons.addWidget(self.extended_study_button)
+        actions.addLayout(buttons)
         header.addLayout(actions)
         layout.addLayout(header)
 
@@ -200,6 +223,40 @@ class ResultsPage(QWidget):
     def _restore_evidence_focus(self) -> None:
         self.window().activateWindow()
         self.evidence_details_button.setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def _open_proposal_results(self) -> None:
+        try:
+            if self._proposal_loader is None:
+                from gridguard.proposal_evidence import load_proposal_supplement
+
+                payload = load_proposal_supplement()
+            else:
+                payload = self._proposal_loader()
+            view = build_proposal_results_view(payload)
+        except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
+            self.proposal_error_dialog = QMessageBox(self)
+            self.proposal_error_dialog.setWindowTitle("Extended study unavailable")
+            self.proposal_error_dialog.setIcon(QMessageBox.Icon.Warning)
+            self.proposal_error_dialog.setText(
+                "The additional comparisons could not be verified. No study values are shown."
+            )
+            self.proposal_error_dialog.setDetailedText(str(error))
+            self.proposal_error_dialog.finished.connect(
+                lambda _result: QTimer.singleShot(0, self._restore_proposal_focus)
+            )
+            self.proposal_error_dialog.open()
+            return
+        if self.proposal_dialog is not None:
+            self.proposal_dialog.deleteLater()
+        self.proposal_dialog = ProposalResultsDialog(view, self)
+        self.proposal_dialog.finished.connect(
+            lambda _result: QTimer.singleShot(0, self._restore_proposal_focus)
+        )
+        self.proposal_dialog.open()
+
+    def _restore_proposal_focus(self) -> None:
+        self.window().activateWindow()
+        self.extended_study_button.setFocus(Qt.FocusReason.OtherFocusReason)
 
     @staticmethod
     def _comparison_table(snapshot: PresentationSnapshot) -> QTableWidget:

@@ -117,7 +117,9 @@ def test_footer_text_fits_inside_the_full_window_with_vertical_clearance(
     qtbot, qapp, snapshot, width, height
 ) -> None:
     theme.apply_theme(qapp)
-    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    window = PresentationWindow(
+        snapshot, runtime_label="Test CUDA runtime", results_page_factory=ResultsPage
+    )
     qtbot.addWidget(window)
     window.setFixedSize(width, height)
     window.tabs.setCurrentIndex(2)

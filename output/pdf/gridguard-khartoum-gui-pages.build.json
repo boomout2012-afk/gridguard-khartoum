@@ -1,0 +1,33 @@
+{
+  "schema": "gridguard.current_gui_pdf.1",
+  "pdf": {
+    "path": "output/pdf/gridguard-khartoum-gui-pages.pdf",
+    "sha256": "4c3778bc745dd24aab9af9b8bf29ce74c927ffcf8ef61eac3be1e12141fcaa2d",
+    "pages": 19,
+    "captured_screens": 18
+  },
+  "cover_metadata_sha256": "607f317371cad53de15dbe42fab0c05e5959cfda0b12f20ba38e338196d33cbc",
+  "logos_sha256": "2feb6575ec16335d867649d651281b2bc1aa2c5d8c6226cc2d862f9055b8dff9",
+  "capture_manifest_sha256": "326040896b346418a726c7d7347a8b2f658ac748e2ba06e0514e5d3d82c53074",
+  "screenshots_sha256": {
+    "overview.png": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e",
+    "live-ready.png": "363d3e6cd7f5f4416951872a64c118a1de288229e69c4f5d58f2fb78d10ca220",
+    "live-ppo.png": "a3e2adfdbcb3efebac9cceb845cacf697578557a59b7d826760dbf6036479dfb",
+    "live-fixed.png": "38a0e7700384af7eb6c457cbd4baea6596beaef4d83dbe93f0a72f3511a1355a",
+    "live-optimizer.png": "a93fbdbf374f20b7a32b4b70b13ea6f7e2b98771fc05a7135c193e46671797c7",
+    "results.png": "53ba115a1eb5f02c77d88bbb5da266bee03ba6b16b032e748fc9c10a6eec2d89",
+    "current-paired-fixed.png": "07d4e1bf3622c6240b8e9bba488d87211a3f8eda08899d57808e0664cb0598bd",
+    "current-paired-optimizer.png": "65d1c50ffaa89c7f612dff19dd73b223ac13b11503b0c70f93b7acd8e2005157",
+    "current-individual-runs.png": "a409a77185d170fb8c6231425376edf145ce52848a423937fbe0ab763723301e",
+    "current-shortage-levels.png": "e85244106bc2f49a1201c3e6c7fadc34e7705bd000ee2406625b3aae0fed6b0f",
+    "current-evidence.png": "2efe504998b39b58e2cfadaf201b8fde15df22a8d31e5a8308b3e610ff08c4ca",
+    "earlier-results.png": "b4c042d7d3c9014a6e9cd8b9d6c3a0774ea4f8594f2b8354d40764cb843d5396",
+    "earlier-evidence-01.png": "58402fc0bcbaabfd1b0cfa23f851b81059864f154ae24e9dd88088a84c7a9b40",
+    "extended-controllers.png": "8406c92c760914a1fa1a038c667c5f91a5442e7c1d73cba4168e863b888d86ff",
+    "extended-paired-01.png": "240fd47312c727bffe3bfc1fff450f0a5ded764b4dd29fb3fe216ad4a8e0d688",
+    "extended-paired-02.png": "3a6828fda2aaab7995c652d19588bc90768a0a34df4a2659aa2a9df380a8e3e4",
+    "extended-paired-03.png": "df7256cd42a29f28bd8de5d54e39dc60d224b16493f2529f9092871adbe74329",
+    "extended-forecast.png": "90593053487f9fac0027a3418a4cccf9485b2efb5aba2cc454aa7660b84f1083"
+  },
+  "builder_sha256": "4760fb50245de0d4e3140c03fbebf58c7fd50c85622f33a236b117f421bc5e18"
+}

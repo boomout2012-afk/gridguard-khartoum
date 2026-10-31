@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import sys
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 from runpy import run_path
@@ -19,11 +21,18 @@ _AUDITED_RUNTIME_FILES = (
     "data/evidence/frozen-benchmark.json",
     "data/evidence/paired-benchmark.json",
     "data/evidence/robustness-supplement.json",
+    "data/evidence/proposal-supplement.json",
+    "data/evidence/focused-ppo-study.json",
+    "data/evidence/focused-ppo-training.json",
+    "docs/focused-ppo-validation.json",
     "data/evidence/source-manifest.json",
     "data/model/manifest.json",
     "data/model/ppo-policy.npz",
+    "data/model/focused-ppo-study/seed-8111-selected.npz",
     "data/model/training-provenance.yaml",
     "docs/source/graduation-project-proposal.pdf",
+    "docs/PROPOSAL_EXTENSION.md",
+    "tools/evaluate_proposal_extension.py",
     "src/gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf",
     "src/gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf",
     "src/gridguard/assets/fonts/IBMPlexMono-Regular.ttf",
@@ -39,6 +48,43 @@ _AUDITED_RUNTIME_FILES = (
     "src/gridguard/assets/map/khartoum-nile.geojson",
     "src/gridguard/assets/map/map-provenance.json",
 )
+
+
+def _trusted_build_dll_path(inherited_path, trusted_roots):
+    """Exclude ambient tools whose same-named DLLs can shadow Windows/Qt dependencies."""
+
+    roots = tuple(root.resolve() for root in trusted_roots)
+    entries = []
+    seen = set()
+    for entry in inherited_path.split(os.pathsep):
+        path = Path(entry)
+        if not entry or not path.is_absolute():
+            continue
+        resolved = path.resolve()
+        if not resolved.is_dir() or not any(resolved.is_relative_to(root) for root in roots):
+            continue
+        normalized = os.path.normcase(str(resolved))
+        if normalized not in seen:
+            entries.append(str(resolved))
+            seen.add(normalized)
+    return os.pathsep.join(entries)
+
+
+if os.name == "nt":
+    # PyInstaller also searches PATH for DLLs. Document tools can provide an incompatible
+    # icuuc.dll; Qt must resolve its unversioned ICU API against the Windows system copy.
+    windows_root = Path(os.environ["SystemRoot"])
+    python_roots = (Path(sys.prefix), Path(sys.base_prefix))
+    build_path = os.pathsep.join(
+        [
+            str(python_roots[0] / "Scripts"),
+            str(python_roots[1]),
+            str(windows_root / "System32"),
+            str(windows_root),
+            os.environ.get("PATH", ""),
+        ]
+    )
+    os.environ["PATH"] = _trusted_build_dll_path(build_path, (*python_roots, windows_root))
 
 
 def _minimal_distribution_metadata(distribution):
@@ -96,25 +142,10 @@ def _audited_runtime_data():
 def _bundled_provenance_sources():
     """Bundle every raw source file required by fail-closed evidence verification."""
 
-    trust_anchor_path = PROJECT_ROOT / "src" / "gridguard" / "robustness_provenance.py"
-    trust_anchor = run_path(str(trust_anchor_path))
-    repository_paths = (
-        "src/gridguard/robustness_provenance.py",
-        *(
-            path
-            for path, _sha256, _size_bytes in trust_anchor[
-                "ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS"
-            ]
-        ),
-    )
+    # Share byte validation for robustness_provenance.py and both evidence source sets.
+    build_hook = run_path(str(PROJECT_ROOT / "hatch_build.py"))
     entries = []
-    for repository_path in dict.fromkeys(repository_paths):
-        relative_path = Path(repository_path)
-        if relative_path.is_absolute() or ".." in relative_path.parts:
-            raise ValueError(f"invalid provenance source path: {repository_path}")
-        source_path = (PROJECT_ROOT / relative_path).resolve()
-        if not source_path.is_relative_to(PROJECT_ROOT) or not source_path.is_file():
-            raise FileNotFoundError(f"provenance source is unavailable: {repository_path}")
+    for relative_path, source_path in build_hook["_validated_provenance_sources"](PROJECT_ROOT):
         target_path = (Path("gridguard/_bundled") / relative_path.parent).as_posix()
         entries.append((str(source_path), target_path))
     return entries

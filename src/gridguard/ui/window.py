@@ -12,13 +12,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from gridguard.ui.focused_results import FocusedResultsPage
 from gridguard.ui.live_models import LiveScenarioComparison
 from gridguard.ui.live_page import LiveScenarioPage
 from gridguard.ui.live_worker import LiveScenarioWorker
 from gridguard.ui.map_asset import MapAsset, load_map_asset
 from gridguard.ui.overview_page import OverviewPage
 from gridguard.ui.presentation_model import PresentationSnapshot
-from gridguard.ui.results_page import ResultsPage
 from gridguard.ui.window_components import (
     PageStack,
     PresentationNavigationBar,
@@ -41,6 +41,7 @@ class PresentationWindow(QMainWindow):
         runtime_label: str,
         map_asset: MapAsset | None = None,
         live_runner: Callable[[str, int], LiveScenarioComparison] | None = None,
+        results_page_factory: Callable[[PresentationSnapshot], QWidget] = FocusedResultsPage,
         parent=None,
     ) -> None:
         super().__init__(parent)
@@ -70,7 +71,7 @@ class PresentationWindow(QMainWindow):
         self.tabs.setAccessibleName("Presentation pages")
         self.overview_page = OverviewPage(snapshot, asset)
         self.live_page = LiveScenarioPage(asset)
-        self.results_page = ResultsPage(snapshot)
+        self.results_page = results_page_factory(snapshot)
         self.tabs.addTab(self.overview_page, "Overview")
         self.tabs.addTab(self.live_page, "Live Scenario")
         self.tabs.addTab(self.results_page, "Results")

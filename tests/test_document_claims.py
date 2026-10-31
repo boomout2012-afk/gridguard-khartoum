@@ -17,12 +17,16 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 PAIRED_PATH = REPOSITORY_ROOT / "data" / "evidence" / "paired-benchmark.json"
 ROBUSTNESS_PATH = REPOSITORY_ROOT / "data" / "evidence" / "robustness-supplement.json"
 TRAINING_PATH = REPOSITORY_ROOT / "data" / "model" / "training-provenance.yaml"
+HISTORY_PATH = REPOSITORY_ROOT / "docs" / "PROJECT_HISTORY.md"
+REVIEWER_GUIDE_PATH = REPOSITORY_ROOT / "docs" / "REVIEWER_GUIDE.md"
 AUDIT_PATH = REPOSITORY_ROOT / "docs" / "DEVILS_ADVOCATE_AUDIT.md"
 RESULTS_PATH = REPOSITORY_ROOT / "docs" / "RESULTS.md"
 REPORT_PATH = REPOSITORY_ROOT / "output" / "pdf" / "gridguard-khartoum-final-report.pdf"
 DECK_PATH = REPOSITORY_ROOT / "output" / "presentation" / "gridguard-khartoum-defense.pptx"
 TEXT_PATHS = (
     REPOSITORY_ROOT / "README.md",
+    REVIEWER_GUIDE_PATH,
+    HISTORY_PATH,
     REPOSITORY_ROOT / "SPEC.md",
     REPOSITORY_ROOT / "docs" / "METHODOLOGY.md",
     REPOSITORY_ROOT / "docs" / "RELATED_WORK.md",
@@ -63,6 +67,37 @@ def _forbidden_patterns() -> tuple[str, ...]:
         rf"\b{acronym}\s*\+\s*PPO\b",
         re.escape("Smart " + "AI"),
     )
+
+
+def test_reviewer_entry_points_link_the_current_deliverables_and_existing_local_files() -> None:
+    readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+    expected_deliverables = (
+        "output/pdf/updated/gridguard-khartoum-thesis.pdf",
+        "output/pdf/updated/gridguard-khartoum-project-presentation.pdf",
+        "output/presentation/updated/gridguard-khartoum-defense.pptx",
+        "output/pdf/gridguard-khartoum-gui-pages.pdf",
+    )
+    for target in expected_deliverables:
+        assert f"]({target})" in readme
+    assert "](docs/REVIEWER_GUIDE.md)" in readme
+    for document in (REPOSITORY_ROOT / "README.md", REVIEWER_GUIDE_PATH):
+        text = document.read_text(encoding="utf-8")
+        for target in re.findall(r"\]\(([^)]+)\)", text):
+            if target.startswith(("https://", "http://", "#")):
+                continue
+            path = target.split("#", maxsplit=1)[0]
+            assert (document.parent / path).is_file(), (document, target)
+
+
+def test_reviewer_guide_distinguishes_current_evidence_live_policy_and_historical_records() -> None:
+    guide = _normalized(REVIEWER_GUIDE_PATH.read_text(encoding="utf-8"))
+    assert "five-run study" in guide
+    assert "seed 8111" in guide and "checkpoint 2500" in guide
+    assert "current-hour" in guide and "full-day optimum" in guide
+    assert "does not pass" in guide and "utilization" in guide
+    assert "historical" in guide.casefold()
+    assert "focused-ppo-study.json" in guide
+    assert "PROJECT_HISTORY.md" in guide
 
 
 def test_primary_documents_use_only_the_approved_controller_vocabulary() -> None:
@@ -163,12 +198,19 @@ def test_synthetic_rationale_does_not_claim_matching_removes_generator_bias() ->
 
 
 def test_optimization_scope_preserves_the_proposal_conditional_method_objective() -> None:
-    for relative_path in ("docs/REPORT.md", "docs/PROPOSAL_TRACEABILITY.md"):
-        text = _normalized((REPOSITORY_ROOT / relative_path).read_text(encoding="utf-8"))
-        assert "where appropriate" in text, relative_path
-        assert "intentionally outside the accepted scope" not in text, relative_path
-        assert "no online mathematical dispatch optimizer" in text, relative_path
-        assert "optimization-based" in text and "future work" in text, relative_path
+    # The original report remains a historical artifact. The current traceability
+    # records the implemented constrained optimizer and must not inherit that limit.
+    historical = _normalized((REPOSITORY_ROOT / "docs/REPORT.md").read_text(encoding="utf-8"))
+    assert "where appropriate" in historical
+    assert "no online mathematical dispatch optimizer" in historical
+    assert "optimization-based" in historical and "future work" in historical
+    current = _normalized(
+        (REPOSITORY_ROOT / "docs/PROPOSAL_TRACEABILITY.md").read_text(encoding="utf-8")
+    )
+    assert "constrained current-hour optimizer" in current
+    assert "identical causal inputs and critical-service constraints" in current
+    assert "Fixed Rotation remains the matched baseline" in current
+    assert "intentionally outside the accepted scope" not in historical + current
 
 
 def test_report_references_are_cited_and_extract_without_broken_glyphs() -> None:
@@ -187,14 +229,16 @@ def test_report_references_are_cited_and_extract_without_broken_glyphs() -> None
 
 def test_documented_setup_and_artifact_paths_match_the_release() -> None:
     readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+    history = HISTORY_PATH.read_text(encoding="utf-8")
+    guide = REVIEWER_GUIDE_PATH.read_text(encoding="utf-8")
     spec = (REPOSITORY_ROOT / "SPEC.md").read_text(encoding="utf-8")
 
-    assert "uv sync --extra dev --extra docs" in readme
+    assert "uv sync --locked --extra dev --extra docs" in readme
     assert "uv sync --extra dev --extra docs" in spec
-    assert "tools\\build_presentation.ps1" in readme
-    assert "Microsoft PowerPoint" in readme
+    assert "tools\\build_presentation.ps1" in history
+    assert "Microsoft PowerPoint" in guide
     assert "RELEASE_MANIFEST.json" in readme
-    assert "data/model/training-provenance.yaml" in readme
+    assert "data/model/training-provenance.yaml" in guide
     assert "output/presentation/" in spec
 
 
@@ -263,14 +307,14 @@ def test_phase_6_audit_ledger_is_complete_and_honest_about_open_work() -> None:
 
 
 def test_1_2_0_is_the_consistent_release_without_rewriting_1_1_0() -> None:
-    readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+    history = HISTORY_PATH.read_text(encoding="utf-8")
     spec = (REPOSITORY_ROOT / "SPEC.md").read_text(encoding="utf-8")
     changelog = (REPOSITORY_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     citation = (REPOSITORY_ROOT / "CITATION.cff").read_text(encoding="utf-8")
     pyproject = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
     assert pyproject["project"]["version"] == "1.2.0"
-    assert "Current release: **1.2.0 (2026-08-27)**" in readme
+    assert "Historical release: **1.2.0 (2026-08-27)**" in history
     assert "Release: 1.2.0 (2026-08-27)" in spec
     assert "Released baseline: 1.1.0 (2026-08-26)" in spec
     assert "## 1.2.0 - 2026-08-27" in changelog
@@ -281,14 +325,14 @@ def test_1_2_0_is_the_consistent_release_without_rewriting_1_1_0() -> None:
 
 
 def test_documents_keep_accepted_and_documented_holdout_roles_distinct() -> None:
-    readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+    history = HISTORY_PATH.read_text(encoding="utf-8")
     spec = (REPOSITORY_ROOT / "SPEC.md").read_text(encoding="utf-8")
     implementation = (REPOSITORY_ROOT / "docs" / "IMPLEMENTATION.md").read_text(encoding="utf-8")
     traceability = (REPOSITORY_ROOT / "docs" / "PROPOSAL_TRACEABILITY.md").read_text(
         encoding="utf-8"
     )
 
-    assert "separately verified\n   documented-seed-disjoint holdout" in readme
+    assert "separately verified\n   documented-seed-disjoint holdout" in history
     assert "Reproduce and verify the frozen benchmark" not in spec
     assert "Frozen benchmark reconstruction matches committed headline values" not in spec
     assert "documented-seed-disjoint robustness supplement into presentation data" in implementation
@@ -377,8 +421,8 @@ def test_results_sensitivity_classification_counts_match_the_bound_artifact() ->
         assert expected_row in results
 
 
-def test_release_readme_discloses_the_unsigned_authenticity_boundary() -> None:
-    readme = _normalized((REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8"))
+def test_historical_release_guidance_discloses_the_unsigned_authenticity_boundary() -> None:
+    history = _normalized(HISTORY_PATH.read_text(encoding="utf-8"))
 
     for phrase in (
         "unsigned release manifest",
@@ -387,7 +431,9 @@ def test_release_readme_discloses_the_unsigned_authenticity_boundary() -> None:
         "exact commit SHA",
         "signing remains optional",
     ):
-        assert phrase.casefold() in readme.casefold()
+        assert phrase.casefold() in history.casefold()
+    guide = _normalized(REVIEWER_GUIDE_PATH.read_text(encoding="utf-8"))
+    assert "an unsigned checksum does not authenticate its author" in guide
 
 
 def test_release_documents_keep_source_archive_parity_optional() -> None:
@@ -423,6 +469,12 @@ def test_reviewer_documents_separate_the_four_release_test_gates() -> None:
     for path in paths:
         document = path.read_text(encoding="utf-8")
         normalized = _normalized(document).casefold()
+        if path.name == "README.md":
+            # The concise landing page links the complete gate explanation.
+            assert "](docs/REVIEWER_GUIDE.md#verification-and-reproduction)" in document
+            normalized += (
+                " " + _normalized(REVIEWER_GUIDE_PATH.read_text(encoding="utf-8")).casefold()
+            )
         portable_lines = [
             line.strip() for line in document.splitlines() if "pytest" in line and "not gpu" in line
         ]

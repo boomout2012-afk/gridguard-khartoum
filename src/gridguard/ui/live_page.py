@@ -7,7 +7,9 @@ from collections.abc import Sequence
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
+from gridguard.claim_contract import RESULTS_SCOPE_LIMITATION
 from gridguard.domain import ControllerName
+from gridguard.live_policy import DEPLOYED_LIVE_POLICY, LivePolicyIdentity
 from gridguard.ui.live_components import compose_live_page
 from gridguard.ui.live_models import LiveScenarioComparison, LiveScenarioFrame
 from gridguard.ui.map_asset import MapAsset
@@ -24,6 +26,7 @@ class LiveScenarioPage(QWidget):
         self._comparison: LiveScenarioComparison | None = None
         self.setAccessibleName("Live Scenario page")
         compose_live_page(self, asset)
+        self._show_policy_identity(awaiting=True)
         self.controls.run_requested.connect(self._request_run)
         self.controls.inputs_changed.connect(self._invalidate_changed_inputs)
         self.controller_combo.currentTextChanged.connect(self._select_controller)
@@ -36,6 +39,7 @@ class LiveScenarioPage(QWidget):
         """Install 24 genuine simulation frames and show the first hour."""
 
         self._comparison = None
+        self._show_policy_identity()
         self.map_panel.set_controller_available(False)
         self.comparison_table.clear_metrics()
         self.comparison_summary.clear_metrics()
@@ -43,11 +47,13 @@ class LiveScenarioPage(QWidget):
         self.controls.set_state("Scenario complete · use the hour control to explore.", "ready")
 
     def set_comparison(self, comparison: LiveScenarioComparison) -> None:
-        """Install both controller timelines from the same genuine scenario."""
+        """Install all supplied controller timelines from the same genuine scenario."""
 
         if not isinstance(comparison, LiveScenarioComparison):
             raise TypeError("comparison must be a LiveScenarioComparison")
         self._comparison = comparison
+        self._show_policy_identity(comparison.policy_identity)
+        self.map_panel.set_controller_names(tuple(comparison.frames_by_controller))
         for control, value in (
             (self.shortage_combo, comparison.shortage_level.title()),
             (self.seed_input, comparison.seed),
@@ -74,6 +80,7 @@ class LiveScenarioPage(QWidget):
         """Lock scenario inputs while the real background run is active."""
 
         self.controls.set_busy(busy)
+        self.map_panel.set_controller_available(not busy and self._comparison is not None)
 
     def _install_frames(
         self, frames: Sequence[LiveScenarioFrame], *, reset_hour: bool = True
@@ -108,11 +115,47 @@ class LiveScenarioPage(QWidget):
     def _reset_output(self) -> None:
         self._frames.clear()
         self._comparison = None
+        self._show_policy_identity(awaiting=True)
         self.map_panel.reset_output()
         self.locality_panel.reset_output()
         self.comparison_table.clear_metrics()
         self.comparison_summary.clear_metrics()
         self.power_trace.clear()
+
+    def _show_policy_identity(
+        self, identity: LivePolicyIdentity | None = None, *, awaiting: bool = False
+    ) -> None:
+        """Identify the supplied policy without claiming a pending run was verified."""
+
+        benchmark_note = (
+            "Live Scenario uses one validation-selected PPO policy with critical-service "
+            "constraints. Results reports frozen five-run benchmark means; an individual "
+            "live scenario can differ. The constrained optimizer protects critical demand "
+            "and maximizes the current hour, without a full-day optimality claim."
+        )
+        if identity is not None:
+            title = (
+                f"PPO · seed {identity.training_seed} · iteration {identity.checkpoint_iteration}"
+            )
+            detail = (
+                f"Verified live model: {identity.model_relative_path}\n"
+                f"Model SHA-256: {identity.model_sha256}\n"
+                f"Training evidence SHA-256: {identity.training_sha256}"
+            )
+        elif awaiting:
+            title = "Current trained PPO · ready to run"
+            detail = (
+                f"Run a scenario to verify and use training seed "
+                f"{DEPLOYED_LIVE_POLICY.training_seed}, selected iteration "
+                f"{DEPLOYED_LIVE_POLICY.checkpoint_iteration}."
+            )
+        else:
+            title = "PPO identity not supplied"
+            detail = "These supplied frames do not identify a deployed PPO checkpoint."
+        self.scope_note.setText(f"{title}\nSynthetic scenario · Decision support only")
+        description = f"{detail}\n\n{benchmark_note}\n\n{RESULTS_SCOPE_LIMITATION}"
+        self.scope_note.setToolTip(description)
+        self.scope_note.setAccessibleDescription(description)
 
     def _invalidate_changed_inputs(self, _shortage_level: str, _seed: int) -> None:
         if not self._frames and self._comparison is None:
@@ -126,6 +169,7 @@ class LiveScenarioPage(QWidget):
         if self._comparison is None:
             return
         self._install_frames(self._comparison.frames(controller_name), reset_hour=False)
+        self.comparison_summary.show_comparison(self._comparison, controller_name=controller_name)
         self.controls.set_state(
             f"Comparison complete · showing {controller_name} on the shared scenario.", "ready"
         )

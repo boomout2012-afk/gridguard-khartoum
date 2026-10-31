@@ -1,0 +1,97 @@
+{
+  "schema": {
+    "name": "gridguard.proposal-extension-validation",
+    "version": 1
+  },
+  "date": "2026-10-22",
+  "scope": "Additive proposal implementation, matched synthetic evaluation, academic documents and separate Windows build; original release records remain scoped to their historical artifacts.",
+  "proposal_sha256": "3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48",
+  "supplement_sha256": "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e",
+  "current_source_bindings_verified": 16,
+  "matched_conditions": 960,
+  "controller_evaluations": 2880,
+  "visual_review": {
+    "thesis_pages": 55,
+    "presentation_slides": 17,
+    "all_pages_inspected": true
+  },
+  "focused_validation": [
+    "Optimization versus scalar exhaustive oracle",
+    "Analytic duration cases",
+    "Causal forecasting and leakage checks",
+    "Proposal evidence and CUDA interval reconstruction",
+    "Original golden and archive parity cases",
+    "Live GUI and startup/source packaging checks"
+  ],
+  "clean_build": {
+    "ambient_document_tool_binaries_absent": true,
+    "manual_post_build_DLL_changes": false,
+    "pyinstaller_log": "tmp/proposal-extended/build/pyinstaller-clean.log"
+  },
+  "frozen_smoke": {
+    "gpu": {
+      "cupy_version": "14.1.1",
+      "device_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "torch_cuda_version": "12.8",
+      "torch_version": "2.8.0+cu128"
+    },
+    "live_scenario": {
+      "controllers": [
+        "PPO",
+        "Fixed Rotation",
+        "Optimization"
+      ],
+      "device": "cuda:0",
+      "expected_results_table_rows": 3,
+      "finite_core_values": true,
+      "frame_counts": {
+        "Fixed Rotation": 24,
+        "Optimization": 24,
+        "PPO": 24
+      },
+      "hour_zero": {
+        "demand_mw": 284.67578756809235,
+        "fixed_rotation_served_mw": 133.1891919374466,
+        "optimization_served_mw": 177.14414751529694,
+        "ppo_served_mw": 173.77448570728302,
+        "supply_mw": 177.9234161376953
+      },
+      "installed_in_live_page": true,
+      "results_table_rows": 3,
+      "seed": 50002,
+      "selected_controller": "Optimization",
+      "selected_hour": 23,
+      "shortage_level": "moderate",
+      "validated_core_value_count": 4617
+    },
+    "release_id": "gridguard-khartoum-v1.2.0",
+    "status": "PASS",
+    "window_title": "GridGuard Khartoum"
+  },
+  "outputs": {
+    "output/pdf/updated/gridguard-khartoum-thesis.pdf": {
+      "sha256": "131414e85d6dbef825da32aba324b99629fb01df98ba88cc8ca057b1769a238b",
+      "bytes": 540790,
+      "pages": 55
+    },
+    "output/pdf/updated/gridguard-khartoum-project-presentation.pdf": {
+      "sha256": "952164ff5021eef62bb38842d41bf13d811a8e3b8c763bde8a8f1a15d77b7b3c",
+      "bytes": 288884,
+      "pages": 17
+    },
+    "output/presentation/updated/gridguard-khartoum-defense.pptx": {
+      "sha256": "0d76373ae0f954a54eb7fbeecdcd046a2b2d09c616bc6535f38b9d74e17efec8",
+      "bytes": 388222
+    },
+    "output/app/GridGuard Khartoum/GridGuard Khartoum.exe": {
+      "sha256": "ab833ab8c5479b617320844d684c36e304fe61e6b2f65af3d80db97209ca48cf",
+      "bytes": 35199510
+    }
+  },
+  "historical_artifact_hashes_unchanged": {
+    "output\\pdf\\gridguard-khartoum-final-report.pdf": "ed0c5221b2d7ac5e5758303f04367cfa7dd2551adc829faa0435b07397ebb69e",
+    "output\\presentation\\gridguard-khartoum-defense.pptx": "b6359b1fb47b32213eba2ba860a7d82f0734fc04bbadca85ec9ea3cc96683f0d",
+    "docs\\release-visual-review.json": "f1f7aef6e7d30229f18a4e9624a0e002767e73dae86893978767abaccc14edfd",
+    "docs\\release-machine-validation.json": "a264c1ff1ad8fbf3b776eb8ae5756d0f5feedb35a4127a2b49688de77a1e9329"
+  }
+}

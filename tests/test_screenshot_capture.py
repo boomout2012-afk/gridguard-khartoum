@@ -22,7 +22,7 @@ from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 CAPTURE_TOOL = REPOSITORY_ROOT / "tools" / "capture_screenshots.py"
-COMMITTED_SCREENSHOT_DIR = REPOSITORY_ROOT / "docs" / "assets" / "screenshots"
+COMMITTED_SCREENSHOT_DIR = REPOSITORY_ROOT / "docs" / "assets" / "app-regression-screenshots"
 
 
 def _region_digest(image: QImage, region: QRect) -> str:
@@ -184,6 +184,8 @@ def test_cli_capture_matches_committed_cuda_screenshots(tmp_path: Path) -> None:
     paths = sorted(tmp_path.glob("*.png"))
     assert len(paths) == 3
     for path in paths:
-        assert path.read_bytes() == (COMMITTED_SCREENSHOT_DIR / path.name).read_bytes()
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        expected = hashlib.sha256((COMMITTED_SCREENSHOT_DIR / path.name).read_bytes()).hexdigest()
+        assert actual == expected, path.name
     header_digests = {_region_digest(QImage(str(path)), QRect(52, 40, 250, 40)) for path in paths}
     assert len(header_digests) == 1

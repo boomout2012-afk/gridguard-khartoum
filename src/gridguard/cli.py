@@ -28,6 +28,11 @@ from gridguard.policy import (
     load_ppo_policy,
     verify_ppo_artifact,
 )
+from gridguard.proposal_evidence import (
+    load_proposal_supplement,
+    verify_proposal_implementation_sources,
+    verify_proposal_inference_on_cuda,
+)
 from gridguard.provenance import ProvenanceError, verify_project_source_manifest
 from gridguard.resources import ResourceLocationError, runtime_root
 from gridguard.robustness import (
@@ -65,6 +70,7 @@ def run_project_preflight(repository_root: Path | None = None) -> ProjectPreflig
     verify_paired_inference_on_cuda(paired)
     if ROBUSTNESS_SUPPLEMENT_SHA256:
         _verify_robustness_evidence(root)
+    _verify_proposal_evidence(root)
     action = _verify_ppo_and_smoke(root)
     return ProjectPreflightResult(
         gpu=gpu,
@@ -228,6 +234,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if ROBUSTNESS_SUPPLEMENT_SHA256:
             _verify_robustness_evidence(repository_root)
             robustness_verified = True
+        _verify_proposal_evidence(repository_root)
         _verify_ppo_host(repository_root)
     except (
         EvaluationArtifactError,
@@ -272,7 +279,10 @@ def _verify_ppo_host(repository_root: Path) -> None:
 def _verify_robustness_evidence(repository_root: Path) -> dict:
     if not ROBUSTNESS_SUPPLEMENT_SHA256:
         raise RobustnessArtifactError("robustness supplement trust anchor is not finalized")
-    verify_robustness_implementation_sources(repository_root)
+    historical_root = repository_root / "data/evidence/accepted-sources"
+    verify_robustness_implementation_sources(
+        historical_root if historical_root.exists() else repository_root
+    )
     payload = verify_robustness_supplement(
         repository_root / "data" / "evidence" / "robustness-supplement.json",
     )
@@ -283,6 +293,22 @@ def _verify_robustness_evidence(repository_root: Path) -> dict:
         )
     verify_robustness_inference_on_cuda(payload)
     return payload
+
+
+def _verify_proposal_evidence(repository_root: Path) -> bool:
+    """Verify additive evidence when present while supporting historical bundles."""
+    path = repository_root / "data/evidence/proposal-supplement.json"
+    if not path.exists():
+        return False
+    try:
+        payload = load_proposal_supplement(path)
+        verify_proposal_implementation_sources(repository_root)
+        verify_proposal_inference_on_cuda(payload)
+    except (OSError, ValueError, RuntimeError) as error:
+        raise EvaluationArtifactError(
+            f"proposal supplement verification failed: {error}"
+        ) from error
+    return True
 
 
 def _reproduce_paired_evidence(repository_root: Path, output_path: Path) -> str:

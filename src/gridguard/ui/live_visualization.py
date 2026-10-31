@@ -81,12 +81,22 @@ class LiveMapPanel(QWidget):
         self.controller_buttons: dict[str, QPushButton] = {}
         group = QButtonGroup(self)
         group.setExclusive(True)
-        for name in (ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value):
+        for controller in ControllerName:
+            name = controller.value
             button = QPushButton(name)
             button.setCheckable(True)
             button.setObjectName("liveControllerButton")
             button.setMinimumHeight(44)
-            button.setMinimumWidth(95 if name == "PPO" else 150)
+            # Qt style-sheet min-height is the content box: 34 + padding 6 + borders 4.
+            button.setStyleSheet("min-height: 34px; max-height: 34px;")
+            button.setMinimumWidth(72 if name == "PPO" else 132)
+            button.setAccessibleName(f"Show {name} live scenario")
+            if controller == ControllerName.OPTIMIZATION:
+                button.setToolTip(
+                    "Constrained optimizer: protects critical demand and exactly maximizes "
+                    "the current-hour objective over feasible actions, as in the current study. "
+                    "No future demand or full-day optimality claim."
+                )
             button.clicked.connect(
                 lambda _checked=False, value=name: self.controller_combo.setCurrentText(value)
             )
@@ -96,6 +106,19 @@ class LiveMapPanel(QWidget):
         self.controller_combo.currentTextChanged.connect(self._sync_controller_buttons)
         self._sync_controller_buttons(self.controller_combo.currentText())
         self.set_controller_available(False)
+
+    def set_controller_names(self, names: tuple[str, ...]) -> None:
+        """Show only controller timelines supplied by this comparison."""
+
+        current = self.controller_combo.currentText()
+        blocked = self.controller_combo.blockSignals(True)
+        self.controller_combo.clear()
+        self.controller_combo.addItems(names)
+        self.controller_combo.setCurrentText(current if current in names else names[0])
+        self.controller_combo.blockSignals(blocked)
+        for name, button in self.controller_buttons.items():
+            button.setVisible(name in names)
+        self._sync_controller_buttons(self.controller_combo.currentText())
 
     def _sync_controller_buttons(self, name: str) -> None:
         for value, button in self.controller_buttons.items():
@@ -221,6 +244,7 @@ class LiveMapPanel(QWidget):
         for label in (self.clock_label, self.supply_label, self.demand_label):
             _set_accessible_text(label, "—")
         _set_accessible_text(self.hour_caption, "No scenario yet")
+        self.set_controller_names(tuple(member.value for member in ControllerName))
         blocked = self.controller_combo.blockSignals(True)
         self.controller_combo.setCurrentText(ControllerName.PPO.value)
         self.controller_combo.blockSignals(blocked)

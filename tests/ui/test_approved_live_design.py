@@ -39,8 +39,8 @@ def test_approved_live_controller_buttons_preserve_hour_and_real_comparison(qtbo
 
     assert page.controller_combo.currentText() == "Fixed Rotation"
     assert page.timeline.value() == 18
-    assert page.comparison_summary.values["Served energy"].text() == "7,800 MWh"
-    assert page.comparison_summary.baselines["Served energy"].text() == "Fixed Rotation 5,200 MWh"
+    assert page.comparison_summary.values["Served energy"].text() == "5,200 MWh"
+    assert page.comparison_summary.baselines["Served energy"].text() == "PPO 7,800 MWh"
     page.seed_input.setValue(50003)
     assert page.comparison_summary.values["Served energy"].text() == "—"
     assert not page.timeline.isEnabled()

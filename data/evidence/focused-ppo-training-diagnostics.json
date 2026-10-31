@@ -1,0 +1,5694 @@
+{
+  "aggregation": {
+    "band": "mean plus/minus one sample standard deviation; not a confidence interval",
+    "diagnostic_time_sampling": "One logged PPO update every 25 iterations; not an average of 25 updates. Iteration zero is behavior cloning and has no PPO diagnostic values.",
+    "sample_variance": "sum((x_seed - mean)**2) / (5 - 1)",
+    "seed_weighting": "equal weight for each of five independent training seeds",
+    "smoothing": "none",
+    "validation": "Between-seed sample variance of each checkpoint's overall validation mean; not scenario variance, held-out uncertainty or critic explained variance.",
+    "within_update": "Except episode_reward, diagnostics are minibatch-size-weighted averages over all minibatches of all four PPO epochs in the logged update."
+  },
+  "completed_iterations_per_run": 3000,
+  "diagnostic_definitions": {
+    "approx_kl": "Diagnostic mean of ratio - 1 - log(ratio), using stored rollout log probabilities.",
+    "clip_fraction": "Fraction with abs(probability ratio - 1) > 0.2.",
+    "entropy": "Entropy in nats of the masked categorical policy.",
+    "episode_reward": "Pre-update rollout mean of 24-hour reward sums over 256 episodes.",
+    "policy_loss": "Minimized negative clipped policy surrogate; normalized advantages.",
+    "value_loss": "Half mean squared critic error, before the extra 0.5 loss coefficient."
+  },
+  "diagnostic_samples_per_seed": 120,
+  "diagnostics": [
+    {
+      "iteration": 25,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.007707018218934536,
+          "sample_sd": 0.0013795764845504388,
+          "sample_variance": 1.903231276724547e-06,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.11823730766773224,
+          "sample_sd": 0.024284771731444412,
+          "sample_variance": 0.0005897501380483616,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 1.8811610460281372,
+          "sample_sd": 0.02691744618937198,
+          "sample_variance": 0.0007245489093577362,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.338548278808595,
+          "sample_sd": 0.002019259110866477,
+          "sample_variance": 4.077407356817275e-06,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.007589710038155317,
+          "sample_sd": 0.0013962793629672243,
+          "sample_variance": 1.9495960594481577e-06,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0015557421604171396,
+          "sample_sd": 6.576706967803446e-05,
+          "sample_variance": 4.32530745403544e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 50,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.007278328854590654,
+          "sample_sd": 0.0006091366069200865,
+          "sample_variance": 3.71047405890116e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.10731608271598816,
+          "sample_sd": 0.01104575483764973,
+          "sample_variance": 0.00012200869993346241,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 1.5941123008728026,
+          "sample_sd": 0.05070037148824385,
+          "sample_variance": 0.00257052766904593,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.355090713500978,
+          "sample_sd": 0.002815895341797475,
+          "sample_variance": 7.929266575956718e-06,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.007400671392679215,
+          "sample_sd": 0.0009952485837934255,
+          "sample_variance": 9.90519743542819e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0011926465900614857,
+          "sample_sd": 5.886757014280562e-05,
+          "sample_variance": 3.4653908145181393e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 75,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.006528991367667913,
+          "sample_sd": 0.0004062975255021752,
+          "sample_variance": 1.650776792291907e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.09496256858110427,
+          "sample_sd": 0.012442306756637574,
+          "sample_variance": 0.00015481099742626904,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 1.3751302480697631,
+          "sample_sd": 0.043246571839119285,
+          "sample_variance": 0.0018702659758361051,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.3629093170166,
+          "sample_sd": 0.003777542850801797,
+          "sample_variance": 1.4269829989643767e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.006848375778645277,
+          "sample_sd": 0.0008457053131154072,
+          "sample_variance": 7.152174766316289e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0011042571859434247,
+          "sample_sd": 4.553345486768887e-05,
+          "sample_variance": 2.073295512187859e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 100,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.006309081707149744,
+          "sample_sd": 0.0005306653827768107,
+          "sample_variance": 2.8160574847765906e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.08801269829273224,
+          "sample_sd": 0.011000900888129259,
+          "sample_variance": 0.00012101982035044312,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 1.2792509078979493,
+          "sample_sd": 0.022162501996505376,
+          "sample_variance": 0.0004911764947451048,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.369394302368164,
+          "sample_sd": 0.0058068984011268865,
+          "sample_variance": 3.372006904100999e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.006568329129368067,
+          "sample_sd": 0.00037093793554033097,
+          "sample_variance": 1.3759495202292274e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0009357940638437867,
+          "sample_sd": 7.487405712183047e-05,
+          "sample_variance": 5.606124429883132e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 125,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.005414749588817358,
+          "sample_sd": 0.0005261647910204206,
+          "sample_variance": 2.768493873095629e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.08298339992761612,
+          "sample_sd": 0.011769666480331837,
+          "sample_variance": 0.0001385250490582468,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 1.153980302810669,
+          "sample_sd": 0.03689651173799791,
+          "sample_variance": 0.0013613525784322178,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.37653007507324,
+          "sample_sd": 0.005404015924510617,
+          "sample_variance": 2.9203388112364338e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.00565656078979373,
+          "sample_sd": 0.0011192137691634332,
+          "sample_variance": 1.252639461085019e-06,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0008832393097691238,
+          "sample_sd": 7.35954809923252e-05,
+          "sample_variance": 5.4162948224917e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 150,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.005715670343488455,
+          "sample_sd": 0.0005237525114609092,
+          "sample_variance": 2.7431669326160973e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.08236491233110428,
+          "sample_sd": 0.0060560889502415585,
+          "sample_variance": 3.66762133732379e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 1.079219365119934,
+          "sample_sd": 0.04917737039365727,
+          "sample_variance": 0.0024184137588349587,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.384679794311523,
+          "sample_sd": 0.005355575479161112,
+          "sample_variance": 2.8682188712991774e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.006267395243048668,
+          "sample_sd": 0.0007163977720886771,
+          "sample_variance": 5.132257678536201e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0008669147384352982,
+          "sample_sd": 9.016911781723884e-05,
+          "sample_variance": 8.130469807939099e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 175,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.004779840540140867,
+          "sample_sd": 0.0002040966738180636,
+          "sample_variance": 4.165545226359705e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.07182617485523224,
+          "sample_sd": 0.005199295360731918,
+          "sample_variance": 2.7032672248128442e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.9932588934898376,
+          "sample_sd": 0.058028590829893624,
+          "sample_variance": 0.003367317353703214,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.392802810668947,
+          "sample_sd": 0.00591371873368441,
+          "sample_variance": 3.497206926112994e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.005354881659150124,
+          "sample_sd": 0.00029060343324415746,
+          "sample_variance": 8.445035541329148e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0008306268136948347,
+          "sample_sd": 0.0001293610618088314,
+          "sample_variance": 1.6734284312308294e-08,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 200,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.004889955138787627,
+          "sample_sd": 0.001023853452080593,
+          "sample_variance": 1.0482758913373468e-06,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.07250976860523224,
+          "sample_sd": 0.020376704906626658,
+          "sample_variance": 0.00041521010285174297,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.9219681024551392,
+          "sample_sd": 0.06611789923093957,
+          "sample_variance": 0.004371576598712679,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.402326583862305,
+          "sample_sd": 0.007114145002963078,
+          "sample_variance": 5.061105912318453e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.005293391365557909,
+          "sample_sd": 0.0016384264311480666,
+          "sample_variance": 2.6844411702845905e-06,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0007092607440426946,
+          "sample_sd": 5.458388325374755e-05,
+          "sample_variance": 2.979400311058742e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 225,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.00447578732855618,
+          "sample_sd": 0.0008736054612014079,
+          "sample_variance": 7.631865018409246e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.061621096730232236,
+          "sample_sd": 0.012073435321925858,
+          "sample_variance": 0.00014576784047272694,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.8287052154541016,
+          "sample_sd": 0.05961876992673995,
+          "sample_variance": 0.003554397727577552,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.409702682495116,
+          "sample_sd": 0.009958968916864128,
+          "sample_variance": 9.918106188706588e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.004487574333325028,
+          "sample_sd": 0.0008055607641852026,
+          "sample_variance": 6.489281447946476e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0006220179027877748,
+          "sample_sd": 6.678804958267039e-05,
+          "sample_variance": 4.460643567057238e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 250,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0037196258082985876,
+          "sample_sd": 0.0007017884942589365,
+          "sample_variance": 4.925070906742253e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.05125325694680214,
+          "sample_sd": 0.011216625913921844,
+          "sample_variance": 0.00012581269689286302,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.7459559321403504,
+          "sample_sd": 0.04961721700507676,
+          "sample_variance": 0.002461868223328878,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.416727828979493,
+          "sample_sd": 0.0059884629271197976,
+          "sample_variance": 3.586168822948821e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0037319692317396404,
+          "sample_sd": 0.0008843301160943803,
+          "sample_variance": 7.820397542315001e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0005840645870193839,
+          "sample_sd": 3.6839514724184266e-05,
+          "sample_variance": 1.3571498451133893e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 275,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0035656422842293978,
+          "sample_sd": 0.00029218744039404286,
+          "sample_variance": 8.537350032402236e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04729817807674408,
+          "sample_sd": 0.004788882380484096,
+          "sample_variance": 2.2933394454111022e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.7197039484977722,
+          "sample_sd": 0.04957475978515303,
+          "sample_variance": 0.002457656807755626,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.42495002746582,
+          "sample_sd": 0.005080164165523969,
+          "sample_variance": 2.5808067948673852e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003659888729453087,
+          "sample_sd": 0.00038559970182567937,
+          "sample_variance": 1.4868713004805282e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0006334587698802352,
+          "sample_sd": 0.00017190383712393134,
+          "sample_variance": 2.9550929217931117e-08,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 300,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003424662770703435,
+          "sample_sd": 0.0007370238318151158,
+          "sample_variance": 5.432041286634361e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04641927108168602,
+          "sample_sd": 0.008531852783009622,
+          "sample_variance": 7.279251191094905e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.6586329579353333,
+          "sample_sd": 0.05200759537861521,
+          "sample_variance": 0.002704789977065758,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.4313533782959,
+          "sample_sd": 0.006897842618206726,
+          "sample_variance": 4.758023278554902e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0033391660545021296,
+          "sample_sd": 0.0007459923759074256,
+          "sample_variance": 5.565046249120058e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0005456904182210565,
+          "sample_sd": 3.5521347789933565e-05,
+          "sample_variance": 1.2617661488134184e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 325,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003495993837714195,
+          "sample_sd": 0.0006941397053923922,
+          "sample_variance": 4.81829930602237e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04726562649011612,
+          "sample_sd": 0.01053227712854385,
+          "sample_variance": 0.00011092886151244791,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.6355121612548829,
+          "sample_sd": 0.050159990176164425,
+          "sample_variance": 0.0025160246144729113,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.43575325012207,
+          "sample_sd": 0.008329154575299171,
+          "sample_variance": 6.937481593922712e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003343120636418462,
+          "sample_sd": 0.0005775529899100183,
+          "sample_variance": 3.335674561540016e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0005496572121046484,
+          "sample_sd": 5.344093745231351e-05,
+          "sample_variance": 2.855933795782085e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 350,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003568537486717105,
+          "sample_sd": 0.00039488707244258526,
+          "sample_variance": 1.559357999822756e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0476236991584301,
+          "sample_sd": 0.0057613933317918605,
+          "sample_variance": 3.3193653123615716e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.6207962155342102,
+          "sample_sd": 0.04400960348060963,
+          "sample_variance": 0.0019368451985204871,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.436695861816407,
+          "sample_sd": 0.009486099586650705,
+          "sample_variance": 8.998608536785469e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0034829190000891684,
+          "sample_sd": 0.0005646287755868647,
+          "sample_variance": 3.18805654220722e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0005538434837944805,
+          "sample_sd": 8.875370292295305e-05,
+          "sample_variance": 7.877219782535804e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 375,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003471030993387103,
+          "sample_sd": 0.0002593990769168373,
+          "sample_variance": 6.728788110530728e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04837239757180214,
+          "sample_sd": 0.0046860266272965734,
+          "sample_variance": 2.19588455517325e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.577913761138916,
+          "sample_sd": 0.04575578778085671,
+          "sample_variance": 0.0020935921154467962,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.43817596435547,
+          "sample_sd": 0.010726938596994938,
+          "sample_variance": 0.00011506721166369971,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003249131003394723,
+          "sample_sd": 0.00042706390814574343,
+          "sample_variance": 1.8238358164071599e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0005248743807896971,
+          "sample_sd": 5.368394908935588e-05,
+          "sample_variance": 2.8819663898285544e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 400,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003712164843454957,
+          "sample_sd": 0.0006934259042664763,
+          "sample_variance": 4.808394847077803e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0497721366584301,
+          "sample_sd": 0.0071950980619024715,
+          "sample_variance": 5.17694361203927e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.5484129309654235,
+          "sample_sd": 0.03738059246959721,
+          "sample_variance": 0.0013973086933781076,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.44416198730469,
+          "sample_sd": 0.009814510549903946,
+          "sample_variance": 9.632461733417585e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0036549887619912623,
+          "sample_sd": 0.0003510228450353094,
+          "sample_variance": 1.2321703773668283e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004689976805821061,
+          "sample_sd": 3.856545595403787e-05,
+          "sample_variance": 1.487294392942835e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 425,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003437477396801114,
+          "sample_sd": 0.0007841483579061715,
+          "sample_variance": 6.148886472069452e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.046289064735174176,
+          "sample_sd": 0.011058826021784996,
+          "sample_variance": 0.00012229763298010897,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.5327537834644318,
+          "sample_sd": 0.055681499102301954,
+          "sample_variance": 0.0031004293422796534,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.44676818847656,
+          "sample_sd": 0.011492411520678604,
+          "sample_variance": 0.00013207552256062628,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003645830927416682,
+          "sample_sd": 0.0007613621193999794,
+          "sample_variance": 5.796722768572284e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004761548014357686,
+          "sample_sd": 7.256880204985202e-05,
+          "sample_variance": 5.266231030950606e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 450,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0035666659008711577,
+          "sample_sd": 0.0006956722810230463,
+          "sample_variance": 4.839599225838084e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04719238430261612,
+          "sample_sd": 0.006855069482142606,
+          "sample_variance": 4.69919776050029e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.5178889989852905,
+          "sample_sd": 0.05765362964839326,
+          "sample_variance": 0.003323941011634091,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.448278427124023,
+          "sample_sd": 0.011404688711755259,
+          "sample_variance": 0.00013006692461203784,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003526197699829936,
+          "sample_sd": 0.0007492582243604913,
+          "sample_variance": 5.613878867718363e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004552500497084111,
+          "sample_sd": 6.46727247283098e-05,
+          "sample_variance": 4.182561323783734e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 475,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0033254570793360473,
+          "sample_sd": 0.0006399095789682027,
+          "sample_variance": 4.094842692552625e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04578450545668602,
+          "sample_sd": 0.007939597653189806,
+          "sample_variance": 6.303721089453706e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.48921977281570433,
+          "sample_sd": 0.034009984826921406,
+          "sample_variance": 0.0011566790679274242,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.45071029663086,
+          "sample_sd": 0.014835851047558017,
+          "sample_variance": 0.0002201024763053283,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002981092222034931,
+          "sample_sd": 0.00038451905412073133,
+          "sample_variance": 1.478549029819019e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00048542905715294183,
+          "sample_sd": 9.482434696248012e-05,
+          "sample_variance": 8.991656776860812e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 500,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003141368646174669,
+          "sample_sd": 0.0005544643916946819,
+          "sample_variance": 3.074307616573535e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04330241084098816,
+          "sample_sd": 0.0077040025750802115,
+          "sample_variance": 5.935165567684253e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.48005556464195254,
+          "sample_sd": 0.029840123914739423,
+          "sample_variance": 0.0008904329952470035,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.455307006835938,
+          "sample_sd": 0.011152366786492902,
+          "sample_variance": 0.00012437528494047,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003123032720759511,
+          "sample_sd": 0.0005549268426645763,
+          "sample_variance": 3.079438007096754e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00042893955833278596,
+          "sample_sd": 4.0268958172560326e-05,
+          "sample_variance": 1.6215889923034129e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 525,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0034760887268930674,
+          "sample_sd": 0.0007330759817000823,
+          "sample_variance": 5.374003949455394e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04427083507180214,
+          "sample_sd": 0.010038422840212745,
+          "sample_variance": 0.00010076993311890492,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.46171835660934446,
+          "sample_sd": 0.03276214676652531,
+          "sample_variance": 0.0010733582607513447,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.453871154785155,
+          "sample_sd": 0.014116623506843229,
+          "sample_variance": 0.00019927905923395884,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0029070507269352676,
+          "sample_sd": 0.0004986592264600592,
+          "sample_variance": 2.4866102413374456e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004278004344087094,
+          "sample_sd": 3.028407741185071e-05,
+          "sample_variance": 9.171253446869663e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 550,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0033315147273242475,
+          "sample_sd": 0.0006639366270397625,
+          "sample_variance": 4.4081184472493665e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0455240897834301,
+          "sample_sd": 0.008507414425748762,
+          "sample_variance": 7.237610021143815e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.4398501515388489,
+          "sample_sd": 0.0426358043869123,
+          "sample_variance": 0.0018178118157190504,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.45650405883789,
+          "sample_sd": 0.009347607475794197,
+          "sample_variance": 8.737776552152355e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003202174510806799,
+          "sample_sd": 0.0006162026057232777,
+          "sample_variance": 3.797056513001572e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004078802769072354,
+          "sample_sd": 6.598732550182988e-05,
+          "sample_variance": 4.354327126884448e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 575,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002769009303301573,
+          "sample_sd": 0.00034822268415307076,
+          "sample_variance": 1.2125903775876927e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0378092460334301,
+          "sample_sd": 0.003446358729572527,
+          "sample_variance": 1.1877388492900764e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.43443495631217954,
+          "sample_sd": 0.034006320643378954,
+          "sample_variance": 0.0011564298437003017,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.45559616088867,
+          "sample_sd": 0.009932317022083978,
+          "sample_variance": 9.865092142717913e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002723376965150237,
+          "sample_sd": 0.0008576673479835694,
+          "sample_variance": 7.35593279797169e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00040028480580076573,
+          "sample_sd": 3.288354787047658e-05,
+          "sample_variance": 1.081327720549925e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 600,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0027472843416035176,
+          "sample_sd": 0.00032425904597321024,
+          "sample_variance": 1.0514392889545647e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03679199293255806,
+          "sample_sd": 0.0032561497782877605,
+          "sample_variance": 1.0602511378643432e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.43806610107421873,
+          "sample_sd": 0.023307032982535825,
+          "sample_variance": 0.0005432177864490128,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.45623664855957,
+          "sample_sd": 0.011023237198492837,
+          "sample_variance": 0.00012151175833423622,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0022225363994948567,
+          "sample_sd": 0.0007193071307255431,
+          "sample_variance": 5.174027483126135e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004053336044307798,
+          "sample_sd": 3.395643574017511e-05,
+          "sample_variance": 1.1530395281766412e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 625,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0032352357171475886,
+          "sample_sd": 0.0006911874036390549,
+          "sample_variance": 4.777400269492978e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04356282614171505,
+          "sample_sd": 0.008832171282144079,
+          "sample_variance": 7.800724955713059e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.4297251343727112,
+          "sample_sd": 0.026431746465975223,
+          "sample_variance": 0.0006986372212415936,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.459208297729493,
+          "sample_sd": 0.014670158067998295,
+          "sample_variance": 0.00021521353774005546,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0030275756027549503,
+          "sample_sd": 0.0008258825393939633,
+          "sample_variance": 6.820819688758213e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00043277801014482973,
+          "sample_sd": 5.742179475900216e-05,
+          "sample_variance": 3.2972625133449675e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 650,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.003091030288487673,
+          "sample_sd": 0.0007021714016279045,
+          "sample_variance": 4.930446772640959e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04294433668255806,
+          "sample_sd": 0.008788430732447108,
+          "sample_variance": 7.723651473902082e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.4160582721233368,
+          "sample_sd": 0.04411292336310147,
+          "sample_variance": 0.0019459500076388636,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.45842170715332,
+          "sample_sd": 0.009803115139937056,
+          "sample_variance": 9.610106644686311e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.00336440266110003,
+          "sample_sd": 0.0007911416622878627,
+          "sample_variance": 6.259051298076026e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0004070457653142512,
+          "sample_sd": 2.6708067446103043e-05,
+          "sample_variance": 7.133208667055891e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 675,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0032426117919385432,
+          "sample_sd": 0.0009890176548209627,
+          "sample_variance": 9.78155921547557e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.04204915463924408,
+          "sample_sd": 0.00999070909655951,
+          "sample_variance": 9.981426825207695e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.407804536819458,
+          "sample_sd": 0.05143681122975366,
+          "sample_variance": 0.002645745549485312,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.460644149780272,
+          "sample_sd": 0.011206818574849132,
+          "sample_variance": 0.00012559278256958352,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0027861482463777064,
+          "sample_sd": 0.0006746575974823323,
+          "sample_variance": 4.551628738406327e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000406754418509081,
+          "sample_sd": 3.9900044486447824e-05,
+          "sample_variance": 1.5920135500205156e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 700,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0028939415235072373,
+          "sample_sd": 0.000505904506242665,
+          "sample_variance": 2.5593936943663467e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03758951872587204,
+          "sample_sd": 0.006814796383990162,
+          "sample_variance": 4.644144975524539e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.4020930826663971,
+          "sample_sd": 0.05684217387879367,
+          "sample_variance": 0.003231032731267014,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.460639190673827,
+          "sample_sd": 0.011775272683594434,
+          "sample_variance": 0.00013865704677300527,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0029109602328389883,
+          "sample_sd": 0.0005875826501132613,
+          "sample_variance": 3.4525337071412325e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00038337912992574273,
+          "sample_sd": 2.808798636227685e-05,
+          "sample_variance": 7.889349778874503e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 725,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0026345768477767707,
+          "sample_sd": 0.0007176312025113386,
+          "sample_variance": 5.149945428178699e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03472493551671505,
+          "sample_sd": 0.010521425610409068,
+          "sample_variance": 0.00011070039687537183,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.39698747992515565,
+          "sample_sd": 0.06177716137080236,
+          "sample_variance": 0.0038164176670341552,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.46178283691406,
+          "sample_sd": 0.008418128773120842,
+          "sample_variance": 7.0864892040845e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026550535345450043,
+          "sample_sd": 0.0007423061957697969,
+          "sample_variance": 5.510184882782281e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00036353706382215024,
+          "sample_sd": 5.0575302874539165e-05,
+          "sample_variance": 2.5578612608513698e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 750,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002588516753166914,
+          "sample_sd": 0.0005133275219263073,
+          "sample_variance": 2.6350514476700355e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03452148586511612,
+          "sample_sd": 0.00753166016922907,
+          "sample_variance": 5.672590490475166e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.38538732528686526,
+          "sample_sd": 0.06457566073433273,
+          "sample_variance": 0.004170015959275642,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.46390037536621,
+          "sample_sd": 0.00790167412813213,
+          "sample_variance": 6.243645402719267e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0027989987283945084,
+          "sample_sd": 0.0007729538455014534,
+          "sample_variance": 5.974576472754848e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00036360055091790857,
+          "sample_sd": 5.921449957152199e-05,
+          "sample_variance": 3.5063569595057773e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 775,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002509139943867922,
+          "sample_sd": 0.0008067771832515833,
+          "sample_variance": 6.50889423415359e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03210449330508709,
+          "sample_sd": 0.009976961901691976,
+          "sample_variance": 9.953976878781315e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3845690071582794,
+          "sample_sd": 0.06280249609610879,
+          "sample_variance": 0.00394415351590176,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.464088439941406,
+          "sample_sd": 0.008246543076506933,
+          "sample_variance": 6.800547271268442e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0022040079813450573,
+          "sample_sd": 0.0006790644363394991,
+          "sample_variance": 4.611285087010816e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00032896764460019765,
+          "sample_sd": 2.4997701822624574e-05,
+          "sample_variance": 6.248850964128479e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 800,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0028515062760561703,
+          "sample_sd": 0.0006798789983299873,
+          "sample_variance": 4.6223545237018697e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03840332180261612,
+          "sample_sd": 0.010022056126504286,
+          "sample_variance": 0.00010044160900280208,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3794553458690643,
+          "sample_sd": 0.06539938774891943,
+          "sample_variance": 0.004277079917933513,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.466836547851564,
+          "sample_sd": 0.009664169667472942,
+          "sample_variance": 9.339617536170408e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0031846930040046574,
+          "sample_sd": 0.0010742354890473677,
+          "sample_variance": 1.1539818859288372e-06,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00032577155507169665,
+          "sample_sd": 1.6830625978329135e-05,
+          "sample_variance": 2.832699708224076e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 825,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0027759703574702145,
+          "sample_sd": 0.0006420278011138422,
+          "sample_variance": 4.121996974030753e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03765462264418602,
+          "sample_sd": 0.009097382345869763,
+          "sample_variance": 8.276236554694283e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.36987043619155885,
+          "sample_sd": 0.062315827775789506,
+          "sample_variance": 0.0038832623913818585,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.464381408691406,
+          "sample_sd": 0.00997495199686905,
+          "sample_variance": 9.949966733984184e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0030981072690337897,
+          "sample_sd": 0.0005832812789260501,
+          "sample_variance": 3.402170503456086e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0003512425231747329,
+          "sample_sd": 4.7299889728487374e-05,
+          "sample_variance": 2.237279568327065e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 850,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0025727420579642057,
+          "sample_sd": 0.0007139491922315165,
+          "sample_variance": 5.097234490880349e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03317871242761612,
+          "sample_sd": 0.008169424593404164,
+          "sample_variance": 6.673949818731678e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3690140664577484,
+          "sample_sd": 0.07128996357517069,
+          "sample_variance": 0.005082258906549164,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.46849594116211,
+          "sample_sd": 0.009748532789976663,
+          "sample_variance": 9.503389155725017e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026804490480571985,
+          "sample_sd": 0.00046985067039449286,
+          "sample_variance": 2.2075965247015435e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0003593732719309628,
+          "sample_sd": 4.3661837180813396e-05,
+          "sample_variance": 1.9063560260038594e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 875,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0023384452797472477,
+          "sample_sd": 0.00043001472456077444,
+          "sample_variance": 1.8491266333907873e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03076985739171505,
+          "sample_sd": 0.005626899100008237,
+          "sample_variance": 3.166199348167351e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3641250908374786,
+          "sample_sd": 0.07249973489536676,
+          "sample_variance": 0.00525621155989846,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.468284606933594,
+          "sample_sd": 0.01116494630287239,
+          "sample_variance": 0.00012465602594602387,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0027753738453611732,
+          "sample_sd": 0.0006806650518289878,
+          "sample_variance": 4.6330491278135873e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00035648475168272855,
+          "sample_sd": 6.765099877076944e-05,
+          "sample_variance": 4.576657634682647e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 900,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0026466425973922015,
+          "sample_sd": 0.000424293992727835,
+          "sample_variance": 1.800253922649281e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03398437537252903,
+          "sample_sd": 0.00599370902677924,
+          "sample_variance": 3.592454789769495e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3732229471206665,
+          "sample_sd": 0.08430933348961468,
+          "sample_variance": 0.007108063713463064,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.467840576171874,
+          "sample_sd": 0.008140542223364158,
+          "sample_variance": 6.626842769037466e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026334314374253155,
+          "sample_sd": 0.0007304901222034975,
+          "sample_variance": 5.336158186368807e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00032362454803660514,
+          "sample_sd": 5.338362248423123e-05,
+          "sample_variance": 2.849811149538918e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 925,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002527559129521251,
+          "sample_sd": 0.0004494556958722123,
+          "sample_variance": 2.0201042255197462e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03276367336511612,
+          "sample_sd": 0.00507374854862123,
+          "sample_variance": 2.5742924334636042e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3779656380414963,
+          "sample_sd": 0.08232849127524436,
+          "sample_variance": 0.0067779804756579855,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.470265579223632,
+          "sample_sd": 0.007402312979038179,
+          "sample_variance": 5.4794237439637075e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002746199956163764,
+          "sample_sd": 0.0005170567599895791,
+          "sample_variance": 2.6734769305092115e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00034187734709121285,
+          "sample_sd": 4.709577164558138e-05,
+          "sample_variance": 2.218011706892747e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 950,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002673050877638161,
+          "sample_sd": 0.000660857886707911,
+          "sample_variance": 4.367331464240462e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03483073003590107,
+          "sample_sd": 0.008516926145964885,
+          "sample_variance": 7.253803097582029e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3616385817527771,
+          "sample_sd": 0.07513321045672201,
+          "sample_variance": 0.005644999313534083,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.469448852539063,
+          "sample_sd": 0.010211661234769716,
+          "sample_variance": 0.00010427802517369855,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002682384429499507,
+          "sample_sd": 0.00038012481283726404,
+          "sample_variance": 1.4449487333456503e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00030665367376059294,
+          "sample_sd": 1.612172681080032e-05,
+          "sample_variance": 2.5991007536207785e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 975,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0025822433643043043,
+          "sample_sd": 0.0006877879761375392,
+          "sample_variance": 4.7305230011937214e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03413086012005806,
+          "sample_sd": 0.009022722571691223,
+          "sample_variance": 8.140952260570627e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3699608862400055,
+          "sample_sd": 0.08391726915264833,
+          "sample_variance": 0.0070421080620380215,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.470376205444335,
+          "sample_sd": 0.00957658044173666,
+          "sample_variance": 9.171089295705315e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003159441938623786,
+          "sample_sd": 0.0007828663790509826,
+          "sample_variance": 6.128797674483967e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0003028223407454789,
+          "sample_sd": 1.9258329415965613e-05,
+          "sample_variance": 3.7088325189384637e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1000,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0026093388441950083,
+          "sample_sd": 0.0005012493452086677,
+          "sample_variance": 2.512509060721181e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03355306088924408,
+          "sample_sd": 0.005658090493586917,
+          "sample_variance": 3.2013988033618645e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.36224219799041746,
+          "sample_sd": 0.07277581539171786,
+          "sample_variance": 0.005296319305929398,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.471681976318358,
+          "sample_sd": 0.010247338357875538,
+          "sample_variance": 0.00010500794342078734,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026876160874962805,
+          "sample_sd": 0.00042322948805828786,
+          "sample_variance": 1.791231995620804e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00032836629543453455,
+          "sample_sd": 4.8087755528010437e-05,
+          "sample_variance": 2.312432231721698e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1025,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0024571948451921344,
+          "sample_sd": 0.0005334158138369194,
+          "sample_variance": 2.8453243045130307e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0319986991584301,
+          "sample_sd": 0.008097055843628999,
+          "sample_variance": 6.556231333484652e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.365169095993042,
+          "sample_sd": 0.0735089570085591,
+          "sample_variance": 0.005403566760486189,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.47118225097656,
+          "sample_sd": 0.009062594205679094,
+          "sample_variance": 8.21306137368083e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002399234683252871,
+          "sample_sd": 0.00076215203675323,
+          "sample_variance": 5.808757271270968e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000310893781716004,
+          "sample_sd": 3.1390291202209755e-05,
+          "sample_variance": 9.85350381759527e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1050,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0024545031366869806,
+          "sample_sd": 0.000628384938191672,
+          "sample_variance": 3.9486763054615135e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03233235813677311,
+          "sample_sd": 0.00875019883629781,
+          "sample_variance": 7.656597967474754e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3593299925327301,
+          "sample_sd": 0.06910495634367671,
+          "sample_variance": 0.004775494991261464,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.470949554443358,
+          "sample_sd": 0.0120074320749536,
+          "sample_variance": 0.00014417842503462454,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0030187911354005335,
+          "sample_sd": 0.0007524448985543893,
+          "sample_variance": 5.661733253605253e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002953861257992685,
+          "sample_sd": 2.1956047683061612e-05,
+          "sample_variance": 4.820680298608751e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1075,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0026009441586211323,
+          "sample_sd": 0.0008469337555117662,
+          "sample_variance": 7.172967862252643e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03349609449505806,
+          "sample_sd": 0.011155004999496461,
+          "sample_variance": 0.00012443413653879105,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.36675959825515747,
+          "sample_sd": 0.0722954084695015,
+          "sample_variance": 0.005226626085772068,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.474879455566406,
+          "sample_sd": 0.011368669454071785,
+          "sample_variance": 0.00012924664515594485,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0028927324339747427,
+          "sample_sd": 0.0007712811892137215,
+          "sample_variance": 5.948746728349325e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0003002714482136071,
+          "sample_sd": 2.274515221407952e-05,
+          "sample_variance": 5.173419492416464e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1100,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0026053157169371845,
+          "sample_sd": 0.0004090093479983894,
+          "sample_variance": 1.672886467500676e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03347168006002903,
+          "sample_sd": 0.00617803893074295,
+          "sample_variance": 3.8168165029775494e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.35908483862876894,
+          "sample_sd": 0.06502811365760626,
+          "sample_variance": 0.004228655565866557,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.474978637695312,
+          "sample_sd": 0.011997298451172114,
+          "sample_variance": 0.0001439351701264968,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0030643584672361613,
+          "sample_sd": 0.0006365725651994766,
+          "sample_variance": 4.0522463076464193e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002986019128002226,
+          "sample_sd": 3.2563459041000855e-05,
+          "sample_variance": 1.0603788647149403e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1125,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0021647497080266474,
+          "sample_sd": 0.0006291773717438862,
+          "sample_variance": 3.9586416511454434e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.027799480035901068,
+          "sample_sd": 0.008523892626039661,
+          "sample_variance": 7.26567455002533e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3483049005270004,
+          "sample_sd": 0.06159682685060708,
+          "sample_variance": 0.0037941690780636693,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.47630195617676,
+          "sample_sd": 0.008733842653041918,
+          "sample_variance": 7.628000748809427e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002606324991211295,
+          "sample_sd": 0.0004108238818227139,
+          "sample_variance": 1.687762618758832e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00028055527072865514,
+          "sample_sd": 3.360437503886542e-05,
+          "sample_variance": 1.1292540217527212e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1150,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002358000725507736,
+          "sample_sd": 0.0005864738210355734,
+          "sample_variance": 3.4395154276006573e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.03256022185087204,
+          "sample_sd": 0.008299504611105983,
+          "sample_variance": 6.888177678976946e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.34524157345294954,
+          "sample_sd": 0.06307872156419762,
+          "sample_variance": 0.00397892511417357,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.475205993652345,
+          "sample_sd": 0.009860584704383222,
+          "sample_variance": 9.723113071231637e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003024756209924817,
+          "sample_sd": 0.0007163399354683748,
+          "sample_variance": 5.131429031468354e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00030509672942571344,
+          "sample_sd": 3.610450310400642e-05,
+          "sample_variance": 1.3035351443872091e-09,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1175,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0023285782197490336,
+          "sample_sd": 0.0006805810709970987,
+          "sample_variance": 4.631905941995579e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.030973308160901068,
+          "sample_sd": 0.009331811636551925,
+          "sample_variance": 8.708270842008592e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.34264783263206483,
+          "sample_sd": 0.05083911340406455,
+          "sample_variance": 0.002584615451711336,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.475578689575194,
+          "sample_sd": 0.009545201689416177,
+          "sample_variance": 9.111087529163342e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.003261948516592383,
+          "sample_sd": 0.0009473491371306158,
+          "sample_variance": 8.974703876221223e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002864130306988955,
+          "sample_sd": 2.283999750305464e-05,
+          "sample_variance": 5.216654859395421e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1200,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0022306052967906,
+          "sample_sd": 0.0006407819698992838,
+          "sample_variance": 4.106015329480067e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02799479253590107,
+          "sample_sd": 0.00888857637429466,
+          "sample_variance": 7.900678996166921e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3432539731264114,
+          "sample_sd": 0.05667431921718984,
+          "sample_variance": 0.0032119784587319343,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.476940536499022,
+          "sample_sd": 0.008375284953852619,
+          "sample_variance": 7.014539805823005e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.00237422410864383,
+          "sample_sd": 0.00068456428055776,
+          "sample_variance": 4.6862825421556353e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00028007728396914897,
+          "sample_sd": 1.5519278948796497e-05,
+          "sample_variance": 2.408480190905581e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1225,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002177451900206506,
+          "sample_sd": 0.0006389078881638433,
+          "sample_variance": 4.082032895579821e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02724609449505806,
+          "sample_sd": 0.009574832888779777,
+          "sample_variance": 9.16774248480589e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.34595945179462434,
+          "sample_sd": 0.062028252321665395,
+          "sample_variance": 0.003847504086080189,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.476372909545898,
+          "sample_sd": 0.008871474694980213,
+          "sample_variance": 7.870306326367427e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0025420451071113347,
+          "sample_sd": 0.0007754617510903847,
+          "sample_variance": 6.013409274041658e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002777918183710426,
+          "sample_sd": 2.5637905548619714e-05,
+          "sample_variance": 6.573022009199455e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1250,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002177445008419454,
+          "sample_sd": 0.0006742963816473413,
+          "sample_variance": 4.54675610302697e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02961425855755806,
+          "sample_sd": 0.010220322509201083,
+          "sample_variance": 0.00010445499219208232,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.33893078565597534,
+          "sample_sd": 0.05492194518947552,
+          "sample_variance": 0.0030164200633957527,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.47874870300293,
+          "sample_sd": 0.007694609439040507,
+          "sample_variance": 5.920701441937126e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0029993539210408926,
+          "sample_sd": 0.0006103694775381882,
+          "sample_variance": 3.725508991102408e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00027720673242583873,
+          "sample_sd": 2.6282742624887057e-05,
+          "sample_variance": 6.90782559886055e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1275,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0021440027048811316,
+          "sample_sd": 0.0005923967202869834,
+          "sample_variance": 3.5093387420677446e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02761230506002903,
+          "sample_sd": 0.008656460223892605,
+          "sample_variance": 7.493430360783482e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3379032641649246,
+          "sample_sd": 0.05687295476183852,
+          "sample_variance": 0.003234532983342131,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.47746162414551,
+          "sample_sd": 0.008610533810287127,
+          "sample_variance": 7.414129249809776e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002711841883137822,
+          "sample_sd": 0.0006699342325323821,
+          "sample_variance": 4.4881187591875174e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00027566626959014685,
+          "sample_sd": 3.113905753737548e-05,
+          "sample_variance": 9.696409043159807e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1300,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0021669383626431228,
+          "sample_sd": 0.0005384442646983468,
+          "sample_variance": 2.899222261865434e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02766927145421505,
+          "sample_sd": 0.007429872812178062,
+          "sample_variance": 5.5203010005142744e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3435034930706024,
+          "sample_sd": 0.05966489707696815,
+          "sample_variance": 0.0035598999432052024,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.47958106994629,
+          "sample_sd": 0.006773903838670823,
+          "sample_variance": 4.5885773215559314e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0027004080358892677,
+          "sample_sd": 0.0005239795135261457,
+          "sample_variance": 2.745545305950963e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002562461857451126,
+          "sample_sd": 1.235444282948215e-05,
+          "sample_variance": 1.526322576269429e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1325,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0022638361901044846,
+          "sample_sd": 0.0006977356655332839,
+          "sample_variance": 4.868350589571746e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02899576909840107,
+          "sample_sd": 0.007001335379523881,
+          "sample_variance": 4.9018697096572805e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3478078007698059,
+          "sample_sd": 0.054951727962089324,
+          "sample_variance": 0.00301969240601947,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.47944869995117,
+          "sample_sd": 0.008746154944462459,
+          "sample_variance": 7.649522631254513e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0027268486097455024,
+          "sample_sd": 0.0004007873888747707,
+          "sample_variance": 1.6063053108105666e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00027502449229359626,
+          "sample_sd": 2.5390201131653995e-05,
+          "sample_variance": 6.446623135058438e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1350,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0021388731198385357,
+          "sample_sd": 0.0006702844722989693,
+          "sample_variance": 4.4928127380510775e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02704264335334301,
+          "sample_sd": 0.008262776567913736,
+          "sample_variance": 6.827347661126429e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.34037635624408724,
+          "sample_sd": 0.06188713352297204,
+          "sample_variance": 0.003830017295690169,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.480503845214844,
+          "sample_sd": 0.007902652085227757,
+          "sample_variance": 6.24519099801546e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026708852034062146,
+          "sample_sd": 0.0008976941884419618,
+          "sample_variance": 8.058548559624723e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00029174640076234937,
+          "sample_sd": 3.089468920009211e-05,
+          "sample_variance": 9.54481820770288e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1375,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001820288714952767,
+          "sample_sd": 0.0004373305923518922,
+          "sample_variance": 1.9125804700685688e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02384440153837204,
+          "sample_sd": 0.005408646927480754,
+          "sample_variance": 2.9253461586147e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.33406596779823305,
+          "sample_sd": 0.057256511754139136,
+          "sample_variance": 0.0032783081382518732,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48155288696289,
+          "sample_sd": 0.009412810394118223,
+          "sample_variance": 8.860099951562006e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026693014428019524,
+          "sample_sd": 0.000353910927919962,
+          "sample_variance": 1.2525294490116854e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00026344903744757175,
+          "sample_sd": 1.8469591960587128e-05,
+          "sample_variance": 3.4112582719058473e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1400,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002268817974254489,
+          "sample_sd": 0.0005845268867438402,
+          "sample_variance": 3.416716813264462e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02858886756002903,
+          "sample_sd": 0.007995921181501673,
+          "sample_variance": 6.39347555407871e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.33461567759513855,
+          "sample_sd": 0.06297529172819895,
+          "sample_variance": 0.003965887368251764,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.481443786621092,
+          "sample_sd": 0.008477020122049822,
+          "sample_variance": 7.185987014963757e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0030340417986735703,
+          "sample_sd": 0.000948267992047708,
+          "sample_variance": 8.99212184742192e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000270012830151245,
+          "sample_sd": 2.2836483028284826e-05,
+          "sample_variance": 5.215049571011409e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1425,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0020754557102918626,
+          "sample_sd": 0.0006284402572010682,
+          "sample_variance": 3.9493715687094476e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02611490935087204,
+          "sample_sd": 0.007626295597146792,
+          "sample_variance": 5.8160384535060544e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.33318041265010834,
+          "sample_sd": 0.05583778853978662,
+          "sample_variance": 0.0031178586290139254,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.481217193603516,
+          "sample_sd": 0.005849025322816086,
+          "sample_variance": 3.4211097226943823e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002760059526190162,
+          "sample_sd": 0.000879056685793079,
+          "sample_variance": 7.72740656837512e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002588085684692487,
+          "sample_sd": 1.5572807809881947e-05,
+          "sample_variance": 2.425123430835202e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1450,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001769430167041719,
+          "sample_sd": 0.0003531564126491678,
+          "sample_variance": 1.247194517952293e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02322591207921505,
+          "sample_sd": 0.004089041861108058,
+          "sample_variance": 1.6720263341894053e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3314032793045044,
+          "sample_sd": 0.06095461360813421,
+          "sample_variance": 0.00371546492011694,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.483520889282225,
+          "sample_sd": 0.008400504773022845,
+          "sample_variance": 7.056848044157959e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026337877381592987,
+          "sample_sd": 0.00044531430035017863,
+          "sample_variance": 1.9830482609636911e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00025937499303836377,
+          "sample_sd": 1.203788122904591e-05,
+          "sample_variance": 1.4491058448461585e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1475,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0021139354910701515,
+          "sample_sd": 0.0006388320800864644,
+          "sample_variance": 4.081064265475988e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02679850310087204,
+          "sample_sd": 0.009299696687388056,
+          "sample_variance": 8.648435847741636e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.33542314171791077,
+          "sample_sd": 0.062117051601602344,
+          "sample_variance": 0.0038585280996761284,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.481169509887696,
+          "sample_sd": 0.007249396526091821,
+          "sample_variance": 5.255374999251217e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002552962442860007,
+          "sample_sd": 0.0004780090319551534,
+          "sample_variance": 2.2849263463070288e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002650346345035359,
+          "sample_sd": 1.968708090567583e-05,
+          "sample_variance": 3.8758115458662574e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1500,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0019469796447083355,
+          "sample_sd": 0.00030979943723639285,
+          "sample_variance": 9.597569131198573e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02492675893008709,
+          "sample_sd": 0.003755037428771557,
+          "sample_variance": 1.4100306091475307e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3304271072149277,
+          "sample_sd": 0.05957952815396408,
+          "sample_variance": 0.003549720175048998,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.480899810791016,
+          "sample_sd": 0.006475603245053125,
+          "sample_variance": 4.1933437387342565e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0028640768025070427,
+          "sample_sd": 0.00040144462844615594,
+          "sample_variance": 1.611577897082722e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00024823236162774265,
+          "sample_sd": 1.6532746145018367e-05,
+          "sample_variance": 2.7333169509561973e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1525,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0021574389422312377,
+          "sample_sd": 0.00028211568951120474,
+          "sample_variance": 7.958926226838249e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02749023512005806,
+          "sample_sd": 0.003250831185621803,
+          "sample_variance": 1.056790339741126e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3316543221473694,
+          "sample_sd": 0.06407769316906342,
+          "sample_variance": 0.004105950761868637,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.482439041137695,
+          "sample_sd": 0.009672931060808538,
+          "sample_variance": 9.356559530715458e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0023376084631308914,
+          "sample_sd": 0.0003500436062427149,
+          "sample_variance": 1.2253052627140484e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002544618910178542,
+          "sample_sd": 2.9246269234801517e-05,
+          "sample_variance": 8.553442641544977e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1550,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0019359811674803495,
+          "sample_sd": 0.00030874486155997946,
+          "sample_variance": 9.532338953969089e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02526041716337204,
+          "sample_sd": 0.0048640758451271955,
+          "sample_variance": 2.3659233827149837e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.33338571190834043,
+          "sample_sd": 0.06554152309757749,
+          "sample_variance": 0.004295691249950284,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48423652648926,
+          "sample_sd": 0.009218839233214586,
+          "sample_variance": 8.498699680785649e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002800826821476221,
+          "sample_sd": 0.0005018527990657441,
+          "sample_variance": 2.518562319301222e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00026036076014861463,
+          "sample_sd": 7.566677535193745e-06,
+          "sample_variance": 5.725460892160568e-11,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1575,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.002098455303348601,
+          "sample_sd": 0.0005326798819648769,
+          "sample_variance": 2.837478566501152e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02566731832921505,
+          "sample_sd": 0.00628088310780729,
+          "sample_variance": 3.944949261393896e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.32578204572200775,
+          "sample_sd": 0.05514835676129533,
+          "sample_variance": 0.003041341253471108,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.483072662353514,
+          "sample_sd": 0.007464978705758694,
+          "sample_variance": 5.5725907077430745e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0028149670688435435,
+          "sample_sd": 0.0009834955619927286,
+          "sample_variance": 9.672635204593932e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023686678323429078,
+          "sample_sd": 1.2868969578095755e-05,
+          "sample_variance": 1.6561037800195402e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1600,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0018856263253837825,
+          "sample_sd": 0.0003716745236703169,
+          "sample_variance": 1.3814195154555696e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02473144605755806,
+          "sample_sd": 0.004596306844205974,
+          "sample_variance": 2.1126036606094675e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.32996132373809817,
+          "sample_sd": 0.04803686443933526,
+          "sample_variance": 0.002307540345163073,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48493423461914,
+          "sample_sd": 0.010208272736951103,
+          "sample_variance": 0.00010420883227197919,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0023938666563481092,
+          "sample_sd": 0.0006438655432961973,
+          "sample_variance": 4.145628378441073e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002505806711269543,
+          "sample_sd": 2.0567879228691685e-05,
+          "sample_variance": 4.2303765596604694e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1625,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001916238758713007,
+          "sample_sd": 0.00032425558140698497,
+          "sample_variance": 1.0514168207358186e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02486165426671505,
+          "sample_sd": 0.004074093827196242,
+          "sample_variance": 1.6598240512798526e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3167648255825043,
+          "sample_sd": 0.04922122250040581,
+          "sample_variance": 0.002422728744434455,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.484529495239258,
+          "sample_sd": 0.011105479718947419,
+          "sample_variance": 0.00012333167978795245,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0025174900889396667,
+          "sample_sd": 0.0006620764358214296,
+          "sample_variance": 4.383452068700076e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002524355862988159,
+          "sample_sd": 2.460062824538081e-05,
+          "sample_variance": 6.05190910067428e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1650,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0017929979600012302,
+          "sample_sd": 0.0002766280131540705,
+          "sample_variance": 7.652305766156861e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0231689453125,
+          "sample_sd": 0.003429285117073903,
+          "sample_variance": 1.1759996414184571e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3255180925130844,
+          "sample_sd": 0.05088883426819919,
+          "sample_variance": 0.0025896734531762446,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48292350769043,
+          "sample_sd": 0.008987227398809887,
+          "sample_variance": 8.077025631791912e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002730683982372284,
+          "sample_sd": 0.0006946126903050741,
+          "sample_variance": 4.824867895328528e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002461082913214341,
+          "sample_sd": 1.4302433144808511e-05,
+          "sample_variance": 2.045595938617171e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1675,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0018998758867383003,
+          "sample_sd": 0.0006518822286029415,
+          "sample_variance": 4.249504399683377e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02362467497587204,
+          "sample_sd": 0.0076509080563972,
+          "sample_variance": 5.853639408744358e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.32645549178123473,
+          "sample_sd": 0.05434568178752823,
+          "sample_variance": 0.0029534531289512776,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.484769439697267,
+          "sample_sd": 0.008851566213406731,
+          "sample_variance": 7.835022443032358e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002632478252053261,
+          "sample_sd": 0.0003699183403198587,
+          "sample_variance": 1.3683957850499882e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00024229443224612623,
+          "sample_sd": 1.9633820598956648e-05,
+          "sample_variance": 3.8548691131201435e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1700,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0018952437210828065,
+          "sample_sd": 0.0007084471417205294,
+          "sample_variance": 5.018973526119878e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02375488355755806,
+          "sample_sd": 0.009702197434524147,
+          "sample_variance": 9.413263505848694e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3181349754333496,
+          "sample_sd": 0.04905197841583139,
+          "sample_variance": 0.002406096586507189,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.485993576049804,
+          "sample_sd": 0.009684599975408955,
+          "sample_variance": 9.379147668369115e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0024806166999042033,
+          "sample_sd": 0.0007949607640507541,
+          "sample_variance": 6.319626163801587e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00024133493716362863,
+          "sample_sd": 2.0134660836413393e-05,
+          "sample_variance": 4.054045669973993e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1725,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0016777805984020233,
+          "sample_sd": 0.0006368369496726209,
+          "sample_variance": 4.0556130046832837e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.021940104849636554,
+          "sample_sd": 0.008540725666136884,
+          "sample_variance": 7.294399490420933e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31273938715457916,
+          "sample_sd": 0.05785228519830139,
+          "sample_variance": 0.0033468869026656023,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48507423400879,
+          "sample_sd": 0.01008603058852679,
+          "sample_variance": 0.00010172801303269808,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026458488777279855,
+          "sample_sd": 0.0006792936863846959,
+          "sample_variance": 4.614399123621096e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00024533687101211397,
+          "sample_sd": 1.8395572178498035e-05,
+          "sample_variance": 3.3839707577433095e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1750,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0016303010866977274,
+          "sample_sd": 0.00043802259012089414,
+          "sample_variance": 1.9186378945621682e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.020898438058793545,
+          "sample_sd": 0.005634632077973551,
+          "sample_variance": 3.1749078654128536e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31008671820163725,
+          "sample_sd": 0.05264670339176455,
+          "sample_variance": 0.002771675378020433,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.485511016845702,
+          "sample_sd": 0.010023901352473313,
+          "sample_variance": 0.00010047859832411632,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0026172753423452377,
+          "sample_sd": 0.0007295642357770859,
+          "sample_variance": 5.322639741250034e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00025266221782658247,
+          "sample_sd": 2.881939159697093e-05,
+          "sample_variance": 8.305573320195587e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1775,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001749530783854425,
+          "sample_sd": 0.00024061478067851,
+          "sample_variance": 5.7895472680967474e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02167968824505806,
+          "sample_sd": 0.003426846133011271,
+          "sample_variance": 1.1743274419334301e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31245724856853485,
+          "sample_sd": 0.055923330256852116,
+          "sample_variance": 0.003127418867016951,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.486940765380858,
+          "sample_sd": 0.006214755702976012,
+          "sample_variance": 3.862318844767287e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002454343321733177,
+          "sample_sd": 0.0005866608273600976,
+          "sample_variance": 3.4417092635883414e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023317003797274083,
+          "sample_sd": 2.121437297106363e-05,
+          "sample_variance": 4.500496205553952e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1800,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0018390553770586849,
+          "sample_sd": 0.0005141977775644414,
+          "sample_variance": 2.6439935445221077e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.022713216952979565,
+          "sample_sd": 0.007511398069570428,
+          "sample_variance": 5.6421100959546354e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3149412989616394,
+          "sample_sd": 0.05014631955296926,
+          "sample_variance": 0.0025146533647085077,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.486317443847657,
+          "sample_sd": 0.008782207009974171,
+          "sample_variance": 7.712715996603947e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002461939351633191,
+          "sample_sd": 0.0004251477156134247,
+          "sample_variance": 1.8075058009131345e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023532210325356574,
+          "sample_sd": 1.8919175600511833e-05,
+          "sample_variance": 3.579352054030023e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1825,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0015217305393889547,
+          "sample_sd": 0.00037465624901555835,
+          "sample_variance": 1.4036730492640808e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.019848632998764514,
+          "sample_sd": 0.0055177790731652685,
+          "sample_variance": 3.0445885900260567e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3108509838581085,
+          "sample_sd": 0.051726195651037914,
+          "sample_variance": 0.0026755993165294535,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.487275695800783,
+          "sample_sd": 0.008980451359913228,
+          "sample_variance": 8.064850662776734e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0025083230575546622,
+          "sample_sd": 0.0006385231028635401,
+          "sample_variance": 4.07711752890483e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023162606230471284,
+          "sample_sd": 5.114473454836277e-06,
+          "sample_variance": 2.6157838720224924e-11,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1850,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001557292533107102,
+          "sample_sd": 0.0006005486976495552,
+          "sample_variance": 3.606587382485769e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.018701172806322573,
+          "sample_sd": 0.007141467198584489,
+          "sample_variance": 5.10005537484582e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31271167695522306,
+          "sample_sd": 0.05369499407363492,
+          "sample_variance": 0.0028831523885676892,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.487068939208985,
+          "sample_sd": 0.00776425715461841,
+          "sample_variance": 6.0283689163043166e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002555649634450674,
+          "sample_sd": 0.0006709917611733665,
+          "sample_variance": 4.5022994356253616e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002415027149254456,
+          "sample_sd": 2.1591931486522766e-05,
+          "sample_variance": 4.662115053186932e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1875,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001608649268746376,
+          "sample_sd": 0.00040807236306843485,
+          "sample_variance": 1.665230535002565e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02072753980755806,
+          "sample_sd": 0.0051596753615406315,
+          "sample_variance": 2.662224983648945e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3106425255537033,
+          "sample_sd": 0.05849499660238595,
+          "sample_variance": 0.0034216646275131435,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48587760925293,
+          "sample_sd": 0.009641066381834741,
+          "sample_variance": 9.295016097894404e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0024864081060513854,
+          "sample_sd": 0.0006436495732312532,
+          "sample_variance": 4.1428477312077433e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023822219227440656,
+          "sample_sd": 2.5550837196231778e-05,
+          "sample_variance": 6.528452814283413e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1900,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0013621221645735205,
+          "sample_sd": 0.0002795188770402956,
+          "sample_variance": 7.813080262186791e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.017114258371293545,
+          "sample_sd": 0.003413921839977831,
+          "sample_variance": 1.165486232947762e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3080533444881439,
+          "sample_sd": 0.05664366320540423,
+          "sample_variance": 0.003208504581327265,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48771858215332,
+          "sample_sd": 0.008656284230360694,
+          "sample_variance": 7.493125667679124e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002581920335069299,
+          "sample_sd": 0.0005254199370317104,
+          "sample_variance": 2.7606611023040655e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000227788818301633,
+          "sample_sd": 2.3097814197158353e-05,
+          "sample_variance": 5.3350902068645e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1925,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001414432213641703,
+          "sample_sd": 0.00030217996965494853,
+          "sample_variance": 9.131273406066563e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01756184957921505,
+          "sample_sd": 0.004255823294156639,
+          "sample_variance": 1.8112031911086263e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30756195187568663,
+          "sample_sd": 0.048323722933256694,
+          "sample_variance": 0.002335182198130159,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48597297668457,
+          "sample_sd": 0.009087956862633036,
+          "sample_variance": 8.259095993707888e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002157231676392257,
+          "sample_sd": 0.0005740030426760747,
+          "sample_variance": 3.294794930013917e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023426240950357168,
+          "sample_sd": 1.939696345483391e-05,
+          "sample_variance": 3.762421912681623e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1950,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0016070842510089278,
+          "sample_sd": 0.00042046254315829024,
+          "sample_variance": 1.7678875019913708e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.02001139372587204,
+          "sample_sd": 0.004695380788625995,
+          "sample_variance": 2.204660075019807e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30912162363529205,
+          "sample_sd": 0.056623706505281056,
+          "sample_variance": 0.003206244138396208,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.486816024780275,
+          "sample_sd": 0.008819271159784243,
+          "sample_variance": 7.777954378980212e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002365002082660794,
+          "sample_sd": 0.00015112773988246945,
+          "sample_variance": 2.283959376198335e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002360684797167778,
+          "sample_sd": 2.2832905595458524e-05,
+          "sample_variance": 5.213415779311212e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1975,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001545862527564168,
+          "sample_sd": 0.00029012937216833047,
+          "sample_variance": 8.417505259478961e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01982421949505806,
+          "sample_sd": 0.003428053204036484,
+          "sample_variance": 1.1751548769704801e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30786831974983214,
+          "sample_sd": 0.05125548178267435,
+          "sample_variance": 0.002627124412774062,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.487278747558594,
+          "sample_sd": 0.009510682796221985,
+          "sample_variance": 9.045308725035284e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002375390916131437,
+          "sample_sd": 0.0004745786247583263,
+          "sample_variance": 2.252248710775043e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002327835827600211,
+          "sample_sd": 1.9987015942968483e-05,
+          "sample_variance": 3.9948080630447636e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2000,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0015270103933289648,
+          "sample_sd": 0.0004103687035814507,
+          "sample_variance": 1.6840247287912053e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.018619791977107523,
+          "sample_sd": 0.006291827112621673,
+          "sample_variance": 3.9587088415121184e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31387690007686614,
+          "sample_sd": 0.05496051929072198,
+          "sample_variance": 0.003020658680705823,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.4883602142334,
+          "sample_sd": 0.011444771237866934,
+          "sample_variance": 0.0001309827886871062,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002213020483031869,
+          "sample_sd": 0.0005084102692548237,
+          "sample_variance": 2.584810018837623e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002285323804244399,
+          "sample_sd": 1.6939483203185172e-05,
+          "sample_variance": 2.8694609119099257e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2025,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0014195166993886232,
+          "sample_sd": 6.820814867744662e-05,
+          "sample_variance": 4.6523515460046635e-09,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01723632849752903,
+          "sample_sd": 0.0011424434234226365,
+          "sample_variance": 1.3051769757216336e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3106242805719376,
+          "sample_sd": 0.06094246587897691,
+          "sample_variance": 0.0037139841474102655,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.486098098754884,
+          "sample_sd": 0.009863987989705924,
+          "sample_variance": 9.729825906106271e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0024945018347352745,
+          "sample_sd": 0.0004079034177637274,
+          "sample_variance": 1.6638519822332992e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022178700601216406,
+          "sample_sd": 2.428388197929173e-05,
+          "sample_variance": 5.897069239841696e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2050,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0014587373938411475,
+          "sample_sd": 0.000467378556912351,
+          "sample_variance": 2.184427154614717e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01783040426671505,
+          "sample_sd": 0.006019138086251516,
+          "sample_variance": 3.623002330136356e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31009319722652434,
+          "sample_sd": 0.048499336992811934,
+          "sample_variance": 0.0023521856887423363,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48847312927246,
+          "sample_sd": 0.008850875010551432,
+          "sample_variance": 7.833798845240381e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002565406239591539,
+          "sample_sd": 0.0007251007951616888,
+          "sample_variance": 5.257711631441134e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023251028324011713,
+          "sample_sd": 2.203662770000327e-05,
+          "sample_variance": 4.856129603885514e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2075,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0012034747167490422,
+          "sample_sd": 0.00026631735374000687,
+          "sample_variance": 7.092493290307994e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01471354216337204,
+          "sample_sd": 0.0034190104348497726,
+          "sample_variance": 1.1689632353611632e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3101184546947479,
+          "sample_sd": 0.04832576346887861,
+          "sample_variance": 0.0023353794148500027,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48801956176758,
+          "sample_sd": 0.00966663700998721,
+          "sample_variance": 9.344387108285445e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0022424709517508746,
+          "sample_sd": 0.0003736737835687411,
+          "sample_variance": 1.3963209652657838e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022811484232079237,
+          "sample_sd": 2.3304061530827074e-05,
+          "sample_variance": 5.430792838325743e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2100,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0011945204809308053,
+          "sample_sd": 0.00025564368951055944,
+          "sample_variance": 6.535369598657131e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01481933668255806,
+          "sample_sd": 0.003656386119423866,
+          "sample_variance": 1.3369159454315518e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31285086572170256,
+          "sample_sd": 0.05605274863101733,
+          "sample_variance": 0.003141910629092015,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48622360229492,
+          "sample_sd": 0.009227287801959836,
+          "sample_variance": 8.51428401801968e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0023840180365368724,
+          "sample_sd": 0.0004992391414536705,
+          "sample_variance": 2.4923972035939795e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00023171097273007036,
+          "sample_sd": 2.7861476370677405e-05,
+          "sample_variance": 7.762618655538153e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2125,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001198464015033096,
+          "sample_sd": 0.00015516688937926,
+          "sample_variance": 2.4076763559635514e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01450195349752903,
+          "sample_sd": 0.0018641217919520454,
+          "sample_variance": 3.474950055230505e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31601800918579104,
+          "sample_sd": 0.053062124079166516,
+          "sample_variance": 0.002815589011792863,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.489181137084962,
+          "sample_sd": 0.007918937854366998,
+          "sample_variance": 6.27095767413266e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002281645848415792,
+          "sample_sd": 0.00036523167778982485,
+          "sample_variance": 1.3339417846117044e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002299228828633204,
+          "sample_sd": 2.013373631722027e-05,
+          "sample_variance": 4.0536733809135447e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2150,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0012497216812334955,
+          "sample_sd": 0.00039110094242333373,
+          "sample_variance": 1.5295994716441982e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01472981795668602,
+          "sample_sd": 0.004645003022612138,
+          "sample_variance": 2.15760530800759e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.31119144558906553,
+          "sample_sd": 0.049383994173874526,
+          "sample_variance": 0.0024387788805652734,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48910598754883,
+          "sample_sd": 0.008510072415418082,
+          "sample_variance": 7.242133251565974e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0022765907924622297,
+          "sample_sd": 0.00022757849365706437,
+          "sample_variance": 5.179197077521849e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022758367413189262,
+          "sample_sd": 2.544157752903226e-05,
+          "sample_variance": 6.472738671657592e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2175,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.000985714979469776,
+          "sample_sd": 0.0003082919773132211,
+          "sample_variance": 9.504394327569562e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.010978190414607524,
+          "sample_sd": 0.0039628905315990315,
+          "sample_variance": 1.5704501365437252e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30955544114112854,
+          "sample_sd": 0.056660562067869666,
+          "sample_variance": 0.003210419293846911,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48853454589844,
+          "sample_sd": 0.008855100093494458,
+          "sample_variance": 7.841279766580555e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0019589886302128433,
+          "sample_sd": 0.0006419744359867402,
+          "sample_variance": 4.121311764604933e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022863732010591775,
+          "sample_sd": 1.4040800762160847e-05,
+          "sample_variance": 1.9714408604269663e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2200,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0011170108104124666,
+          "sample_sd": 0.000526453969585843,
+          "sample_variance": 2.7715378209269174e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.012459310423582792,
+          "sample_sd": 0.007118059302383888,
+          "sample_variance": 5.0666768232253805e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30776209831237794,
+          "sample_sd": 0.05664995205311442,
+          "sample_variance": 0.0032092170676201624,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.489847946166993,
+          "sample_sd": 0.009014051705829485,
+          "sample_variance": 8.125312815536745e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0018683058442547917,
+          "sample_sd": 0.0006094402910270372,
+          "sample_variance": 3.714174683271197e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002152219763956964,
+          "sample_sd": 1.6163821240009954e-05,
+          "sample_variance": 2.612691170789969e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2225,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0010657656472176313,
+          "sample_sd": 0.0003410993907423306,
+          "sample_variance": 1.1634879436478912e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01239420622587204,
+          "sample_sd": 0.004287412892042866,
+          "sample_variance": 1.8381909306855373e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3111563056707382,
+          "sample_sd": 0.05012121952072673,
+          "sample_variance": 0.002512136646244878,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.489376068115234,
+          "sample_sd": 0.00921015551805276,
+          "sample_variance": 8.482696466671769e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002132993983104825,
+          "sample_sd": 0.0004891108686469893,
+          "sample_variance": 2.392294418286124e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021354353812057524,
+          "sample_sd": 5.054243222816325e-06,
+          "sample_variance": 2.5545374555384748e-11,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2250,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0012389097129926086,
+          "sample_sd": 0.00037747066082714266,
+          "sample_variance": 1.4248409978527978e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01518554724752903,
+          "sample_sd": 0.005103681495946066,
+          "sample_variance": 2.6047564812062273e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30807713270187376,
+          "sample_sd": 0.057837764180031816,
+          "sample_variance": 0.0033452069653449714,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.487772750854493,
+          "sample_sd": 0.009220015632117646,
+          "sample_variance": 8.500868825649377e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0023170825559645893,
+          "sample_sd": 0.0006201867007360566,
+          "sample_variance": 3.8463154376987514e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022332921798806638,
+          "sample_sd": 1.3490324428018734e-05,
+          "sample_variance": 1.81988853173199e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2275,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0011690841754898428,
+          "sample_sd": 0.00029876750088142707,
+          "sample_variance": 8.926201958293353e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.014249674789607526,
+          "sample_sd": 0.004616255835523203,
+          "sample_variance": 2.130981793900203e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3021199584007263,
+          "sample_sd": 0.04902478849811901,
+          "sample_variance": 0.002403429887285302,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49001274108887,
+          "sample_sd": 0.008301562801025047,
+          "sample_variance": 6.891594493936281e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.002141707157716155,
+          "sample_sd": 0.00018500591142266439,
+          "sample_variance": 3.4227187261330744e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002298595558386296,
+          "sample_sd": 1.1531727697678344e-05,
+          "sample_variance": 1.329807436934019e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2300,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0010951219010166824,
+          "sample_sd": 0.00041788247326446755,
+          "sample_variance": 1.7462576146162845e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.013321940414607525,
+          "sample_sd": 0.005755427908657167,
+          "sample_variance": 3.312495041174982e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3015325278043747,
+          "sample_sd": 0.05682184770941429,
+          "sample_variance": 0.0032287223771118702,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48833236694336,
+          "sample_sd": 0.008513965732122033,
+          "sample_variance": 7.248761248774826e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0020146300084888935,
+          "sample_sd": 0.00035831613167044773,
+          "sample_variance": 1.2839045021527363e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022116185282357038,
+          "sample_sd": 1.8001161489444883e-05,
+          "sample_variance": 3.240418149690735e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2325,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0009950208710506558,
+          "sample_sd": 0.0001684657290703604,
+          "sample_variance": 2.8380701871208067e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01103515625,
+          "sample_sd": 0.0015309972749133934,
+          "sample_variance": 2.3439526557922365e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3008507966995239,
+          "sample_sd": 0.05305315479226427,
+          "sample_variance": 0.002814637233411954,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48943748474121,
+          "sample_sd": 0.00985568458952121,
+          "sample_variance": 9.713451872812584e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0020121960667893292,
+          "sample_sd": 0.0004767663519082032,
+          "sample_variance": 2.2730615431185663e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021883666049689056,
+          "sample_sd": 2.7081577581185394e-05,
+          "sample_variance": 7.334118442857634e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2350,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0009398608934134244,
+          "sample_sd": 0.00010980644474395188,
+          "sample_variance": 1.2057455307306557e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01044921912252903,
+          "sample_sd": 0.00126709022272309,
+          "sample_variance": 1.60551763252045e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3039540410041809,
+          "sample_sd": 0.05044247175273768,
+          "sample_variance": 0.002544442956525739,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.4907585144043,
+          "sample_sd": 0.01178281019768975,
+          "sample_variance": 0.00013883461615478155,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0019566284492611883,
+          "sample_sd": 0.0003023939887818921,
+          "sample_variance": 9.144212445142308e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000211534314439632,
+          "sample_sd": 1.9685938342651757e-05,
+          "sample_variance": 3.8753616843068663e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2375,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.001221855659969151,
+          "sample_sd": 0.00026282961156209433,
+          "sample_variance": 6.907940471388138e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01434733085334301,
+          "sample_sd": 0.003905147714754009,
+          "sample_variance": 1.5250178674048458e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.30058121383190156,
+          "sample_sd": 0.05810039511184343,
+          "sample_variance": 0.00337565591215232,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.489453506469726,
+          "sample_sd": 0.010628398969717583,
+          "sample_variance": 0.00011296286465949379,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0020495384698733686,
+          "sample_sd": 0.00047870493638199065,
+          "sample_variance": 2.291584161164857e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002355119271669537,
+          "sample_sd": 2.0397751427002586e-05,
+          "sample_variance": 4.1606826327778605e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2400,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0009838935104198754,
+          "sample_sd": 0.00018032301235478901,
+          "sample_variance": 3.2516388784705394e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01165364608168602,
+          "sample_sd": 0.0030074364647042296,
+          "sample_variance": 9.044674089232675e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29524804949760436,
+          "sample_sd": 0.057685976313924706,
+          "sample_variance": 0.003327671863290682,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.490615844726562,
+          "sample_sd": 0.01015804451081099,
+          "sample_variance": 0.00010318586828361731,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.001760423742234707,
+          "sample_sd": 0.00019302362944451578,
+          "sample_variance": 3.725812152393374e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021197909372858704,
+          "sample_sd": 1.0567843157219285e-05,
+          "sample_variance": 1.1167930899558647e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2425,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0008070666110143066,
+          "sample_sd": 0.0002551770082245549,
+          "sample_variance": 6.511530552643457e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.00854492224752903,
+          "sample_sd": 0.0031627234872431396,
+          "sample_variance": 1.0002819856759407e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3018674194812775,
+          "sample_sd": 0.06590143780403825,
+          "sample_variance": 0.004342999504639522,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.489986419677734,
+          "sample_sd": 0.008009138829744527,
+          "sample_variance": 6.414630479412153e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0017412163899280131,
+          "sample_sd": 0.0005624262230561586,
+          "sample_variance": 3.1632325638121583e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021830956975463778,
+          "sample_sd": 2.079594937515332e-05,
+          "sample_variance": 4.324715104139398e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2450,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0008993074530735612,
+          "sample_sd": 0.00026223082090238303,
+          "sample_variance": 6.87650034311377e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.010213216487318277,
+          "sample_sd": 0.003412272445318526,
+          "sample_variance": 1.1643603241080074e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29520338773727417,
+          "sample_sd": 0.0543887907204309,
+          "sample_variance": 0.0029581405560308305,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49080619812012,
+          "sample_sd": 0.010036114396822797,
+          "sample_variance": 0.00010072359218611382,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0019425684120506048,
+          "sample_sd": 0.0003634091169205244,
+          "sample_variance": 1.3206618626095537e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002163105411455035,
+          "sample_sd": 1.3210654474727196e-05,
+          "sample_variance": 1.7452139165062968e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2475,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0008592762053012848,
+          "sample_sd": 0.00026983606298915477,
+          "sample_variance": 7.281150088948709e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.009293620055541397,
+          "sample_sd": 0.003953918505936154,
+          "sample_variance": 1.563347155158439e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29617258310317995,
+          "sample_sd": 0.04918753819611483,
+          "sample_variance": 0.002419413913794255,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.491596221923828,
+          "sample_sd": 0.010049981213512124,
+          "sample_variance": 0.00010100212239194661,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0017146352445706725,
+          "sample_sd": 0.00025367596197466255,
+          "sample_variance": 6.435149368377044e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021019348641857505,
+          "sample_sd": 8.41511209766433e-06,
+          "sample_variance": 7.081411161625656e-11,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2500,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0008898255764506757,
+          "sample_sd": 0.0004588532223678838,
+          "sample_variance": 2.1054627967739066e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.010180664341896772,
+          "sample_sd": 0.00689804673434079,
+          "sample_variance": 4.7583048749149636e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2947613000869751,
+          "sample_sd": 0.05473479225009793,
+          "sample_variance": 0.0029958974826613805,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.491395950317383,
+          "sample_sd": 0.0093242175194649,
+          "sample_variance": 8.694103235029615e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0016536842100322246,
+          "sample_sd": 0.0006375226730151895,
+          "sample_variance": 4.064351586084323e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021828332683071494,
+          "sample_sd": 2.4517776315693034e-05,
+          "sample_variance": 6.011213554663583e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2525,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0008975042670499534,
+          "sample_sd": 0.0003174882481288874,
+          "sample_variance": 1.0079878769994997e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.00987955736927688,
+          "sample_sd": 0.004651717166324624,
+          "sample_variance": 2.1638472595479185e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2981868803501129,
+          "sample_sd": 0.050849535694554186,
+          "sample_variance": 0.00258567528035174,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48958053588867,
+          "sample_sd": 0.010626698156073214,
+          "sample_variance": 0.00011292671370028984,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0016584023367613554,
+          "sample_sd": 0.0005915041320039398,
+          "sample_variance": 3.4987713817773414e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020868087303824723,
+          "sample_sd": 1.1790814092409855e-05,
+          "sample_variance": 1.3902329696177085e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2550,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0007139719149563461,
+          "sample_sd": 0.0002612895234910148,
+          "sample_variance": 6.827221508616158e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.007543945498764515,
+          "sample_sd": 0.003815291395709854,
+          "sample_variance": 1.4556448434177647e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29664074778556826,
+          "sample_sd": 0.05359654422470462,
+          "sample_variance": 0.002872589552830718,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49041862487793,
+          "sample_sd": 0.010218441855278348,
+          "sample_variance": 0.0001044165539497044,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0014714894583448767,
+          "sample_sd": 0.0002321912946839435,
+          "sample_variance": 5.391279732700589e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021821291011292487,
+          "sample_sd": 1.914895266874797e-05,
+          "sample_variance": 3.6668238830995e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2575,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0009358457056805492,
+          "sample_sd": 0.0004814653320868762,
+          "sample_variance": 2.31808866001526e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.010400390950962901,
+          "sample_sd": 0.007171312143712165,
+          "sample_variance": 5.1427717862553575e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2959590941667557,
+          "sample_sd": 0.05497247302786721,
+          "sample_variance": 0.0030219727907995876,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.491382217407228,
+          "sample_sd": 0.008292652565175161,
+          "sample_variance": 6.876808656670619e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0017236704705283045,
+          "sample_sd": 0.0004326297426153028,
+          "sample_variance": 1.8716849419538318e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00022161418455652894,
+          "sample_sd": 8.684285698997792e-06,
+          "sample_variance": 7.541681810181757e-11,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2600,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.000848864356521517,
+          "sample_sd": 0.0003192611704148967,
+          "sample_variance": 1.0192769493468971e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.01000976599752903,
+          "sample_sd": 0.004551111774011745,
+          "sample_variance": 2.0712618379548336e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2978545784950256,
+          "sample_sd": 0.05449224585031554,
+          "sample_variance": 0.002969404857811231,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.490607070922852,
+          "sample_sd": 0.008256752469074043,
+          "sample_variance": 6.817396133556031e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0015727771213278174,
+          "sample_sd": 0.0005805348395293096,
+          "sample_variance": 3.3702069990732134e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000216123930294998,
+          "sample_sd": 1.1457645290252443e-05,
+          "sample_variance": 1.31277635597244e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2625,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0007288528140634298,
+          "sample_sd": 0.00025504044576535047,
+          "sample_variance": 6.504562897618868e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.007812500279396773,
+          "sample_sd": 0.004100928897506092,
+          "sample_variance": 1.6817617822400534e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29620504975318906,
+          "sample_sd": 0.05549166065170342,
+          "sample_variance": 0.0030793244018838097,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.491687774658203,
+          "sample_sd": 0.008102822316083757,
+          "sample_variance": 6.565572948602494e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.001435002125799656,
+          "sample_sd": 0.0004999001264210828,
+          "sample_variance": 2.499001363958145e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021459940180648118,
+          "sample_sd": 2.5311993686085034e-05,
+          "sample_variance": 6.406970243644086e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2650,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0008468780026305467,
+          "sample_sd": 0.0002893559720397332,
+          "sample_variance": 8.372687855505885e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.009749349392950534,
+          "sample_sd": 0.004303601396177798,
+          "sample_variance": 1.852098497718349e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2986672937870026,
+          "sample_sd": 0.048796588043129904,
+          "sample_variance": 0.0023811070046509284,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49058952331543,
+          "sample_sd": 0.010292320304555342,
+          "sample_variance": 0.00010593185725156218,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0013467009412124753,
+          "sample_sd": 0.0002854808578050384,
+          "sample_variance": 8.149932017310056e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021914890094194562,
+          "sample_sd": 1.314805749317139e-05,
+          "sample_variance": 1.7287141584374034e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2675,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.000561396760167554,
+          "sample_sd": 0.00023175091500058102,
+          "sample_variance": 5.370848660360653e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.00494791679084301,
+          "sample_sd": 0.003268228509274073,
+          "sample_variance": 1.0681317588831832e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2993115246295929,
+          "sample_sd": 0.05391554275029292,
+          "sample_variance": 0.0029068857500586633,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49055633544922,
+          "sample_sd": 0.009589319394302508,
+          "sample_variance": 9.19550464459462e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0011697387089952826,
+          "sample_sd": 0.0003336231047358628,
+          "sample_variance": 1.1130437601359646e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020833721791859716,
+          "sample_sd": 1.2924374660152749e-05,
+          "sample_variance": 1.6703946035599847e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2700,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0005631357664242387,
+          "sample_sd": 0.00036097894000922305,
+          "sample_variance": 1.3030579513018224e-07,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.005289713642559946,
+          "sample_sd": 0.004610298303171803,
+          "sample_variance": 2.1254850444228806e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29823203980922697,
+          "sample_sd": 0.053881841962389744,
+          "sample_variance": 0.0029032528932599446,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.492347717285156,
+          "sample_sd": 0.01045228712748856,
+          "sample_variance": 0.00010925030619546305,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0009683568729087711,
+          "sample_sd": 0.0002974496451364558,
+          "sample_variance": 8.847629139180347e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020344879012554884,
+          "sample_sd": 3.56338167760115e-06,
+          "sample_variance": 1.2697688980263586e-11,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2725,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0006256584019865841,
+          "sample_sd": 0.00027264613117987434,
+          "sample_variance": 7.433591284735324e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.00614420585334301,
+          "sample_sd": 0.003187752158416384,
+          "sample_variance": 1.0161763823488315e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.3024944603443146,
+          "sample_sd": 0.053034303538068844,
+          "sample_variance": 0.0028126373517680216,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.491656875610353,
+          "sample_sd": 0.008855418587054253,
+          "sample_variance": 7.841843835194595e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.001180308312177658,
+          "sample_sd": 0.00033005644976734166,
+          "sample_variance": 1.0893726003302173e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002169541927287355,
+          "sample_sd": 1.0615760965028641e-05,
+          "sample_variance": 1.1269438086662581e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2750,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.00043452094250824304,
+          "sample_sd": 0.0002436152531263321,
+          "sample_variance": 5.934839155580686e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0037353517021983863,
+          "sample_sd": 0.0030452950259442025,
+          "sample_variance": 9.2738217950405e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2948459178209305,
+          "sample_sd": 0.054558635827126424,
+          "sample_variance": 0.002976644743317003,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.491910552978517,
+          "sample_sd": 0.010422815060005445,
+          "sample_variance": 0.0001086350737750763,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0008977948455139995,
+          "sample_sd": 0.0002630251990425734,
+          "sample_variance": 6.918225533138535e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.000207872741157189,
+          "sample_sd": 1.6787972143721904e-05,
+          "sample_variance": 2.8183600869838265e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2775,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0005508249392732978,
+          "sample_sd": 0.00015459490332253985,
+          "sample_variance": 2.3899584133305442e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.00526529960334301,
+          "sample_sd": 0.002668942164079662,
+          "sample_variance": 7.123252275202229e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29818764328956604,
+          "sample_sd": 0.05755968288044315,
+          "sample_variance": 0.00331311709329718,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.492535400390626,
+          "sample_sd": 0.008160419948236316,
+          "sample_variance": 6.659245373157319e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0008828785037621855,
+          "sample_sd": 0.00019345463274927726,
+          "sample_variance": 3.742469493215774e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020948735473211855,
+          "sample_sd": 1.5292140525429836e-05,
+          "sample_variance": 2.3384956184949347e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2800,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0003423116431804374,
+          "sample_sd": 0.00013946521870879337,
+          "sample_variance": 1.9450547229491564e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0029541016250732356,
+          "sample_sd": 0.0016923366196433022,
+          "sample_variance": 2.864003234185719e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.293881356716156,
+          "sample_sd": 0.05440662031904026,
+          "sample_variance": 0.002960080334540205,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48954544067383,
+          "sample_sd": 0.01077441189836442,
+          "sample_variance": 0.00011608795175561681,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0009736088337376714,
+          "sample_sd": 0.00027172949895512983,
+          "sample_variance": 7.38369206024059e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021852340432815254,
+          "sample_sd": 1.919935253076544e-05,
+          "sample_variance": 3.6861513760060937e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2825,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.000408064087969251,
+          "sample_sd": 0.00019124464554806704,
+          "sample_variance": 3.65745144508058e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0038574220146983863,
+          "sample_sd": 0.0020738786049931224,
+          "sample_variance": 4.30097246824822e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29503173828125,
+          "sample_sd": 0.05408792271206448,
+          "sample_variance": 0.0029255033833062603,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.490794372558593,
+          "sample_sd": 0.00813072158378639,
+          "sample_variance": 6.610863347304985e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.000928590539842844,
+          "sample_sd": 0.00023505616184373043,
+          "sample_variance": 5.525139922070599e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021154315618332475,
+          "sample_sd": 1.5851162273258915e-05,
+          "sample_variance": 2.5125934541318674e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2850,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.00036425331782083956,
+          "sample_sd": 0.0002999052736240118,
+          "sample_variance": 8.994317314749338e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0029947917675599454,
+          "sample_sd": 0.0035801050217243507,
+          "sample_variance": 1.2817151966575912e-05,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2977373480796814,
+          "sample_sd": 0.05426369187457702,
+          "sample_variance": 0.002944548255859036,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.48988571166992,
+          "sample_sd": 0.008605984339433995,
+          "sample_variance": 7.406296645058319e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0008486376260407269,
+          "sample_sd": 0.00039297162217185927,
+          "sample_variance": 1.5442669583238252e-07,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020288860832806677,
+          "sample_sd": 2.4518833435841596e-05,
+          "sample_variance": 6.011731930545438e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2875,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.0001178033635369502,
+          "sample_sd": 4.597849132688153e-05,
+          "sample_variance": 2.1140216646961203e-09,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.00022786458794143982,
+          "sample_sd": 0.0001565379570663716,
+          "sample_variance": 2.4504132002513194e-08,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29444644451141355,
+          "sample_sd": 0.05084697685716948,
+          "sample_variance": 0.0025854150555135293,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.490886688232422,
+          "sample_sd": 0.009848943317957859,
+          "sample_variance": 9.700168448034674e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0005016343726310879,
+          "sample_sd": 6.059296310388777e-05,
+          "sample_variance": 3.6715071777091044e-09,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021288027346599847,
+          "sample_sd": 2.0078883264392e-05,
+          "sample_variance": 4.0316155314508106e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2900,
+      "metrics": {
+        "approx_kl": {
+          "mean": 0.00018877236798289231,
+          "sample_sd": 0.00011924801936112802,
+          "sample_variance": 1.4220090121551964e-08,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0011149088852107525,
+          "sample_sd": 0.0010158682383787688,
+          "sample_variance": 1.0319882777467832e-06,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29188576340675354,
+          "sample_sd": 0.057700263203542705,
+          "sample_variance": 0.0033293203737581045,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49327163696289,
+          "sample_sd": 0.007377247347061919,
+          "sample_variance": 5.442377841973212e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0005932207219302654,
+          "sample_sd": 0.00027932833112703087,
+          "sample_variance": 7.802431657021221e-08,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.0002106347237713635,
+          "sample_sd": 1.1560044612834166e-05,
+          "sample_variance": 1.3363463145071621e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2925,
+      "metrics": {
+        "approx_kl": {
+          "mean": 3.80021538148867e-05,
+          "sample_sd": 2.8806514082776313e-05,
+          "sample_variance": 8.2981525360119e-10,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 1.627604215173051e-05,
+          "sample_sd": 3.639433665592136e-05,
+          "sample_variance": 1.3245477406245412e-09,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29712333977222444,
+          "sample_sd": 0.055963211141082214,
+          "sample_variance": 0.003131881001221348,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.492060470581055,
+          "sample_sd": 0.009717338326179168,
+          "sample_variance": 9.442666414543055e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0002632403397001326,
+          "sample_sd": 9.047995050630703e-05,
+          "sample_variance": 8.18662144362377e-09,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00021669116686098277,
+          "sample_sd": 2.0662993773264817e-05,
+          "sample_variance": 4.269593116739805e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2950,
+      "metrics": {
+        "approx_kl": {
+          "mean": 4.058956947119441e-05,
+          "sample_sd": 2.8579170702580948e-05,
+          "sample_variance": 8.167689980472612e-10,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 4.069010537932627e-05,
+          "sample_sd": 7.047732988232478e-05,
+          "sample_variance": 4.96705402734203e-09,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29414173364639284,
+          "sample_sd": 0.05635150355073855,
+          "sample_variance": 0.0031754919524288995,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49171714782715,
+          "sample_sd": 0.008510617769503341,
+          "sample_variance": 7.243061481858604e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.0002633976575452834,
+          "sample_sd": 5.037008126610628e-05,
+          "sample_variance": 2.5371450867541506e-09,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020556682429742068,
+          "sample_sd": 1.2489314877996939e-05,
+          "sample_variance": 1.5598298612175568e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2975,
+      "metrics": {
+        "approx_kl": {
+          "mean": 6.3499500356556385e-06,
+          "sample_sd": 3.700278341790265e-06,
+          "sample_variance": 1.3692059806722112e-11,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "sample_variance": 0.0,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.2923604816198349,
+          "sample_sd": 0.05606046805036385,
+          "sample_variance": 0.003142776078025866,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.49038429260254,
+          "sample_sd": 0.009874046694060189,
+          "sample_variance": 9.749679811648093e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": -0.00010438287135912105,
+          "sample_sd": 3.347101764428335e-05,
+          "sample_variance": 1.1203090221439275e-09,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020529663015622646,
+          "sample_sd": 2.5368658493345885e-05,
+          "sample_variance": 6.435688337520102e-10,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 3000,
+      "metrics": {
+        "approx_kl": {
+          "mean": -4.729373229844791e-12,
+          "sample_sd": 4.3883370298013485e-11,
+          "sample_variance": 1.925750188712572e-21,
+          "seed_count": 5
+        },
+        "clip_fraction": {
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "sample_variance": 0.0,
+          "seed_count": 5
+        },
+        "entropy": {
+          "mean": 0.29457761347293854,
+          "sample_sd": 0.05385637352352075,
+          "sample_variance": 0.002900508969104987,
+          "seed_count": 5
+        },
+        "episode_reward": {
+          "mean": 23.490368270874022,
+          "sample_sd": 0.007263683754665582,
+          "sample_variance": 5.2761101687792686e-05,
+          "seed_count": 5
+        },
+        "policy_loss": {
+          "mean": 1.7617518000001553e-09,
+          "sample_sd": 6.588508528599985e-09,
+          "sample_variance": 4.340844463143474e-17,
+          "seed_count": 5
+        },
+        "value_loss": {
+          "mean": 0.00020715136197395622,
+          "sample_sd": 1.58331239060209e-05,
+          "sample_variance": 2.5068781262341056e-10,
+          "seed_count": 5
+        }
+      }
+    }
+  ],
+  "explained_variance_figure": "not produced; no critic explained variance is inferred",
+  "explained_variance_logged": false,
+  "input_telemetry_sha256": {
+    "tmp/focused-ppo-monitor/seed-1729.jsonl": "18fe4d9e2d38d749e761424a3b1d19ab2167221eca9a35bc28c24c94a23d29da",
+    "tmp/focused-ppo-monitor/seed-2718.jsonl": "f451dead296ae9bfc6d86b2056881cc5083ae4da53caa3b2fb20bb8d7f0d7fdb",
+    "tmp/focused-ppo-monitor/seed-3141.jsonl": "4617ff2ff969ef5a013291b9e3ee33cb79bde8ace766d364120a3277f11ba899",
+    "tmp/focused-ppo-monitor/seed-5772.jsonl": "f046889ebacccff43cc0400cd6ad955ace4251b3317c5b0cf504598616c524ea",
+    "tmp/focused-ppo-monitor/seed-8111.jsonl": "175f8b7f6a5eb25250ca1da47ad343e3a392e2f532189352082d9460df153af5"
+  },
+  "plotter_sha256": "3ac68a10ebff082b699b978709af19ee09eba26f45dc24c3bb1333a2052cb749",
+  "schema": "gridguard.focused_ppo_training_diagnostics.1",
+  "telemetry_rows_per_seed": 121,
+  "training_path": "data/evidence/focused-ppo-training.json",
+  "training_seeds": [
+    1729,
+    2718,
+    3141,
+    5772,
+    8111
+  ],
+  "training_sha256": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624",
+  "validation": [
+    {
+      "iteration": 0,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.319632580280306,
+          "sample_sd": 0.003017894644715463,
+          "sample_variance": 9.107688086602271e-06,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 93.11835811783871,
+          "sample_sd": 0.04759987566792239,
+          "sample_variance": 0.00226574816360167,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 98.23980026940504,
+          "sample_sd": 0.008923286743825731,
+          "sample_variance": 7.962504631253602e-05,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 100,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.359710394541423,
+          "sample_sd": 0.027033163447043523,
+          "sample_variance": 0.00073079192595457,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 94.21390406787395,
+          "sample_sd": 0.6436924963185959,
+          "sample_variance": 0.4143400298168657,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.79278787473837,
+          "sample_sd": 0.10790750349452115,
+          "sample_variance": 0.011644029310420093,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 200,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.418521633148192,
+          "sample_sd": 0.00699184987424836,
+          "sample_variance": 4.8885964664026804e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 95.60177290439606,
+          "sample_sd": 0.19170429782136528,
+          "sample_variance": 0.036750537803182715,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.57105940083662,
+          "sample_sd": 0.04732489059553376,
+          "sample_variance": 0.00223964526987924,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 300,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.445003321965537,
+          "sample_sd": 0.012514267574870308,
+          "sample_variance": 0.00015660689293545038,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.0027565707763,
+          "sample_sd": 0.28687482482433857,
+          "sample_variance": 0.08229716511799494,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.43737834195295,
+          "sample_sd": 0.08168939950442475,
+          "sample_variance": 0.0066731579913935106,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 400,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.459643592039743,
+          "sample_sd": 0.013346813888983504,
+          "sample_variance": 0.00017813744098716297,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.27404840538898,
+          "sample_sd": 0.22500968918698455,
+          "sample_variance": 0.0506293602280234,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.3437399516503,
+          "sample_sd": 0.0827378497702797,
+          "sample_variance": 0.006845551784609372,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 500,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.46617364168167,
+          "sample_sd": 0.010242048866212333,
+          "sample_variance": 0.00010489956497788133,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.35837129006784,
+          "sample_sd": 0.11663991761790382,
+          "sample_variance": 0.013604870381911391,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.32357232272625,
+          "sample_sd": 0.07113799663319133,
+          "sample_variance": 0.005060614564983941,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 600,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.469699407418567,
+          "sample_sd": 0.010682798726813852,
+          "sample_variance": 0.00011412218863761565,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.41783095896244,
+          "sample_sd": 0.16801397227323747,
+          "sample_variance": 0.02822869487903221,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.26511597136657,
+          "sample_sd": 0.11298109303320802,
+          "sample_variance": 0.012764727382978408,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 700,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.47289031902949,
+          "sample_sd": 0.009655665715067253,
+          "sample_variance": 9.32318804011252e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.47281448791423,
+          "sample_sd": 0.15578801555248936,
+          "sample_variance": 0.024269905789782668,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.24692848076424,
+          "sample_sd": 0.10349730102103204,
+          "sample_variance": 0.01071169131863812,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 800,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.47638291200002,
+          "sample_sd": 0.0088214326114936,
+          "sample_variance": 7.781767331912279e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.57103462765613,
+          "sample_sd": 0.1490695648338735,
+          "sample_variance": 0.02222173515976042,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.21019443124533,
+          "sample_sd": 0.08923269731255759,
+          "sample_variance": 0.007962474269674523,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 900,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.47897176504135,
+          "sample_sd": 0.009180581369095768,
+          "sample_variance": 8.428307427458833e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.62214193989833,
+          "sample_sd": 0.17805126333754515,
+          "sample_variance": 0.03170225237609585,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.18251633644104,
+          "sample_sd": 0.10910695981219398,
+          "sample_variance": 0.011904328679459713,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1000,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.482161173820494,
+          "sample_sd": 0.010304114949488463,
+          "sample_variance": 0.00010617478489227165,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.69298254946867,
+          "sample_sd": 0.20920830908672983,
+          "sample_variance": 0.043768116590928684,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.16174244383971,
+          "sample_sd": 0.129927698424272,
+          "sample_variance": 0.016881206817828568,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1100,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.48465329726537,
+          "sample_sd": 0.010338854771668243,
+          "sample_variance": 0.00010689191798964718,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.73536092539628,
+          "sample_sd": 0.18717791309741097,
+          "sample_variance": 0.03503557115150194,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.13037654012442,
+          "sample_sd": 0.11253026699951105,
+          "sample_variance": 0.012663060990981245,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1200,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.48611924648285,
+          "sample_sd": 0.00960944684694432,
+          "sample_variance": 9.23414687042481e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.77830985933542,
+          "sample_sd": 0.19376214016149537,
+          "sample_variance": 0.037543766959962976,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.11252758155265,
+          "sample_sd": 0.1290797553560121,
+          "sample_variance": 0.016661583242767935,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1300,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.48774460633596,
+          "sample_sd": 0.009452095682653237,
+          "sample_variance": 8.934211279403195e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.80579563726981,
+          "sample_sd": 0.19060434546816846,
+          "sample_variance": 0.03633001651134891,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.10466635972261,
+          "sample_sd": 0.11363996681978408,
+          "sample_variance": 0.012914042058801627,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1400,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.489841273625693,
+          "sample_sd": 0.009898288274883095,
+          "sample_variance": 9.797611077268815e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.8489293952783,
+          "sample_sd": 0.16817690557996967,
+          "sample_variance": 0.028283471570454032,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.09272298961878,
+          "sample_sd": 0.09686845240106046,
+          "sample_variance": 0.009383497070576514,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1500,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.490516899426776,
+          "sample_sd": 0.009413366003893477,
+          "sample_variance": 8.861145952325744e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.8542135482033,
+          "sample_sd": 0.16927191435391575,
+          "sample_variance": 0.028652980989039394,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.0754908223947,
+          "sample_sd": 0.1042342115707008,
+          "sample_variance": 0.010864770861765616,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1600,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49234987894694,
+          "sample_sd": 0.009269754842612778,
+          "sample_variance": 8.592835484214304e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.9039843827486,
+          "sample_sd": 0.1641881022968748,
+          "sample_variance": 0.02695773293584902,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.06111102551222,
+          "sample_sd": 0.1095530291181084,
+          "sample_variance": 0.012001866188953107,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1700,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.492830605506896,
+          "sample_sd": 0.010013310918091939,
+          "sample_variance": 0.00010026639554237922,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.92375634859005,
+          "sample_sd": 0.15784381921350135,
+          "sample_variance": 0.0249146712639045,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.05797960360844,
+          "sample_sd": 0.07664317366422706,
+          "sample_variance": 0.005874176069324868,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1800,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49364826599757,
+          "sample_sd": 0.009620134705028007,
+          "sample_variance": 9.25469917428843e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.93631202975908,
+          "sample_sd": 0.1689741074013619,
+          "sample_variance": 0.028552248972086986,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.04209193835656,
+          "sample_sd": 0.07941105228542845,
+          "sample_variance": 0.006306115225079051,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 1900,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.494145135084786,
+          "sample_sd": 0.009876878360204972,
+          "sample_variance": 9.755272614228525e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.92247331142426,
+          "sample_sd": 0.17824254656782323,
+          "sample_variance": 0.03177040540698263,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.06000745793185,
+          "sample_sd": 0.07815264612119205,
+          "sample_variance": 0.006107836095744275,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2000,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.494905565579735,
+          "sample_sd": 0.010038244229162427,
+          "sample_variance": 0.00010076634720431278,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.93103456993897,
+          "sample_sd": 0.1829558999564913,
+          "sample_variance": 0.03347286132888966,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.04487063487372,
+          "sample_sd": 0.09487682082125448,
+          "sample_variance": 0.009001611129148428,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2100,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.495467643737793,
+          "sample_sd": 0.009780318471398597,
+          "sample_variance": 9.56546294019806e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.93642632166544,
+          "sample_sd": 0.16816697749521467,
+          "sample_variance": 0.02828013231987604,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.05457548548777,
+          "sample_sd": 0.09080140602196993,
+          "sample_variance": 0.008244895335566636,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2200,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49634762128194,
+          "sample_sd": 0.009850414326707326,
+          "sample_variance": 9.703066240780094e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.95763385047516,
+          "sample_sd": 0.16377214289884895,
+          "sample_variance": 0.026821314789681003,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.04887526482344,
+          "sample_sd": 0.0842876816802947,
+          "sample_variance": 0.0071044132830386875,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2300,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49653025706609,
+          "sample_sd": 0.009381758533892708,
+          "sample_variance": 8.801739318826865e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.97316019237041,
+          "sample_sd": 0.1559655586232883,
+          "sample_variance": 0.024325255476674378,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.03630860894918,
+          "sample_sd": 0.08204644639747956,
+          "sample_variance": 0.006731619366454486,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2400,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.496987006664277,
+          "sample_sd": 0.009585764373848704,
+          "sample_variance": 9.188687863094705e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.97144247591496,
+          "sample_sd": 0.14534782089060402,
+          "sample_variance": 0.02112598903764711,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.05446477731068,
+          "sample_sd": 0.07158306266668657,
+          "sample_variance": 0.005124134860742777,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2500,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49742926756541,
+          "sample_sd": 0.010044885835783586,
+          "sample_variance": 0.00010089973145392573,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.99438203126192,
+          "sample_sd": 0.14619135574137937,
+          "sample_variance": 0.021371912493502537,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.0316945662101,
+          "sample_sd": 0.06437536937359092,
+          "sample_variance": 0.004144188181986268,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2600,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49774081627528,
+          "sample_sd": 0.008759628948859358,
+          "sample_variance": 7.67310993216949e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.9865955809752,
+          "sample_sd": 0.11725749894148768,
+          "sample_variance": 0.013749321058012985,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.03425562381744,
+          "sample_sd": 0.05694593981131054,
+          "sample_variance": 0.003242840060993403,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2700,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.498134067853293,
+          "sample_sd": 0.009341819631643862,
+          "sample_variance": 8.726959403016667e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.99608009805283,
+          "sample_sd": 0.1435625568632712,
+          "sample_variance": 0.020610207733119983,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.0411346256733,
+          "sample_sd": 0.07318049682866992,
+          "sample_variance": 0.005355385116090968,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2800,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.498414452870687,
+          "sample_sd": 0.009013926130222888,
+          "sample_variance": 8.125086428111499e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.9949907635649,
+          "sample_sd": 0.12570487765117522,
+          "sample_variance": 0.01580171626529693,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.03269353012243,
+          "sample_sd": 0.06422530222952189,
+          "sample_variance": 0.004124889446473428,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 2900,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.49862772067388,
+          "sample_sd": 0.00883585395734325,
+          "sample_variance": 7.807231515549836e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.99612847963968,
+          "sample_sd": 0.13379536215224977,
+          "sample_variance": 0.017901198933451667,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.03750718136628,
+          "sample_sd": 0.06796168457811998,
+          "sample_variance": 0.004618790570695871,
+          "seed_count": 5
+        }
+      }
+    },
+    {
+      "iteration": 3000,
+      "metrics": {
+        "episode_reward": {
+          "mean": 23.498867710431416,
+          "sample_sd": 0.008939013458563074,
+          "sample_variance": 7.990596161237176e-05,
+          "seed_count": 5
+        },
+        "fairness": {
+          "mean": 96.9961994389693,
+          "sample_sd": 0.12406940711269634,
+          "sample_variance": 0.015393217781295985,
+          "seed_count": 5
+        },
+        "utilization": {
+          "mean": 97.04147118578354,
+          "sample_sd": 0.060064095953581496,
+          "sample_variance": 0.0036076956227210455,
+          "seed_count": 5
+        }
+      }
+    }
+  ],
+  "validation_checkpoints_per_seed": 31,
+  "validation_units": {
+    "episode_reward": {
+      "mean": "daily reward",
+      "sample_variance": "daily reward squared"
+    },
+    "fairness": {
+      "mean": "percent",
+      "sample_variance": "percentage points squared"
+    },
+    "utilization": {
+      "mean": "percent",
+      "sample_variance": "percentage points squared"
+    }
+  }
+}

@@ -19,6 +19,11 @@ class DecisionContext:
     hour: int
     observation: torch.Tensor
     _validate_finite: InitVar[bool] = True
+    current_demand_mw: torch.Tensor | None = None
+    current_supply_mw: torch.Tensor | None = None
+    cumulative_demand_mwh: torch.Tensor | None = None
+    cumulative_served_mwh: torch.Tensor | None = None
+    previous_service_tiers: torch.Tensor | None = None
 
     def __post_init__(self, _validate_finite: bool) -> None:
         if isinstance(self.hour, bool) or not isinstance(self.hour, int):
@@ -35,6 +40,37 @@ class DecisionContext:
             raise TypeError("observation must be a floating-point tensor")
         if _validate_finite and not bool(torch.isfinite(self.observation).all().item()):
             raise ValueError("observation must contain only finite values")
+        state = (
+            self.current_demand_mw,
+            self.current_supply_mw,
+            self.cumulative_demand_mwh,
+            self.cumulative_served_mwh,
+            self.previous_service_tiers,
+        )
+        if all(value is None for value in state):
+            return
+        if any(value is None for value in state):
+            raise ValueError("all dispatch-state tensors must be provided together")
+        batch = self.observation.shape[0]
+        shapes = ((batch, 7, 5), (batch,), (batch, 7), (batch, 7), (batch, 7))
+        for index, (value, shape) in enumerate(zip(state, shapes, strict=True)):
+            if not isinstance(value, torch.Tensor) or value.shape != shape:
+                raise ValueError(f"dispatch-state tensor {index} must have shape {shape}")
+            if value.device != self.observation.device:
+                raise ValueError("dispatch-state tensors must share the observation device")
+            dtype = torch.long if index == 4 else self.observation.dtype
+            if value.dtype != dtype:
+                raise TypeError("dispatch-state tensors must use the declared dtype")
+        if _validate_finite:
+            floating = torch.cat(tuple(value.flatten() for value in state[:4]))
+            if bool((~torch.isfinite(floating) | (floating < 0)).any().item()):
+                raise ValueError("dispatch-state power must be finite and non-negative")
+            if bool((self.cumulative_served_mwh > self.cumulative_demand_mwh).any().item()):
+                raise ValueError("cumulative served energy cannot exceed cumulative demand")
+            if bool(
+                ((self.previous_service_tiers < 0) | (self.previous_service_tiers > 2)).any().item()
+            ):
+                raise ValueError("previous service tiers must be between 0 and 2")
 
 
 @runtime_checkable

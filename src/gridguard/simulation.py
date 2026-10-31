@@ -325,7 +325,16 @@ def simulate(scenario: Scenario, controller: Controller) -> SimulationResult:
         )
         tiers = _validate_controller_action(
             controller.act(
-                DecisionContext(hour=hour, observation=observation, _validate_finite=False)
+                DecisionContext(
+                    hour=hour,
+                    observation=observation,
+                    _validate_finite=False,
+                    current_demand_mw=demand,
+                    current_supply_mw=supply,
+                    cumulative_demand_mwh=cumulative_demand,
+                    cumulative_served_mwh=cumulative_served,
+                    previous_service_tiers=previous_tier,
+                )
             ),
             batch_size=batch_size,
             device=device,

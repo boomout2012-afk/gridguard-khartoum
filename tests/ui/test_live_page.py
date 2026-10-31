@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 from PySide6.QtCore import QPoint, Qt
 
@@ -173,10 +175,73 @@ def test_live_comparison_keeps_controller_scope_visible_beside_metrics(qtbot) ->
     qtbot.waitUntil(page.scope_note.isVisible, timeout=1000)
 
     note = page.scope_note
-    assert note.text() == "Synthetic scenario · Decision support only"
+    assert note.text() == ("PPO identity not supplied\nSynthetic scenario · Decision support only")
     assert RESULTS_SCOPE_LIMITATION in note.accessibleName()
     assert RESULTS_SCOPE_LIMITATION in note.toolTip()
     assert note.mapTo(page, QPoint(0, note.height())).y() <= page.contentsRect().bottom()
+
+
+def test_live_policy_identity_comes_from_the_run_and_clears_with_inputs(qtbot) -> None:
+    from gridguard.live_policy import DEPLOYED_LIVE_POLICY
+
+    page = LiveScenarioPage(load_map_asset())
+    qtbot.addWidget(page)
+    assert "Current trained PPO" in page.scope_note.text()
+    assert "verify" in page.scope_note.toolTip()
+    comparison = replace(_comparison(), policy_identity=DEPLOYED_LIVE_POLICY)
+
+    page.set_comparison(comparison)
+
+    assert page.scope_note.text().startswith("PPO · seed 8111 · iteration 2500")
+    assert DEPLOYED_LIVE_POLICY.model_sha256 in page.scope_note.toolTip()
+    assert "validation-selected" in page.scope_note.accessibleDescription()
+    assert "five-run" in page.scope_note.accessibleDescription()
+    page.seed_input.setValue(comparison.seed + 1)
+    assert "Current trained PPO" in page.scope_note.text()
+    assert DEPLOYED_LIVE_POLICY.model_sha256 not in page.scope_note.toolTip()
+    assert not page.timeline.isEnabled()
+
+
+def test_unidentified_frames_do_not_keep_the_previous_policy_identity(qtbot) -> None:
+    from gridguard.live_policy import DEPLOYED_LIVE_POLICY
+
+    page = LiveScenarioPage(load_map_asset())
+    qtbot.addWidget(page)
+    page.set_comparison(replace(_comparison(), policy_identity=DEPLOYED_LIVE_POLICY))
+    page.set_frames(tuple(_frame(hour) for hour in range(24)))
+
+    assert "PPO identity not supplied" in page.scope_note.text()
+    assert DEPLOYED_LIVE_POLICY.model_sha256 not in page.scope_note.toolTip()
+
+
+def test_live_comparison_rejects_non_identity_metadata() -> None:
+    with pytest.raises(TypeError, match="policy_identity"):
+        replace(_comparison(), policy_identity={"training_seed": 8111})
+
+
+def test_live_summary_shows_supplied_utilization_and_reward_without_recalculation(qtbot) -> None:
+    page = LiveScenarioPage(load_map_asset())
+    qtbot.addWidget(page)
+    comparison = _comparison()
+    metrics = {
+        name: replace(summary, utilization=0.97321, episode_reward=23.45678)
+        for name, summary in comparison.metrics_by_controller.items()
+    }
+    page.set_comparison(replace(comparison, metrics_by_controller=metrics))
+
+    assert page.comparison_summary.values["Supply utilization"].text() == "97.3%"
+    assert page.comparison_summary.values["Daily reward"].text() == "23.4568"
+    assert page.comparison_table.item(0, 6).text() == "97.3%"
+    assert page.comparison_table.item(0, 7).text() == "23.4568"
+    page.set_comparison(comparison)
+    assert page.comparison_summary.values["Supply utilization"].text() == "—"
+    assert page.comparison_summary.values["Daily reward"].text() == "—"
+
+
+@pytest.mark.parametrize("field,value", [("utilization", 1.1), ("episode_reward", float("nan"))])
+def test_live_summary_rejects_invalid_thesis_metrics(field, value) -> None:
+    with pytest.raises(ValueError, match=field):
+        replace(_summary(served_mwh=1.0), **{field: value})
 
 
 def test_visible_locality_list_is_bidirectionally_synchronized_with_map(qtbot) -> None:
@@ -207,7 +272,7 @@ def test_dynamic_status_labels_do_not_mask_their_text_from_accessibility(qtbot) 
     assert page.state_label.property("state") == "empty"
 
     page.set_busy(True)
-    assert "running both controllers" in page.state_label.text().casefold()
+    assert "running three controllers" in page.state_label.text().casefold()
     assert page.state_label.property("state") == "loading"
 
     page.show_run_error("test integration failure")

@@ -1,0 +1,83 @@
+{
+  "constraint": {
+    "latex": "C+\\sum_{i=1}^{7}x_i b_i\\leq S,\\qquad x_i\\in\\{0,1\\}",
+    "display": true,
+    "width": 163.728513,
+    "height": 34.198424,
+    "baseline": -14.328977,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\constraint.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\constraint.svg"
+  },
+  "dispatch": {
+    "latex": "\\alpha=\\min\\!\\left(1,\\frac{S}{\\max(Q,\\varepsilon)}\\right),\\qquad \\mathrm{delivered}=\\alpha\\,\\mathrm{requested}",
+    "display": true,
+    "width": 270.130952,
+    "height": 27.707432999999995,
+    "baseline": -11.040276,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\dispatch.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\dispatch.svg"
+  },
+  "reward": {
+    "latex": "r_t=\\frac{5C_t+2U_t+2J_t-0.25W_t-3O_t}{9}",
+    "display": true,
+    "width": 190.693828,
+    "height": 24.022258,
+    "baseline": -8.142966000000001,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\reward.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\reward.svg"
+  },
+  "jain": {
+    "latex": "J_t=\\frac{\\left(\\sum_{i=1}^{7}z_{i,t}\\right)^2}{7\\sum_{i=1}^{7}z_{i,t}^{2}+\\varepsilon}",
+    "display": true,
+    "width": 100.267258,
+    "height": 43.734132,
+    "baseline": -15.477735000000001,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\jain.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\jain.svg"
+  },
+  "ratio": {
+    "latex": "\\rho_t(\\theta)=\\frac{\\pi_\\theta(a_t\\mid s_t)}{\\pi_{\\theta_{\\mathrm{old}}}(a_t\\mid s_t)}",
+    "display": true,
+    "width": 102.031059,
+    "height": 27.961583,
+    "baseline": -11.172433999999999,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\ratio.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\ratio.svg"
+  },
+  "loss": {
+    "latex": "\\mathcal L=-\\mathbb E_t\\!\\left[\\min\\!\\left(\\rho_t\\widehat A_t,\\operatorname{clip}(\\rho_t,0.8,1.2)\\widehat A_t\\right)\\right]+0.25\\mathbb E_t[(V_\\phi-\\widehat R_t)^2]-c_H\\mathbb E_t[H(\\pi_\\theta)]",
+    "display": true,
+    "width": 385.0626649999999,
+    "height": 20.687810000000002,
+    "baseline": -7.466927,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\loss.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\loss.svg"
+  },
+  "horizons": {
+    "latex": "a_t^{\\mathrm{opt}}=\\operatorname{arg\\,max}_{a\\in\\mathcal A(s_t)}r_t(s_t,a),\\qquad \\pi^{\\mathrm{PPO}}:\\ \\max\\mathbb E\\!\\left[\\sum_{t=0}^{23}r_t\\right]",
+    "display": true,
+    "width": 283.49924200000004,
+    "height": 34.488155,
+    "baseline": -14.369641,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\horizons.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\horizons.svg"
+  },
+  "variance": {
+    "latex": "\\bar x_j=\\frac{1}{5}\\sum_{k=1}^{5}x_{k,j},\\qquad s_j^2=\\frac{1}{4}\\sum_{k=1}^{5}(x_{k,j}-\\bar x_j)^2",
+    "display": true,
+    "width": 214.33486100000002,
+    "height": 34.345831,
+    "baseline": -14.557711999999999,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\variance.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\variance.svg"
+  },
+  "ar": {
+    "latex": "\\widehat d_t=\\max\\!\\left(0,\\beta_0+\\beta_1d_{t-1}+\\beta_2d_{t-2}+\\beta_3d_{t-3}\\right)",
+    "display": true,
+    "width": 215.49378500000003,
+    "height": 15.431988,
+    "baseline": -2.8769780000000003,
+    "png": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\ar.png",
+    "svg": "C:\\Users\\Lenovo\\Documents\\gridguard-khartoum\\docs\\assets\\presentation\\focused\\math\\ar.svg"
+  }
+}

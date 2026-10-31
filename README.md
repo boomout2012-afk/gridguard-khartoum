@@ -1,237 +1,98 @@
 # GridGuard Khartoum
 
-GridGuard Khartoum is an offline desktop simulation that demonstrates PPO-assisted load-shedding
-decisions for seven Khartoum State localities. It compares PPO with a traditional Fixed Rotation
-schedule on identical synthetic shortage scenarios, with explicit protection metrics for
-hospitals, water services, and bakeries.
+**AI-Based Smart Load Shedding and Energy Management System for Developing Countries**
 
-The project implements the scope accepted in `docs/source/graduation-project-proposal.pdf`. It is
-a research and presentation tool, not a real-grid controller. All demand and supply values are
-synthetic. The offline map uses pinned OCHA/HDX administrative boundaries with Natural Earth Nile
-context. These layers are for presentation context only; they are not electrical-network topology
-and supply no scientific input.
+An offline Windows research application for seven Khartoum State localities. It simulates
+24-hour electricity shortages, prioritizes critical services, and compares **PPO**, **Fixed
+Rotation**, and **Constrained Optimization** on identical scenarios. The project also evaluates
+demand forecasting, interruption duration, fairness and energy utilization.
+
+All demand and supply data are synthetic. This is a decision-support research project;
+it has not been validated for operating a real electrical grid.
 
 ## Reviewer start here
 
-Current release: **1.2.0 (2026-08-27)** identifies the historical packaged release. Release 1.1.0
-remains the earlier baseline. The October 2026 source refresh is under graduation-readiness
-review; the August package and its validation records do not certify these changes. Final
-screenshots, report, deck, Windows build, machine validation, and manifest must be regenerated
-and verified before this source refresh is handed over as presentation-ready.
+| Deliverable | Contents |
+| --- | --- |
+| [Thesis PDF](output/pdf/updated/gridguard-khartoum-thesis.pdf) | 35 pages; methodology, LaTeX formulas, results, training graphs and Harvard references |
+| [Presentation PDF](output/pdf/updated/gridguard-khartoum-project-presentation.pdf) | 24 slides for the project defense |
+| [Editable PowerPoint](output/presentation/updated/gridguard-khartoum-defense.pptx) | Native charts, tables and speaker notes |
+| [GUI collection](output/pdf/gridguard-khartoum-gui-pages.pdf) | Cover and 18 current application views |
 
-- Read the approved implementation contract in [SPEC.md](SPEC.md).
-- Follow current findings and remaining release gates in the
-  [October graduation-readiness review](docs/GRADUATION_REVIEW.md).
-- Track every confirmed remediation finding in the
-  [devil's-advocate audit register](docs/DEVILS_ADVOCATE_AUDIT.md).
-- Find all historical PPO training parameters in the
-  [data/model/training-provenance.yaml](data/model/training-provenance.yaml) file. It is the
-  canonical, strict, model-manifest-bound record of architecture, initialization, optimizer and
-  loss settings, workload, seeds, selection, hardware, lineage, and convergence.
+The [reviewer guide](docs/REVIEWER_GUIDE.md) maps the implementation, evidence and verification
+steps. The [submission guide](SUBMISSION_README.md) explains document rebuilding and the
+separate portable Windows package. Academic cover details are shared in
+[academic-cover.json](docs/academic-cover.json).
 
-The training record is intentionally provenance rather than an executable bitwise-retraining
-configuration: optimizer state and raw training runs are excluded. The validated summary command
-is shown in [PPO training parameters](#ppo-training-parameters).
+## Main findings
 
-## Presentation requirements
+The current study trains five PPO policies for 3,000 iterations each and evaluates them on
+960 matched conditions. The complete declared comparison passes against Fixed Rotation.
+Against Constrained Optimization, PPO improves fairness and daily reward, but its utilization
+loss means the full comparison does not pass. The optimizer maximizes current-hour reward;
+the study does not compare PPO with a full-day optimum.
 
-- Windows laptop with a compatible NVIDIA GPU
-- CUDA-capable PyTorch 2.8 and CuPy CUDA 12.x runtime
-- Python 3.12 for source execution
-- No internet connection after installation
+The app's **Results** page reports the five-run study. **Live Scenario** uses the policy selected
+by validation, training seed 8111 at checkpoint 2500. One live scenario is separate from the
+study averages. See the [frozen study protocol](docs/FOCUSED_PPO_PROTOCOL.md) for selection rules,
+uncertainty, outcome criteria and limitations.
 
-Run `uv run gridguard-doctor` before every rehearsal. The presentation and benchmark fail closed instead of silently switching to the CPU.
+## Run from source
 
-The GPU runtime rationale and trade-offs are recorded in `docs/decisions/ADR-001-gpu-runtime.md`.
-
-## Verified evidence
-
-The evidence package has two deliberately different roles. The accepted reproduction at
-`data/evidence/paired-benchmark.json` (SHA-256
-`7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5`) preserves the historical
-comparison: 96 independent synthetic base draws crossed with Mild, Moderate, and Severe shortages,
-giving 288 matched scenario conditions and 576 controller-scenario evaluations. Seeds
-`50001-50003` were gradient-disjoint, but the archived promotion process reused them during model
-selection. This layer is therefore accepted reproduction evidence, not an independently custodied final test.
-
-The documented-seed-disjoint holdout at `data/evidence/robustness-supplement.json` (SHA-256
-`6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48`) uses seeds 81001-81010: 320 independent base draws, 960 matched scenario
-conditions, and 1,920 controller-scenario evaluations. It also evaluates 24 one-factor-at-a-time
-locality-weight and sector-share perturbations, for 25 parameterizations including the base, and
-compares the display-only three-hour trailing-mean forecast with one-hour persistence on common
-target hours. Those seeds are disjoint only from every documented training, validation, and
-model-selection seed in `data/model/training-provenance.yaml`. The holdout was not preregistered or
-independently custodied and cannot rule out undocumented activity. PPO and Fixed Rotation use the same validated
-scenario within each pair; device-side guards reject detected demand or supply mutation.
-
-Sensitivity intervals are descriptive, pointwise 95%, and unadjusted for multiple comparisons;
-they do not support family-wide significance claims. No behavior-cloning-only ablation was run, so
-this comparison cannot isolate the incremental effect of PPO fine-tuning. Fixed Rotation is
-supply-blind, limited to Off and Full Service, and cannot select Critical Only.
-
-The public primary outcomes are critical-outage locality-hours, Jain fairness, and utilization.
-Power-balance violation rate is a separate safety invariant. The episode reward is labeled
-**Training-objective score (diagnostic)** because it contains several reported outcomes and is not
-independent confirmation. Full-precision values remain in canonical JSON; human-facing views use
-one decimal place for MWh/locality-hours, two decimals for percentages, and three decimals for the
-diagnostic score.
-
-`validate_paired_benchmark_payload` checks closed schema, pairing, arithmetic, and physical
-identities. `assert_paired_benchmark_integrity` adds locked provenance and direct parity with the
-frozen aggregate artifact. Both are sign-neutral integrity checks: adverse or inconclusive
-evidence remains valid evidence, and no favorable-result release gate exists. These are synthetic
-simulation results for decision-support research, not measurements from Sudan's electrical grid.
-
-## PPO training parameters
-
-The canonical reviewer-facing historical record is
-[data/model/training-provenance.yaml](data/model/training-provenance.yaml) (SHA-256
-`d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8`). It records the
-32 -> 512 -> 512 -> 2,187 actor, behavior-cloning initialization, PPO optimizer and loss
-parameters, all seeds, validation and checkpoint-selection rules, source hashes, and the selected
-run's hardware and convergence series. The selected seed-43 run used 600 iterations, 153,600
-episodes, and 3,686,400 transitions; its checkpoint is iteration 510 after 6,120 optimizer updates.
-The three-seed candidate experiment totaled 1,800 iterations, 460,800 episodes, and 11,059,200
-transitions. Historical promotion gates selected the actor; they are not independent headline
-evidence. Schema v3 classifies each historical field as directly recorded, source-reconstructed
-(including named PyTorch defaults), arithmetic-derived, or an unavailable historical environment
-fact. Adam optimized network parameters during training. CUDA accelerates training, inference,
-simulation, and statistics; it is not a mathematical dispatch optimizer, and the shipped desktop
-performs no online optimization.
-
-The YAML is a strict provenance record, not a bitwise-retraining promise: optimizer state and raw
-training runs are intentionally excluded. Print a validated machine-readable summary with:
+Use **Python 3.12**, **uv**, 64-bit Windows and a compatible NVIDIA GPU/driver for CUDA 12.8.
+The locked environment provides PyTorch 2.8, CuPy and PySide6. Initial dependency installation
+needs internet or a populated package cache; the installed app runs offline. The scientific
+runtime requires CUDA and does not silently switch to CPU.
 
 ```powershell
-uv run --extra docs python .\tools\training_provenance.py --path .\data\model\training-provenance.yaml --model-manifest .\data\model\manifest.json --summary-json
-```
-
-## Offline geographic context
-
-The application bundles seven second-level Khartoum State units from OCHA's Sudan COD-AB revision
-v03 and White Nile, Blue Nile, and Nile linework from Natural Earth 1:10m rivers. Source sizes,
-SHA-256 pins, selectors, transformations, licenses, and derived hashes are recorded in
-`src/gridguard/assets/map/THIRD_PARTY_DATA.md` and `map-provenance.json`. Runtime performs no
-download and fails closed if the packaged geography drifts. The design decision and rejected
-alternatives are recorded in `docs/decisions/ADR-002-geographic-boundary-map.md`.
-
-## Desktop presentation flow
-
-The current source interface uses the approved A/D/F design: a floating top navigation bar,
-open locality map, white control panels, bold Atkinson typography, and coral selection accents.
-The three pages are Overview, Live Scenario, and Results. Open **Evidence details** on Results
-for provenance and complete scientific limitations. Ctrl+1 through Ctrl+3 switch pages;
-F11 toggles full screen. To run the current source application:
-
-```powershell
+uv sync --locked --extra dev --extra docs
+uv run --no-sync gridguard-doctor
+uv run --no-sync gridguard-evaluate --verify-evidence
 uv run --no-sync gridguard-desktop
 ```
 
-1. Select Mild, Moderate, or Severe shortage and a deterministic seed.
-2. Replay the same 24-hour scenario through PPO and Fixed Rotation.
-3. Inspect service tiers and sector outcomes on the interactive administrative map or synchronized
-   keyboard-accessible locality list.
-4. Compare the live demonstration's matched episode aggregates with the separately verified
-   documented-seed-disjoint holdout; live values never replace reviewer-facing frozen evidence.
-5. Inspect evidence provenance and limitations in Results; consult the offline methodology
-   and implementation chapters for the complete academic account.
+Choose Mild, Moderate or Severe shortage, run the matched scenario, then inspect the timeline
+and locality service details. The map supplies geographic context only, not electrical-network
+topology or scientific inputs.
 
-## Development
+## Verify the source
 
-Install the locked environment, then use the portable test gate for ordinary development or
-CPU-only CI:
+Check the submitted documents, evidence, policy weights and scientific source files with
+`python tools/verify_review_package.py`. This integrity check needs only Python's standard
+library and works without a GPU or installed application dependencies.
+The [repository review map](docs/REPOSITORY_REVIEW.md) explains the manifest and artifact scope.
+
+The complete test suite also requires Git and PowerShell 7 for temporary packaging fixtures.
 
 ```powershell
-uv sync --extra dev --extra docs
-uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
 uv run --no-sync ruff check .
-```
-
-That portable gate is useful feedback, but it does not certify a presentation release. The gate
-contract is deliberately separated: the mandatory presentation-GPU gate validates all source and
-GPU tests from committed, hash-bound inputs; the strict post-build `release_artifact` gate validates
-the completed Windows tree; and the optional source-archive parity gate audits the supplied
-read-only research archive. The normal package build does not require the sibling research archive.
-
-```powershell
-uv run --no-sync gridguard-doctor
+uv run --no-sync ruff format --check .
+# Portable checks used by GitHub CI; no presentation-GPU certification.
+uv run --no-sync pytest -m "not gpu and not source_archive and not release_artifact"
+# Complete source and GPU checks on the presentation machine.
 uv run --no-sync pytest -ra -m "not source_archive and not release_artifact"
-uv run --no-sync gridguard-evaluate --verify-evidence
-
-# Run only after the Windows package and release manifest are final.
-uv run --no-sync pytest -ra -m "release_artifact"
 ```
 
-Both mandatory gates intentionally fail when their required GPU, CUDA stack, evidence, or packaged
-outputs are unavailable, and both require zero skipped selected tests. When the read-only archive
-is available, enable the optional parity audit explicitly with:
+The [reviewer guide](docs/REVIEWER_GUIDE.md#verification-and-reproduction) explains the current
+study verification and separates it from optional archive audits and historical release checks.
 
-```powershell
-.\scripts\build-presentation.ps1 -StrictSourceParity `
-  -SourceRepositoryPath ..\aipower_rl `
-  -SourceCheckpointPath ..\aipower_rl\artifacts\checkpoints\best.pt
-```
+## Repository map
 
-Strict parity validates the supplied archive and checkpoint and includes `source_archive` tests;
-the normal package build never probes the sibling repository or ambient source-path variables.
+| Path | Purpose |
+| --- | --- |
+| `src/gridguard/` | Domain, scenarios, controllers, simulation, metrics, evidence and Qt interface |
+| `tests/` | Unit, integration, GPU, GUI and packaging tests |
+| `data/evidence/` | Frozen results, training summaries, checksums and accepted source snapshots |
+| `data/model/` | Policy weights and training provenance |
+| `docs/` | Manuscript, protocols, figures, screenshots and review records |
+| `tools/`, `scripts/`, `packaging/` | Training, evaluation, document generation and Windows packaging |
+| `output/pdf/updated/`, `output/presentation/updated/` | Current academic deliverables |
 
-To reproduce the paired artifact without overwriting the trusted copy:
-
-```powershell
-uv run gridguard-evaluate --reproduce-paired --output .\paired-benchmark-reproduced.json
-```
-
-To reproduce the documented-seed-disjoint robustness artifact without overwriting the trusted copy:
-
-```powershell
-uv run gridguard-evaluate --reproduce-robustness --output .\robustness-supplement-reproduced.json
-```
-
-The implementation plan and completion evidence are tracked in `tasks/plan.md` and `tasks/todo.md`.
-
-## Build the academic artifacts
-
-Build the report from the verified evidence and committed chapters:
-
-```powershell
-uv run python .\tools\build_report.py
-```
-
-The editable slide deck requires Microsoft PowerPoint on Windows because the builder uses the
-native PowerPoint automation interface for shapes, speaker notes, and rendered QA images:
-
-```powershell
-powershell -NoProfile -File .\tools\build_presentation.ps1
-```
-
-The final PDF, deck, evidence, model, proposal, map, and Windows executable are bound by size and
-SHA-256 in `RELEASE_MANIFEST.json`.
-
-The unsigned release manifest proves internal byte consistency against its pinned inventory, but
-it does not authenticate authorship. A coherent rewrite could replace both artifacts and their
-hashes. Reviewers must therefore compare the published private Git branch with the exact commit SHA
-recorded in the manifest and reported at handoff. Artifact signing remains optional unless the
-project team supplies a signing identity; this release does not claim signature-backed
-authenticity.
-
-Historical visual-record or machine-record verification alone does not establish that changed
-source has been released. For a source refresh, follow the source freeze, fresh test/evidence
-commands, visual review, machine-record refresh, and final package sequence in
-`docs/GRADUATION_REVIEW.md`. The existing build enforces a separate source-snapshot check.
-
-## Build the Windows presentation package
-
-Run the locked release gate and create the one-directory executable with:
-
-```powershell
-.\scripts\build-presentation.ps1
-```
-
-Launch it with `.\scripts\run-presentation.ps1`. Keep the entire
-`dist\GridGuard Khartoum` directory together because the executable depends on its adjacent
-PyTorch, CuPy, Qt, model, and evidence files. The final rehearsal steps and approved scientific
-wording are in `docs/PRESENTATION_CHECKLIST.md`.
-
-The final methodology, implementation, and results chapters are under `docs/`. Generated report
-and slide artifacts are written under `output/` and are intentionally separate from the source
-package.
+The large prebuilt CUDA application and local build caches are excluded from Git. The
+repository includes the source, models, evidence and documents needed for review and reproduction.
+Earlier reports and release fixtures remain documented in [project history](docs/PROJECT_HISTORY.md).
+Their historical `RELEASE_MANIFEST.json` does not certify the current submission.
+The canonical historical training record is
+[data/model/training-provenance.yaml](data/model/training-provenance.yaml), which is checked by
+strict provenance validation. It describes the earlier actor; use the focused study protocol
+above for the current five-run study and deployed policy.

@@ -9,6 +9,10 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+# The selected PPO was evaluated with deterministic CUDA matrix operations.
+# Set this before the preflight can initialize the CUDA context.
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QApplication
 
@@ -29,11 +33,15 @@ def _frozen_smoke_report_root() -> Path:
     if (
         executable.name.casefold() != "gridguard khartoum.exe"
         or distribution_root.name.casefold() != "gridguard khartoum"
-        or dist_root.name.casefold() != "dist"
     ):
         raise ValueError("frozen executable is outside the expected release layout")
 
-    expected_root = dist_root.parent / "build" / "gridguard"
+    if dist_root.name.casefold() == "dist":
+        expected_root = dist_root.parent / "build" / "gridguard"
+    elif dist_root.name.casefold() == "app" and dist_root.parent.name.casefold() == "output":
+        expected_root = dist_root.parent.parent / "tmp/proposal-extended/build/gridguard"
+    else:
+        raise ValueError("frozen executable is outside the expected release layout")
     try:
         resolved_root = expected_root.resolve(strict=True)
     except OSError as error:
@@ -85,7 +93,33 @@ def _exception_summary(error: BaseException | None) -> dict[str, object] | None:
     }
 
 
-def _live_smoke_facts(comparison: object) -> dict[str, object]:
+def _deployed_policy_smoke_facts(comparison: object) -> dict[str, object]:
+    """Reject an earlier policy or violated critical-service deployment constraints."""
+
+    from dataclasses import asdict
+
+    from gridguard.live_policy import DEPLOYED_LIVE_POLICY
+
+    identity = getattr(comparison, "policy_identity", None)
+    if identity != DEPLOYED_LIVE_POLICY:
+        raise RuntimeError("frozen live policy differs from the validation-selected actor")
+    metrics = getattr(comparison, "metrics_by_controller", {})
+    for name in ("PPO", "Optimization"):
+        summary = metrics.get(name)
+        duration = getattr(summary, "duration", None)
+        if (
+            summary is None
+            or duration is None
+            or summary.power_balance_violation_rate != 0.0
+            or duration.critical_interruption_locality_hours != 0.0
+        ):
+            raise RuntimeError(f"frozen {name} critical-service/power constraint check failed")
+    return {**asdict(identity), "critical_and_power_checks_passed": True}
+
+
+def _live_smoke_facts(
+    comparison: object, *, expected_shortage_level: str = "moderate"
+) -> dict[str, object]:
     from gridguard.domain import ControllerName
     from gridguard.ui.live_models import LiveScenarioComparison
 
@@ -95,8 +129,9 @@ def _live_smoke_facts(comparison: object) -> dict[str, object]:
     controller_names = (
         ControllerName.PPO.value,
         ControllerName.FIXED_ROTATION.value,
+        ControllerName.OPTIMIZATION.value,
     )
-    if comparison.shortage_level != "moderate" or comparison.seed != 50002:
+    if comparison.shortage_level != expected_shortage_level or comparison.seed != 50002:
         raise ValueError("frozen live smoke returned the wrong deterministic scenario")
     if comparison.device != "cuda:0":
         raise ValueError("frozen live smoke left required device cuda:0")
@@ -128,6 +163,7 @@ def _live_smoke_facts(comparison: object) -> dict[str, object]:
 
     ppo_hour_zero = comparison.frames(ControllerName.PPO.value)[0]
     fixed_hour_zero = comparison.frames(ControllerName.FIXED_ROTATION.value)[0]
+    optimization_hour_zero = comparison.frames(ControllerName.OPTIMIZATION.value)[0]
     return {
         "shortage_level": comparison.shortage_level,
         "seed": comparison.seed,
@@ -136,6 +172,7 @@ def _live_smoke_facts(comparison: object) -> dict[str, object]:
         "frame_counts": frame_counts,
         "finite_core_values": True,
         "validated_core_value_count": len(core_values),
+        "deployed_policy": _deployed_policy_smoke_facts(comparison),
         "hour_zero": {
             "demand_mw": ppo_hour_zero.demand_mw,
             "supply_mw": ppo_hour_zero.supply_mw,
@@ -144,6 +181,9 @@ def _live_smoke_facts(comparison: object) -> dict[str, object]:
             ),
             "fixed_rotation_served_mw": sum(
                 detail.served_mw for detail in fixed_hour_zero.locality_details.values()
+            ),
+            "optimization_served_mw": sum(
+                detail.served_mw for detail in optimization_hour_zero.locality_details.values()
             ),
         },
     }
@@ -182,6 +222,30 @@ def _capture_presentation_pages(
         application.processEvents()
 
 
+def _focused_study_smoke_facts(page: object) -> dict[str, object]:
+    """Require the packaged current study to load and display its pinned values."""
+
+    view = getattr(page, "study_view", None)
+    table = getattr(page, "current_results_table", None)
+    if view is None or table is None:
+        raise RuntimeError("packaged current study could not be verified")
+    if table.rowCount() != len(view.means.rows) or table.columnCount() != len(view.means.columns):
+        raise RuntimeError("packaged current study table shape differs from evidence")
+    for row, cells in enumerate(view.means.rows):
+        for column, expected in enumerate(cells):
+            item = table.item(row, column)
+            if item is None or item.text() != expected:
+                raise RuntimeError("packaged current study display differs from evidence")
+    return {
+        "display_matches_pinned_study": True,
+        "displayed_outcomes": table.rowCount(),
+        "evidence": dict(view.evidence),
+        "fixed_rotation_conclusion": view.fixed_conclusion,
+        "optimizer_conclusion": view.optimizer_conclusion,
+        "live_policy_boundary": view.live_statement,
+    }
+
+
 def _run_frozen_smoke(report_path: Path) -> int:
     from PySide6.QtWidgets import QApplication
 
@@ -210,15 +274,21 @@ def _run_frozen_smoke(report_path: Path) -> int:
         application.processEvents()
         comparison = run_live_scenario("moderate", 50002)
         live_facts = _live_smoke_facts(comparison)
+        all_shortage_facts = {"moderate": live_facts.copy()}
+        for shortage_level in ("mild", "severe"):
+            matched = run_live_scenario(shortage_level, 50002)
+            all_shortage_facts[shortage_level] = _live_smoke_facts(
+                matched, expected_shortage_level=shortage_level
+            )
         window.live_page.set_comparison(comparison)
         window.tabs.setCurrentWidget(window.live_page)
         window.live_page.timeline.setValue(23)
-        window.live_page.controller_combo.setCurrentText("Fixed Rotation")
+        window.live_page.controller_combo.setCurrentText("Optimization")
         application.processEvents()
         if (
             not window.live_page.timeline.isEnabled()
             or not window.live_page.controller_combo.isEnabled()
-            or window.live_page.controller_combo.currentText() != "Fixed Rotation"
+            or window.live_page.controller_combo.currentText() != "Optimization"
             or window.live_page.timeline.value() != 23
             or not window.live_page.locality_context.text().endswith("Hour 23:00")
         ):
@@ -226,6 +296,9 @@ def _run_frozen_smoke(report_path: Path) -> int:
         results_table_rows = window.results_page.results_table.rowCount()
         if results_table_rows != expected_results_table_rows:
             raise RuntimeError("frozen presentation results table is missing expected rows")
+        current_study_facts = _focused_study_smoke_facts(window.results_page)
+        window.live_page.controller_combo.setCurrentText("PPO")
+        application.processEvents()
         live_facts.update(
             {
                 "installed_in_live_page": True,
@@ -249,6 +322,8 @@ def _run_frozen_smoke(report_path: Path) -> int:
                     "cupy_version": startup.gpu.cupy_version,
                 },
                 "live_scenario": live_facts,
+                "live_scenarios_by_shortage": all_shortage_facts,
+                "current_study": current_study_facts,
             },
         )
         return 0

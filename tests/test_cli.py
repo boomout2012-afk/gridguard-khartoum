@@ -13,6 +13,12 @@ from gridguard.gpu import GpuPreflightError, GpuRuntimeInfo
 ROOT = Path(__file__).parents[1]
 
 
+@pytest.fixture(autouse=True)
+def _isolate_additive_cuda_gate_in_portable_cli_tests(monkeypatch, request) -> None:
+    if request.node.get_closest_marker("gpu") is None:
+        monkeypatch.setattr(cli, "_verify_proposal_evidence", lambda _root: False)
+
+
 def _gpu_info() -> GpuRuntimeInfo:
     return GpuRuntimeInfo(
         device_name="NVIDIA Test GPU",

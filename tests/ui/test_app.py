@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -38,11 +39,13 @@ def _project() -> ProjectPreflightResult:
     )
 
 
-def test_startup_runs_gpu_gate_before_loading_evidence() -> None:
+def test_startup_runs_gpu_gate_before_loading_evidence(monkeypatch) -> None:
+    monkeypatch.delenv("CUBLAS_WORKSPACE_CONFIG", raising=False)
     order: list[str] = []
     snapshot = object()
 
     def preflight():
+        assert os.environ["CUBLAS_WORKSPACE_CONFIG"] == ":4096:8"
         order.append("gpu")
         return _project()
 

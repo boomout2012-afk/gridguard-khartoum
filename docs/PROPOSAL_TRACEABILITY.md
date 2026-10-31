@@ -1,7 +1,140 @@
 # Proposal Traceability and Source Audit
 
-Status: Final release traceability
-Audit date: 2026-08-26
+Status: Original release audit with additive proposal implementation and evidence
+Original audit: 2026-08-26; latest additive review: 2026-10-23
+
+## Current interface captures and institutional covers, 2026-10-23
+
+The user requested removing two conclusion sentences from the app's Results views,
+refreshing all GUI pages and the academic screenshots, and using matching university
+and faculty covers. The app's numerical data and the academic findings are unchanged.
+The interface PDF includes a cover and 18 actual app views, including the current
+study tabs and historical evidence views. The thesis and presentation use the same
+verified screenshot set and shared cover metadata, with the original university and
+faculty logos extracted from the supplied reference document. The degree and supervisor
+are the user-provided Bachelor of Computer Science and Mrs. Abubakr Siraj.
+
+The updated executable passed packaged CUDA checks across all three shortage levels.
+The new outputs and source identities are recorded in
+`docs/gui-document-refresh-validation.json`, superseding the stable-path bindings in
+the preceding historical refresh receipts.
+
+## Trained PPO live deployment, 2026-10-23
+
+The user authorized replacing the earlier Live Scenario actor with the newly trained
+study policy. The predeclared validation-only deployment choice is training seed 8111,
+checkpoint 2500, SHA-256
+`9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3`.
+The live comparison now uses that actor and the study's constrained current-hour
+optimizer, with identical causal inputs and critical-service constraints. Fixed Rotation
+remains the matched baseline. The Results page retains the original five-run study,
+which is distinct from a single live policy and scenario.
+
+This additive deployment preserves the frozen scientific implementation, original model,
+all research actors, and published evidence. It supersedes the earlier-policy live
+boundary recorded in the academic refresh below. Validation and executable identity are
+recorded in `docs/live-ppo-deployment-validation.json`.
+
+## Academic and application refresh, 2026-10-23
+
+The publication artifacts now stand alone: the thesis and presentation omit the
+project-proposal reference and all discussion of that source document. Internal
+scope records and frozen evidence retain their original identities. The thesis uses
+Harvard author-date citations with 31 cited, alphabetized references, real italic
+publication titles and hanging indents. Its final length is 35 pages.
+
+The presentation now follows the same study and results, with LaTeX equations,
+training diagnostics, between-run variance and explicit utilization tradeoffs.
+The app opens the current five-run study on Results and offers the earlier evidence
+separately. Its live demonstration explicitly identifies the earlier policy; the new
+actors are not silently substituted. Three pinned JSON artifacts supply the current
+view, and the packaged smoke check compares every displayed table cell with that
+verified view. Final artifact identities and verification are recorded in
+`docs/academic-refresh-validation.json`.
+
+## Longer PPO study and thesis, 2026-10-23
+
+The proposal-wide thesis now follows one sequence: problem and related work, methods,
+application, matched experiments, discussion and conclusion. The authors' literature
+review is integrated with reference corrections recorded in `docs/LITERATURE_REVIEW_AUDIT.md`.
+Prediction, critical-service protection, optimization, fixed scheduling, PPO and direct
+duration metrics remain in scope. The main controller comparison is PPO, Fixed Rotation
+and Constrained Optimization. Fairness Rule demonstrations are disclosed as a training
+ingredient, with earlier comparisons retained in the appendix and original evidence.
+
+Five fresh PPO runs completed 3,000 iterations each (92,160,000 PPO transitions; 35.98
+minutes of completed training). Validation selected checkpoints before the final 960
+matched conditions were evaluated. The pretraining freeze remains unchanged. The full
+declared comparison passes against Fixed Rotation. Against Constrained Optimization,
+PPO improves daily reward by 0.04990 and service fairness by 2.2368 percentage points,
+but utilization falls by 0.3989 percentage points and switching increases. The full
+optimizer-comparison criterion therefore fails. The longer-budget comparison also
+fails its full criterion despite reward and fairness gains. These outcomes are stated
+in the abstract, results and conclusion without presenting an overall optimizer win.
+
+Accepted records are `data/evidence/focused-ppo-training.json`,
+`data/evidence/focused-ppo-study.json` and `data/evidence/focused-ppo-training-diagnostics.json`,
+each with a SHA-256 sidecar. `docs/focused-ppo-validation.json` records independent CUDA
+metric reconstruction and trajectory replay: all 960 scenario identities, 2,304 final
+trajectories and 5,280 validation trajectories checked, with zero observed numerical
+error. Final confidence intervals and claim decisions were separately reconstructed
+by the evidence verifier.
+
+The redesigned 36-page thesis is `output/pdf/updated/gridguard-khartoum-thesis.pdf`.
+All formulas use LaTeX; its six scientific graphs include training curves, TensorBoard
+loss/entropy/KL/clipping diagnostics, between-run sample variance, controller outcomes,
+paired intervals and forecast errors. Variability bands are explicitly sample standard
+deviations, not confidence intervals. Every page was rendered and visually reviewed.
+The PDF build sidecar and `docs/focused-thesis-validation.json` bind the final output,
+sources, graph renderers, evidence and verification. This thesis refresh does not
+redeploy the new actor into the existing executable or refresh the earlier slide deck.
+Screenshots identify that version boundary. Historical evidence and actor bytes remain
+unchanged.
+
+## Additive proposal coverage, 2026-10-22
+
+The original audit below is retained as historical evidence. Its statements that a dispatch
+optimizer was future work and prediction was naive-only are superseded by this extension.
+
+| Proposal objective | Current implementation and evidence |
+|---|---|
+| 1. Study shortages with Sudan as the case study | Thesis context, Related Work, Khartoum localities and declared synthetic assumptions |
+| 2. Model supply, demand, shortages and sectors | Existing scenario generator, seven localities, five sectors, three shortage levels |
+| 3. AI decision-support model | Frozen PPO, matched CUDA simulation, native offline desktop |
+| 4. Critical-service priority | Hospital/water/bakery demand, Critical Only action, service and interruption outcomes |
+| 5. Selected prediction, optimization, rules and RL methods | Ridge AR(3), exhaustive one-step Optimization, Fixed Rotation, PPO |
+| 6. Fixed-schedule comparison | Original comparisons plus the additional three-controller matched study |
+| 7. Downtime, fairness and efficiency | Critical burden; direct duration range, pairwise gap and streaks; Jain service fairness; utilization and energy |
+
+Research question 4 now has direct blackout-duration and critical-interruption-duration evidence.
+The new supplement contains 320 independent base draws, 960 coupled matched conditions and
+2,880 controller evaluations. Its seed labels, formulas, sources, per-episode metric arrays,
+locality durations, fitted forecasting parameters and error statistics are pinned in
+`data/evidence/proposal-supplement.json`. All three paired confidence-interval sets are
+reconstructed on CUDA before acceptance. The protocol is declared before the complete run,
+without claiming external preregistration or independent custody.
+
+The seven proposal deliverable categories are represented by the simulation, model, scenarios,
+controller comparisons, measured results, updated thesis and project presentation. See
+`docs/PROPOSAL_EXTENSION.md` and `docs/PROPOSAL_RESULTS.md`. This addition does not establish
+field effectiveness, a full-horizon optimum, or operational grid control. Package/release
+records continue to identify the exact versions they validated.
+
+Verification for the addition covers exhaustive-search agreement with a scalar oracle,
+analytic duration cases, forecast leakage checks, matched input and source hashes,
+reconstruction of every paired interval on CUDA, and original golden/parity cases across
+all three shortage levels. The source desktop and an extracted wheel pass real CUDA startup.
+The historical study's 13 byte-bound source files are preserved under
+`data/evidence/accepted-sources/`; current implementation hashes are checked independently
+against the new supplement. This preserves both provenance chains rather than replacing the
+accepted evidence with a new run.
+
+The redesigned thesis and project presentation are in `output/pdf/updated/`, with the editable
+deck in `output/presentation/updated/`. Results remain within those academic documents.
+The separate Windows build in `output/app/GridGuard Khartoum/` passes actual packaged CUDA
+startup and all three live controllers through all 24 hours. Its clean build excludes ambient
+document-tool DLL paths. Final artifact identities and checks are recorded in
+`docs/proposal-extension-validation.json`; the historical release records remain unchanged.
 
 ## Native GUI design update, 2026-10-21
 
@@ -124,9 +257,9 @@ requires a favorable result.
 | AI decision-support model | Trained PPO checkpoint exists | Inference-only checkpoint, CUDA loader, policy parity tests |
 | Critical infrastructure priorities | Hospitals, water, and bakeries modeled | Per-sector map detail, critical-service invariant tests |
 | Prediction method | Forecast work existed outside the accepted path | Causal one-hour-ahead trailing-window projection for display only, isolated from PPO; synthetic MAE/RMSE compared with one-hour persistence on common targets |
-| Rule-based method | Fixed scheduling existed | Fixed Rotation is the primary baseline and its behavior is tested and documented |
-| Optimization method | Partial coverage: Adam used in historical training; no dispatch-optimization comparison | The proposal names optimization among methods to test where appropriate. Training YAML records Adam parameter optimization; CUDA accelerates inference/evaluation and is not an optimization method. There is no online mathematical dispatch optimizer. The documented-seed-disjoint comparison evaluates PPO against Fixed Rotation; an optimization-based dispatch comparator remains future work |
-| Reinforcement learning | PPO policy implemented | Clean inference code and audited PPO methodology |
+| Rule-based method | Fixed scheduling and a deterministic fairness rule implemented | Fixed Rotation remains the historical baseline. The additive allocation study includes a Fairness Rule over critical-feasible actions, with its tolerance selected on validation only |
+| Optimization method | Dispatch optimization implemented in additive proposal studies | Exact current-step action enumeration and a critical-feasible constrained optimizer are implemented and compared on matched scenarios in `data/evidence/proposal-supplement.json` and `data/evidence/allocation-study.json`. This is immediate-reward dispatch optimization, not a full-horizon optimum; Adam remains the separate neural-network parameter optimizer |
+| Reinforcement learning | Historical PPO plus constrained retraining workflow implemented | Clean historical inference remains unchanged. `docs/CONSTRAINED_PPO_PROTOCOL.md` specifies fresh masked PPO training, imitation-only ablation, five training seeds, validation-only checkpoint selection and a separate final matched comparison |
 | Multiple shortage scenarios | Mild, Moderate, Severe implemented | Matched deterministic CUDA replay and paired evidence across all three levels |
 | Fixed-schedule comparison | Implemented | Accepted 288-row reproduction plus documented-seed-disjoint 960-condition holdout, cluster-aware intervals, sign-neutral integrity, and Results view; Fixed Rotation is disclosed as supply-blind, limited to Off and Full Service, and unable to select Critical Only |
 | Critical-service downtime | Implemented in evaluation metrics | Frozen table plus per-scenario GUI detail |
@@ -161,3 +294,19 @@ requires a favorable result.
 The sibling repository remains an immutable research archive. Nothing in it was deleted, renamed,
 or rewritten for this delivery. Only proposal-relevant behavior and audited artifacts were
 migrated, and every migrated behavior has a clean test or recorded parity check.
+
+## Constrained PPO training evidence, 23 October 2026
+
+The additive experiment in `docs/CONSTRAINED_PPO_RESULTS.md` completed five independent
+training runs (18,432,000 PPO transitions) and evaluated their validation-selected models
+on 320 fresh base draws with three coupled shortage levels: 960 matched conditions.
+Every tested constrained method protected critical service and satisfied power balance.
+PPO improved its imitation-only initialization but did not beat the Fairness Rule under
+the predeclared overall reward/service criteria. All unfavorable findings are retained.
+
+`data/evidence/constrained-ppo-training.json` binds the pretraining protocol/source freeze,
+checkpoint histories and selected weight files. `data/evidence/constrained-ppo-study.json`
+contains all 11,520 final controller trajectories' metric rows and uncertainty estimates.
+`docs/constrained-ppo-validation.json` records exact validation and final-scenario replay.
+These are additional research findings; the prior accepted model and evidence remain
+separately identifiable by their unchanged hashes.

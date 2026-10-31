@@ -62,6 +62,7 @@ class ControllerName(StrEnum):
 
     PPO = "PPO"
     FIXED_ROTATION = "Fixed Rotation"
+    OPTIMIZATION = "Optimization"
 
 
 LOCALITIES = tuple(Locality)

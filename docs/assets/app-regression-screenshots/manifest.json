@@ -1,0 +1,45 @@
+{
+  "schema": "gridguard.app_visual_regression.1",
+  "purpose": "Current source regression fixtures; historical publication screenshots are preserved separately.",
+  "capture_tool": "tools/capture_screenshots.py",
+  "capture_tool_sha256": "b425b6ffb0f2e3ab38358bf4d175648a5627c77c9199faaf099e3270b1cf1d22",
+  "capture_command": "uv run python tools/capture_screenshots.py --output-dir docs/assets/app-regression-screenshots",
+  "scenario": {
+    "shortage": "moderate",
+    "seed": 50002,
+    "hour": 18,
+    "locality": "East Nile",
+    "controller": "PPO"
+  },
+  "policy": {
+    "training_seed": 8111,
+    "checkpoint_iteration": 2500,
+    "model_relative_path": "data/model/focused-ppo-study/seed-8111-selected.npz",
+    "model_sha256": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3",
+    "training_sha256": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624"
+  },
+  "screenshots": [
+    {
+      "path": "live.png",
+      "sha256": "972349bfe5b7ff70235d1f923e20a171bed44fbfc39cf1be096540cacc420c5b",
+      "width": 1366,
+      "height": 768,
+      "visually_reviewed": true
+    },
+    {
+      "path": "overview.png",
+      "sha256": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e",
+      "width": 1366,
+      "height": 768,
+      "visually_reviewed": true
+    },
+    {
+      "path": "results.png",
+      "sha256": "ed31f21d8f5953ce6903d26560c4327b1420540e9636a200bdfda2fa3748f77e",
+      "width": 1366,
+      "height": 768,
+      "visually_reviewed": true
+    }
+  ],
+  "visual_findings": "All three screens inspected at 1366x768: complete layout, current trained-policy caption, three live controllers, and canonical current-study table. The requested sentences are absent. Live demonstration values and frozen study values are clearly separated."
+}

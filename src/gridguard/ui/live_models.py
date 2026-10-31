@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from types import MappingProxyType
 
-from gridguard.domain import SECTORS, ControllerName, ServiceTier, ShortageLevel
+from gridguard.domain import HORIZON_HOURS, SECTORS, ControllerName, ServiceTier, ShortageLevel
+from gridguard.live_policy import LivePolicyIdentity
 from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS
 
 
@@ -87,6 +88,36 @@ class LiveScenarioFrame:
 
 
 @dataclass(frozen=True, slots=True)
+class LiveDurationSummary:
+    """Already-calculated duration outcomes after the single display transfer.
+
+    Totals use locality-hours; disparity and longest interruption use hours.
+    Requested Off actions are not substituted for actual delivered-service loss.
+    """
+
+    blackout_locality_hours: float
+    critical_interruption_locality_hours: float
+    blackout_duration_range_hours: float
+    blackout_duration_mean_pairwise_gap_hours: float
+    critical_interruption_duration_range_hours: float
+    critical_interruption_duration_mean_pairwise_gap_hours: float
+    longest_blackout_hours: float
+    longest_critical_interruption_hours: float
+
+    def __post_init__(self) -> None:
+        for field in fields(self):
+            value = _nonnegative_number(getattr(self, field.name), field=field.name)
+            maximum = (
+                HORIZON_HOURS * len(EXPECTED_LOCALITY_IDS)
+                if field.name.endswith("locality_hours")
+                else HORIZON_HOURS
+            )
+            if value > maximum:
+                raise ValueError(f"{field.name} must not exceed {maximum} hours")
+            object.__setattr__(self, field.name, value)
+
+
+@dataclass(frozen=True, slots=True)
 class LiveEpisodeSummary:
     """Host-side aggregate metrics for one live controller episode."""
 
@@ -95,8 +126,22 @@ class LiveEpisodeSummary:
     fairness: float
     curtailed_mwh: float
     power_balance_violation_rate: float
+    duration: LiveDurationSummary | None = None
+    utilization: float | None = None
+    episode_reward: float | None = None
 
     def __post_init__(self) -> None:
+        if self.duration is not None and not isinstance(self.duration, LiveDurationSummary):
+            raise TypeError("duration must be a LiveDurationSummary")
+        if self.utilization is not None:
+            object.__setattr__(self, "utilization", _ratio(self.utilization, field="utilization"))
+        if self.episode_reward is not None:
+            reward = self.episode_reward
+            if isinstance(reward, bool) or not isinstance(reward, (int, float)):
+                raise TypeError("episode_reward must be a number")
+            if not math.isfinite(reward):
+                raise ValueError("episode_reward must be finite")
+            object.__setattr__(self, "episode_reward", float(reward))
         object.__setattr__(
             self,
             "served_mwh",
@@ -125,15 +170,20 @@ class LiveEpisodeSummary:
 
 @dataclass(frozen=True, slots=True)
 class LiveScenarioComparison:
-    """Twenty-four display frames for both controllers on one shared scenario."""
+    """Matched live timelines, with optional Optimization for legacy fixture compatibility."""
 
     shortage_level: str
     seed: int
     device: str
     frames_by_controller: Mapping[str, Sequence[LiveScenarioFrame]]
     metrics_by_controller: Mapping[str, LiveEpisodeSummary]
+    policy_identity: LivePolicyIdentity | None = None
 
     def __post_init__(self) -> None:
+        if self.policy_identity is not None and not isinstance(
+            self.policy_identity, LivePolicyIdentity
+        ):
+            raise TypeError("policy_identity must be a LivePolicyIdentity")
         try:
             shortage = ShortageLevel(self.shortage_level)
         except (TypeError, ValueError) as error:
@@ -146,11 +196,15 @@ class LiveScenarioComparison:
             raise ValueError("seed must be between 0 and 2**63 - 1")
         if self.device != "cuda:0":
             raise ValueError("live comparison must originate from cuda:0")
-        names = (ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value)
-        if set(self.frames_by_controller) != set(names):
-            raise ValueError("live comparison must contain exactly PPO and Fixed Rotation")
-        if set(self.metrics_by_controller) != set(names):
-            raise ValueError("live metrics must contain exactly PPO and Fixed Rotation")
+        required = {ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value}
+        present = set(self.frames_by_controller)
+        if not required <= present <= required | {ControllerName.OPTIMIZATION.value}:
+            raise ValueError(
+                "live comparison requires PPO, Fixed Rotation, and optional Optimization"
+            )
+        if set(self.metrics_by_controller) != present:
+            raise ValueError("live metrics must contain the same controllers as the frames")
+        names = tuple(member.value for member in ControllerName if member.value in present)
 
         normalized: dict[str, tuple[LiveScenarioFrame, ...]] = {}
         for name in names:
@@ -159,22 +213,24 @@ class LiveScenarioComparison:
                 raise ValueError(f"{name} must contain exactly one frame for each of 24 hours")
             normalized[name] = frames
         ppo_frames = normalized[ControllerName.PPO.value]
-        fixed_frames = normalized[ControllerName.FIXED_ROTATION.value]
-        for ppo, fixed in zip(ppo_frames, fixed_frames, strict=True):
-            if ppo.demand_mw != fixed.demand_mw or ppo.supply_mw != fixed.supply_mw:
-                raise ValueError("both controllers must display the exact same demand and supply")
-            if any(
-                ppo.locality_details[locality_id].demand_mw
-                != fixed.locality_details[locality_id].demand_mw
-                for locality_id in EXPECTED_LOCALITY_IDS
-            ):
-                raise ValueError("both controllers must display the exact same locality demand")
-            if any(
-                ppo.locality_details[locality_id].next_hour_projected_demand_mw
-                != fixed.locality_details[locality_id].next_hour_projected_demand_mw
-                for locality_id in EXPECTED_LOCALITY_IDS
-            ):
-                raise ValueError("both controllers must display the same demand projection")
+        for name in names[1:]:
+            for ppo, other in zip(ppo_frames, normalized[name], strict=True):
+                if ppo.demand_mw != other.demand_mw or ppo.supply_mw != other.supply_mw:
+                    raise ValueError(
+                        "all controllers must display the exact same demand and supply"
+                    )
+                if any(
+                    ppo.locality_details[locality_id].demand_mw
+                    != other.locality_details[locality_id].demand_mw
+                    for locality_id in EXPECTED_LOCALITY_IDS
+                ):
+                    raise ValueError("all controllers must display the exact same locality demand")
+                if any(
+                    ppo.locality_details[locality_id].next_hour_projected_demand_mw
+                    != other.locality_details[locality_id].next_hour_projected_demand_mw
+                    for locality_id in EXPECTED_LOCALITY_IDS
+                ):
+                    raise ValueError("all controllers must display the same demand projection")
 
         object.__setattr__(self, "shortage_level", shortage.value)
         object.__setattr__(self, "frames_by_controller", MappingProxyType(normalized))

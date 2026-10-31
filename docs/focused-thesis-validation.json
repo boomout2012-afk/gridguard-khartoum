@@ -1,0 +1,188 @@
+{
+  "schema": "gridguard.focused_thesis_validation.1",
+  "verified_at_utc": "2026-10-23T11:32:25.108136+00:00",
+  "passed": true,
+  "pdf": {
+    "path": "output/pdf/updated/gridguard-khartoum-thesis.pdf",
+    "sha256": "d85e0e3607b27752ab0733b15162adf1fbb59360ee420cf4d86a58adffee619e",
+    "pages": 35
+  },
+  "build_receipt_sha256": "356188839a0e5c7b67b2fae2e9b6167549e07b08221231ddb20957949275fd33",
+  "latex_expression_count": 54,
+  "scientific_graph_count": 6,
+  "graphs": [
+    "Controller outcomes",
+    "Paired optimizer effects",
+    "Validation learning curves",
+    "TensorBoard diagnostics",
+    "Between-run sample variance",
+    "Forecast errors"
+  ],
+  "visual_review": {
+    "rendering": "Poppler PNG, 110 dpi; exact final 35-page PDF",
+    "all_pages_reviewed": true,
+    "changed_pages_reinspected": [
+      1,
+      16,
+      17
+    ],
+    "unchanged_pages_pixel_identical_to_approved_pdf": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35
+    ],
+    "prior_visual_review_sha256": "df6581e7915f7bf9727c5d11aff69fc681da50c3774c63d7a1ce28be2d803a09",
+    "result": "No clipping, overlaps, split shortage groups or orphan tail pages found after final revision.",
+    "render_sha256": {
+      "tmp/pdfs/current-gui-thesis-01.png": "aacad85930b38602f9b9abdecf8c30e3b42eafc0eb14009c588dffb1ae95f541",
+      "tmp/pdfs/current-gui-thesis-02.png": "965770f8c87b5f7c2ca6b3465a9158b124599659bd9cfb93be1bf5e5f1c63d86",
+      "tmp/pdfs/current-gui-thesis-03.png": "bded6188dfef59cf6f3629a88169bd460d26095126727d51bc9295c363bf3265",
+      "tmp/pdfs/current-gui-thesis-04.png": "3c64a64b8788aafe58ff0b67e9cfd5613222543d328b0b775d67787c8a56edc2",
+      "tmp/pdfs/current-gui-thesis-05.png": "80a83cabec80c1c13582492a9e184f4d4b92067b50eed6e6119dc7524aca2c8e",
+      "tmp/pdfs/current-gui-thesis-06.png": "e9eb57e90a4e263e9d376a4bfd8ddb91b40373a1918707c5022faf9e414ede2e",
+      "tmp/pdfs/current-gui-thesis-07.png": "2754ee003b95a75527520ce0de477291a3b8940de637f6db04aeecb6daf781c4",
+      "tmp/pdfs/current-gui-thesis-08.png": "aa26c0056bea488d578d0bec7f12f4b4bb7cd254e671da48bed1e81a47d921b5",
+      "tmp/pdfs/current-gui-thesis-09.png": "45871282b5912b47257d8782763a589ae5a3138696fc9e2e0ecbc73a221caa2f",
+      "tmp/pdfs/current-gui-thesis-10.png": "b611f7751a130fbc405300822557db059e2a1d0286d2e14bf6a5296e5c1ccb31",
+      "tmp/pdfs/current-gui-thesis-11.png": "931b978e8ed1cfa41d33c4a61c4150a49015b39920dbdab5e7e595367b2d50a8",
+      "tmp/pdfs/current-gui-thesis-12.png": "7bbb31c0f46c071017377d22bd1be3d8e0acfbb73106d6869d8a07d96408bba5",
+      "tmp/pdfs/current-gui-thesis-13.png": "e2183c2651f4af23c6eed3551adb3d4087e2d75cba9798975f71bcc2953040ad",
+      "tmp/pdfs/current-gui-thesis-14.png": "fae6527bc8bb4f14ea8da54cb36be7abf008f8dcae8e3454988a35af163e42f1",
+      "tmp/pdfs/current-gui-thesis-15.png": "9ae7b90d8e1bd0a10782cb151b5f2c4024115f39a79e0bc34e66ad66397a29b0",
+      "tmp/pdfs/current-gui-thesis-16.png": "5b5b9903853fe264a4f6fd6bf2a16064cc43640cf34b57a6a3c751bf18af152d",
+      "tmp/pdfs/current-gui-thesis-17.png": "5109b5d31598dc53842fe31c38bf225f46224790697e19971f900c33c25f17e0",
+      "tmp/pdfs/current-gui-thesis-18.png": "5647528b6e60625e14147383087aca58111b7cbea3a1ab8ca5def11bd4cb7964",
+      "tmp/pdfs/current-gui-thesis-19.png": "bff77f14a2404bf33ce91f3138e93b494b3f6695dd5ee46db3786ab62bc83ed0",
+      "tmp/pdfs/current-gui-thesis-20.png": "7303d2a4597bc6a389e19da6556a45f6fcb695d23ace617afcb09bef6ac89607",
+      "tmp/pdfs/current-gui-thesis-21.png": "bdbc4bdbd395c2e38b94668c5659e222a0f60b1b071b90c158a0931a014f5b27",
+      "tmp/pdfs/current-gui-thesis-22.png": "800fc8a1c1896a18ae8a3c8015682b5eb50f02e5a74b61450f54199493ccdb6b",
+      "tmp/pdfs/current-gui-thesis-23.png": "8dbb48fab490140833921d88e364bd83c8a3d00cafebb7d04eb9b8a21804394a",
+      "tmp/pdfs/current-gui-thesis-24.png": "65c2a2abc55b209ae3d4f340be65e2e832748b74d7e8aa9645807d970385b49d",
+      "tmp/pdfs/current-gui-thesis-25.png": "4085758a389474a7f7a6138d501838b5bfe29c2c387890fbf973da3b886ccc34",
+      "tmp/pdfs/current-gui-thesis-26.png": "8e165251c5adf809e181975afc2289a59d6074d5fa1b78fa5c3027bd4dd2b2ff",
+      "tmp/pdfs/current-gui-thesis-27.png": "40fbb77276b6371f0f8c5fd6b93493ce54f2f9bcf00b9e0f276743aaf4006ec6",
+      "tmp/pdfs/current-gui-thesis-28.png": "82641c4b2e677e62ecc169a33c893e4e111e67adc602c0abd125224505e0e9ce",
+      "tmp/pdfs/current-gui-thesis-29.png": "1c16d90515b0fc88b713fa498ee26c3c853c79634545fc029fd8af50bce67943",
+      "tmp/pdfs/current-gui-thesis-30.png": "1488ecaf55001236a40c14dc7b2a4149aebdcbe49f52ecdc9838cc5a04bf6745",
+      "tmp/pdfs/current-gui-thesis-31.png": "40a92dd19556e2e52a32832d2b4fb7f3e6b74a86e39a218b9bf7e27935cd61b5",
+      "tmp/pdfs/current-gui-thesis-32.png": "dca1755e802d5ef99f78976ddf0099299830d4df0bbcf425d7aee93af341b57f",
+      "tmp/pdfs/current-gui-thesis-33.png": "44cd5d48579d81f5e80e12b52be04a9c21bdbc477b5795b99dae0a6c81c1e5f1",
+      "tmp/pdfs/current-gui-thesis-34.png": "656dbb14e37687613301811f8b0fe2cbadc29e92beb8bd0e836e7ae51cf31a88",
+      "tmp/pdfs/current-gui-thesis-35.png": "325ce47e8753aa33c58926940407f0ef34c713ca35adc752109d9055b584b8b1"
+    }
+  },
+  "evidence_sha256": {
+    "data/evidence/focused-ppo-training.json": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624",
+    "data/evidence/focused-ppo-study.json": "a4d5a849612f06eedef96e0d28e08247e5e3757eba0b4f2e4f1a893e9d4b8247",
+    "data/evidence/proposal-supplement.json": "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e",
+    "data/evidence/focused-ppo-training-diagnostics.json": "b4c2c76e481e0f30e323ea22f9359212bac1b2018605f833682875d98face500"
+  },
+  "screenshots_sha256": {
+    "docs/assets/current-app-screenshots/overview.png": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e",
+    "docs/assets/current-app-screenshots/live-ppo.png": "a3e2adfdbcb3efebac9cceb845cacf697578557a59b7d826760dbf6036479dfb"
+  },
+  "cover": {
+    "metadata_path": "docs/academic-cover.json",
+    "metadata_sha256": "607f317371cad53de15dbe42fab0c05e5959cfda0b12f20ba38e338196d33cbc",
+    "logos_sha256": {
+      "docs/assets/university-branding/university-and-faculty-logos.jpg": "2feb6575ec16335d867649d651281b2bc1aa2c5d8c6226cc2d862f9055b8dff9"
+    },
+    "all_shared_cover_fields_verified": true
+  },
+  "scientific_content_unchanged": {
+    "manuscript_outside_desktop_workflow": true,
+    "all_scientific_figure_bytes": true,
+    "harvard_references": true,
+    "before_pdf_sha256": "4fc0b321c3348b4bb4d2522066a35b88441f4be29d9ee1f2c5d85bb836ef8f2f"
+  },
+  "independent_cuda_replay": {
+    "path": "docs/focused-ppo-validation.json",
+    "sha256": "df1cc59a3a1cd94f8333f77693dc47ef1afb6007093d940dd9deab06383a1fe1",
+    "passed": true,
+    "archive": "data/evidence/accepted-sources/replay_focused_ppo_study-6df249c337aa.py",
+    "script_sha256": "6df249c337aa7c6b7923978d9f73c22905669e14063786495af521e22b006001"
+  },
+  "protocol_freeze_sha256": "58eaaf418ddabee63552b13163c0b97b1cdebf1d85b0a07e84cdcad5a930b8ff",
+  "frozen_scientific_sources_verified": 19,
+  "model_hashes_verified": {
+    "data/model/focused-ppo-study/seed-1729-selected.npz": "cefa8ae9db672ae332d63d37973bb69e30a31e3fbd749815df835f2054c93fef",
+    "data/model/focused-ppo-study/seed-1729-iteration-600.npz": "df294f29958dcd89d884fa17c493d6413b33399c10fcfe7ea367d2e4e31f01e0",
+    "data/model/focused-ppo-study/seed-1729-behavior-cloning.npz": "daac228d6d3882bc21f197e8444485acae776ff6f1b40871eb4ceff6e5047e24",
+    "data/model/focused-ppo-study/seed-2718-selected.npz": "81612e01e59fe5434e6b9ebef489a5be63955d6d42a2032ae8527a796a1ae2ac",
+    "data/model/focused-ppo-study/seed-2718-iteration-600.npz": "e5ac56fe2f5703ca5450b2d1a1af384ad80b9d854b5b27cdbcbe8e7d51f9267c",
+    "data/model/focused-ppo-study/seed-2718-behavior-cloning.npz": "48666630a9eac7d04c97b8afa711a35ec0b62ec1a49f367df828034b22856104",
+    "data/model/focused-ppo-study/seed-3141-selected.npz": "59c0d9790c9b327d4cda862d8d2a5ca435d8842101b33b3fa19ba36118630c6d",
+    "data/model/focused-ppo-study/seed-3141-iteration-600.npz": "5696f97660a16c0ce1661072d84e056e506c79f60340ed7d2d7b27b3fa00d573",
+    "data/model/focused-ppo-study/seed-3141-behavior-cloning.npz": "88c303df5a2dad1e5da98848d638ca6a7d2d5086f1db680754b510bc8c2e3a7c",
+    "data/model/focused-ppo-study/seed-5772-selected.npz": "5022e12916c27d191e34389426f63cc05098441c5dd9fb5fc7f68837d8a42cf7",
+    "data/model/focused-ppo-study/seed-5772-iteration-600.npz": "25b023e9f2f5db669039555f09fde82f376ea2a2d330559686fa5376d364eb38",
+    "data/model/focused-ppo-study/seed-5772-behavior-cloning.npz": "17a3b315c077ad44781787ac468711b55f7db579fb7d48ec220f260341ea1063",
+    "data/model/focused-ppo-study/seed-8111-selected.npz": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3",
+    "data/model/focused-ppo-study/seed-8111-iteration-600.npz": "61a286a2047c867bb263bddc3e684fb4a0ec56c73b4ddddb6dd720c7dfa79b63",
+    "data/model/focused-ppo-study/seed-8111-behavior-cloning.npz": "f3f3aeb9504c7bebc3b3003a2c5738278fcaff7e6ac19a0f98676ea240a8cfbc"
+  },
+  "historical_artifacts_preserved": {
+    "data/model/ppo-policy.npz": "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5",
+    "data/evidence/frozen-benchmark.json": "3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15",
+    "data/evidence/paired-benchmark.json": "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5",
+    "data/evidence/robustness-supplement.json": "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48",
+    "data/evidence/proposal-supplement.json": "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e",
+    "data/evidence/constrained-ppo-training.json": "4ee4edbcec4b95f8fa53148a304fb2fb5aa03af136bef6544b9ae104b39ca071",
+    "data/evidence/constrained-ppo-study.json": "f2a82b7059eec389ae04bf849d225f4a6776bfb0ea42172688829f39c1d5696c"
+  },
+  "diagnostic_creator_archive": {
+    "path": "data/evidence/accepted-sources/plot_training_diagnostics-3ac68a10ebff.py",
+    "sha256": "3ac68a10ebff082b699b978709af19ee09eba26f45dc24c3bb1333a2052cb749"
+  },
+  "checks": {
+    "ruff_check": "passed (thesis builder)",
+    "ruff_format_check": "passed (thesis builder)",
+    "unresolved_placeholders": 0
+  },
+  "tensorboard_runs": [
+    "Fixed Rotation",
+    "PPO seed 1729",
+    "PPO seed 2718",
+    "PPO seed 3141",
+    "PPO seed 5772",
+    "PPO seed 8111",
+    "Across-run variability"
+  ],
+  "referencing": {
+    "style": "Harvard author-date",
+    "alphabetized_unnumbered_references": 31,
+    "all_references_cited": true,
+    "numeric_citations": 0,
+    "proposal_mentions": 0
+  },
+  "scope": "Harvard-style thesis with university/faculty branding from the supplied reference and user-confirmed shared cover details, current application captures and deployment explanation. Live Scenario uses the validation-selected seed-8111 iteration-2500 policy; Results retains the frozen five-run averages. Scientific content, graphs and references are unchanged. Presentation and app refresh have separate validation records."
+}

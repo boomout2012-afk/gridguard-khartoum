@@ -1,4 +1,6 @@
-name: Presentation release
+# Retains the original release contract and its historical artifact checks.
+# Current submission verification is documented in docs/REVIEWER_GUIDE.md.
+name: Historical presentation release
 
 on:
   workflow_dispatch:
@@ -31,6 +33,6 @@ jobs:
           version: "0.10.10"
           enable-cache: true
 
-      - name: Verify and build the offline presentation package
+      - name: Verify and build the historical presentation package
         shell: pwsh
         run: .\scripts\build-presentation.ps1

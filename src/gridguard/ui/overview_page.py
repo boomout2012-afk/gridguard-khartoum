@@ -57,8 +57,8 @@ class OverviewPage(QWidget):
         self._hero_layout.addWidget(self.lead_label)
         self._hero_layout.addSpacing(22)
         description = QLabel(
-            "Explore how PPO and Fixed Rotation allocate limited supply across the same "
-            "24-hour scenario."
+            "Explore the current trained PPO, Fixed Rotation and constrained optimizer "
+            "on one live scenario, or compare their frozen study results."
         )
         description.setObjectName("overviewDescription")
         description.setWordWrap(True)

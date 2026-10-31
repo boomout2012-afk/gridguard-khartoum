@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import io
 import json
+import os
 import re
 import runpy
 import shutil
@@ -29,11 +30,18 @@ RUNTIME_PACKAGE_FILES = (
     "data/evidence/frozen-benchmark.json",
     "data/evidence/paired-benchmark.json",
     "data/evidence/robustness-supplement.json",
+    "data/evidence/proposal-supplement.json",
+    "data/evidence/focused-ppo-study.json",
+    "data/evidence/focused-ppo-training.json",
+    "docs/focused-ppo-validation.json",
     "data/evidence/source-manifest.json",
     "data/model/manifest.json",
     "data/model/ppo-policy.npz",
+    "data/model/focused-ppo-study/seed-8111-selected.npz",
     "data/model/training-provenance.yaml",
     "docs/source/graduation-project-proposal.pdf",
+    "docs/PROPOSAL_EXTENSION.md",
+    "tools/evaluate_proposal_extension.py",
     "src/gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf",
     "src/gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf",
     "src/gridguard/assets/fonts/IBMPlexMono-Regular.ttf",
@@ -53,6 +61,15 @@ PROVENANCE_SOURCE_FILES = (
     "src/gridguard/robustness_provenance.py",
     *(
         source_path
+        for source_path, _sha256, _size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+    ),
+    "src/gridguard/duration_metrics.py",
+    "src/gridguard/forecast_model.py",
+    "src/gridguard/optimization.py",
+    "src/gridguard/proposal_evidence.py",
+    "src/gridguard/proposal_provenance.py",
+    *(
+        f"data/evidence/accepted-sources/{source_path}"
         for source_path, _sha256, _size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
     ),
 )
@@ -546,6 +563,9 @@ def _load_pyinstaller_spec_namespace(
     finalized_datas: tuple[tuple[str, str, str], ...] = (),
 ) -> dict[str, Any]:
     (torch_package_root / "lib").mkdir(parents=True, exist_ok=True)
+    # The real build deliberately narrows PATH. Keep that side effect inside
+    # the test fixture so subsequent PowerShell/uv/Git tests retain their tools.
+    monkeypatch.setenv("PATH", os.environ.get("PATH", ""))
     monkeypatch.setattr(pyinstaller_hooks, "collect_all", lambda _package: ([], [], []))
     monkeypatch.setattr(pyinstaller_hooks, "collect_data_files", lambda _package: [])
     monkeypatch.setattr(pyinstaller_hooks, "collect_dynamic_libs", lambda _package: [])
@@ -567,6 +587,13 @@ def _load_pyinstaller_spec_namespace(
             "COLLECT": lambda *_args, **_kwargs: object(),
         },
     )
+
+
+def test_spec_namespace_does_not_leak_build_path_into_other_tests(monkeypatch, tmp_path) -> None:
+    original_path = os.environ.get("PATH", "")
+    with monkeypatch.context() as isolated:
+        _load_pyinstaller_spec_namespace(isolated, tmp_path / "torch")
+    assert os.environ.get("PATH", "") == original_path
 
 
 def _stage_complete_release_tree(distribution: Path) -> None:
@@ -1676,6 +1703,8 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
+    # The spec deliberately restricts DLL discovery; restore the runner's tool PATH.
+    monkeypatch.setenv("PATH", os.environ.get("PATH", ""))
     captured: dict[str, Any] = {}
     copied_metadata: list[str] = []
     real_copy_metadata = pyinstaller_hooks.copy_metadata
@@ -1789,10 +1818,8 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(
         if target == "gridguard/_bundled/src/gridguard"
     }
     expected_provenance_sources = {
-        source_path
-        for source_path, _sha256, _size_bytes in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS
+        source_path for source_path in PROVENANCE_SOURCE_FILES if source_path.startswith("src/")
     }
-    expected_provenance_sources.add("src/gridguard/robustness_provenance.py")
     assert bundled_provenance_sources == expected_provenance_sources
 
     runtime_sources = {
@@ -1801,6 +1828,7 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(
         if source not in external_cuda_sources
         and not Path(source).is_relative_to(metadata_root)
         and "_bundled/src/gridguard" not in _target
+        and "_bundled/data/evidence/accepted-sources/" not in _target
     }
     assert runtime_sources == set(RUNTIME_PACKAGE_FILES)
     assert all(

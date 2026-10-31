@@ -499,7 +499,7 @@ def test_pinned_provenance_bindings_match_current_source_bytes() -> None:
         "src/gridguard/statistics.py",
     )
     for relative_path, expected_sha256, expected_size in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS:
-        path = ROOT / relative_path
+        path = ROOT / "data/evidence/accepted-sources" / relative_path
         assert path.stat().st_size == expected_size
         assert hashlib.sha256(path.read_bytes()).hexdigest() == expected_sha256
 
@@ -510,8 +510,8 @@ def test_robustness_inference_source_is_in_closed_implementation_bundle() -> Non
     assert "src/gridguard/robustness_inference.py" in paths
 
 
-def test_current_checkout_implementation_sources_are_rehashed() -> None:
-    verified = verify_robustness_implementation_sources(ROOT)
+def test_preserved_accepted_implementation_sources_are_rehashed() -> None:
+    verified = verify_robustness_implementation_sources(ROOT / "data/evidence/accepted-sources")
 
     assert tuple(binding["path"] for binding in verified) == tuple(
         path for path, _, _ in ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS

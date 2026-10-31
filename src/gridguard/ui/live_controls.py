@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 
 from gridguard.domain import ControllerName
 from gridguard.ui.components import CardFrame
-from gridguard.ui.live_models import LiveScenarioComparison
+from gridguard.ui.live_models import LiveDurationSummary, LiveScenarioComparison
 from gridguard.ui.theme import MONO_FONT_FAMILY
 
 
@@ -109,7 +109,7 @@ class LiveScenarioControls(CardFrame):
         self.run_button.setEnabled(not busy)
         if busy:
             self.set_state(
-                "Running both controllers on the shared scenario…",
+                "Running three controllers on the shared scenario…",
                 "loading",
             )
 
@@ -139,7 +139,7 @@ class LiveComparisonTable(QTableWidget):
     """Read-only aggregate metrics for one matched live comparison."""
 
     def __init__(self, parent=None) -> None:
-        super().__init__(2, 6, parent)
+        super().__init__(2, 8, parent)
         self.setAccessibleName("Live demonstration aggregate comparison")
         self.setHorizontalHeaderLabels(
             (
@@ -149,6 +149,8 @@ class LiveComparisonTable(QTableWidget):
                 "Fairness",
                 "Curtailed",
                 "Balance violations",
+                "Supply utilization",
+                "Daily reward",
             )
         )
         self.verticalHeader().hide()
@@ -163,15 +165,17 @@ class LiveComparisonTable(QTableWidget):
 
     def clear_metrics(self) -> None:
         self.setAccessibleDescription("No verified live demonstration metrics are available yet.")
+        self.setRowCount(len(_CONTROLLERS))
         for row, controller in enumerate(_CONTROLLERS):
-            self._set_row(row, (controller, "—", "—", "—", "—", "—"))
+            self._set_row(row, (controller, "—", "—", "—", "—", "—", "—", "—"))
 
     def show_comparison(self, comparison: LiveScenarioComparison) -> None:
         self.setAccessibleDescription(
             f"Live demonstration metrics for {comparison.shortage_level} shortage, "
             f"seed {comparison.seed}; these values do not replace frozen evidence."
         )
-        for row, controller in enumerate(_CONTROLLERS):
+        self.setRowCount(len(comparison.metrics_by_controller))
+        for row, controller in enumerate(comparison.metrics_by_controller):
             metrics = comparison.metrics(controller)
             self._set_row(
                 row,
@@ -182,6 +186,8 @@ class LiveComparisonTable(QTableWidget):
                     f"{metrics.fairness:.1%}",
                     f"{metrics.curtailed_mwh:,.0f} MWh",
                     f"{metrics.power_balance_violation_rate:.1%}",
+                    _optional_metric(metrics.utilization, ".1%"),
+                    _optional_metric(metrics.episode_reward, ".4f"),
                 ),
                 align_values=True,
             )
@@ -208,7 +214,7 @@ _CONTROLLERS = (ControllerName.PPO.value, ControllerName.FIXED_ROTATION.value)
 
 
 class LiveComparisonSummary(QWidget):
-    """Presentation of supplied matched episode metrics, with stable PPO/baseline roles."""
+    """Selected controller and a named reference, from supplied episode metrics."""
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -216,7 +222,7 @@ class LiveComparisonSummary(QWidget):
         self.setAccessibleName("Matched full-day live comparison")
         layout = QHBoxLayout(self)
         layout.setContentsMargins(20, 2, 20, 2)
-        layout.setSpacing(28)
+        layout.setSpacing(18)
         introduction = QVBoxLayout()
         introduction.setSpacing(3)
         title = QLabel("The full 24 hours")
@@ -228,7 +234,13 @@ class LiveComparisonSummary(QWidget):
         layout.addLayout(introduction, 1)
         self.values: dict[str, QLabel] = {}
         self.baselines: dict[str, QLabel] = {}
-        for heading in ("Served energy", "Critical service", "Jain fairness"):
+        for heading in (
+            "Served energy",
+            "Critical service",
+            "Jain fairness",
+            "Supply utilization",
+            "Daily reward",
+        ):
             group = QVBoxLayout()
             group.setSpacing(3)
             label = QLabel(heading)
@@ -251,36 +263,95 @@ class LiveComparisonSummary(QWidget):
             _set_accessible_text(value, "—")
         for baseline in self.baselines.values():
             _set_accessible_text(baseline, "Fixed Rotation —")
+        _set_accessible_text(self.caption, "PPO above; Fixed Rotation below.\nThe same scenario.")
+        for label in (*self.values.values(), *self.baselines.values()):
+            label.setToolTip("")
         self.setToolTip("")
         self.setAccessibleDescription("No verified live demonstration metrics are available yet.")
         QAccessible.updateAccessibility(
             QAccessibleEvent(self, QAccessible.Event.DescriptionChanged)
         )
 
-    def show_comparison(self, comparison: LiveScenarioComparison) -> None:
-        ppo = comparison.metrics(ControllerName.PPO.value)
-        fixed = comparison.metrics(ControllerName.FIXED_ROTATION.value)
+    def show_comparison(
+        self, comparison: LiveScenarioComparison, *, controller_name: str = ControllerName.PPO.value
+    ) -> None:
+        selected = comparison.metrics(controller_name)
+        reference_name = (
+            ControllerName.PPO.value
+            if controller_name != ControllerName.PPO.value
+            else (
+                ControllerName.OPTIMIZATION.value
+                if ControllerName.OPTIMIZATION.value in comparison.metrics_by_controller
+                else ControllerName.FIXED_ROTATION.value
+            )
+        )
+        reference = comparison.metrics(reference_name)
+        _set_accessible_text(
+            self.caption, f"{controller_name} above;\n{reference_name} below. Same scenario."
+        )
         pairs = {
-            "Served energy": (f"{ppo.served_mwh:,.0f} MWh", f"{fixed.served_mwh:,.0f} MWh"),
-            "Critical service": (
-                f"{ppo.critical_service_ratio:.1%}",
-                f"{fixed.critical_service_ratio:.1%}",
+            "Served energy": (
+                f"{selected.served_mwh:,.0f} MWh",
+                f"{reference.served_mwh:,.0f} MWh",
             ),
-            "Jain fairness": (f"{ppo.fairness:.1%}", f"{fixed.fairness:.1%}"),
+            "Critical service": (
+                f"{selected.critical_service_ratio:.1%}",
+                f"{reference.critical_service_ratio:.1%}",
+            ),
+            "Jain fairness": (f"{selected.fairness:.1%}", f"{reference.fairness:.1%}"),
+            "Supply utilization": (
+                _optional_metric(selected.utilization, ".1%"),
+                _optional_metric(reference.utilization, ".1%"),
+            ),
+            "Daily reward": (
+                _optional_metric(selected.episode_reward, ".4f"),
+                _optional_metric(reference.episode_reward, ".4f"),
+            ),
         }
         for heading, (learned, baseline) in pairs.items():
             _set_accessible_text(self.values[heading], learned)
-            _set_accessible_text(self.baselines[heading], f"Fixed Rotation {baseline}")
+            _set_accessible_text(self.baselines[heading], f"{reference_name} {baseline}")
         description = (
             f"Live demonstration, {comparison.shortage_level} shortage, seed {comparison.seed}. "
-            "PPO is shown above Fixed Rotation. These values do not replace frozen evidence. "
-            f"Curtailed energy: PPO {ppo.curtailed_mwh:,.0f} MWh; "
-            f"Fixed Rotation {fixed.curtailed_mwh:,.0f} MWh. "
-            f"Power-balance violations: PPO {ppo.power_balance_violation_rate:.1%}; "
-            f"Fixed Rotation {fixed.power_balance_violation_rate:.1%}."
+            f"{controller_name} is shown above {reference_name}. "
+            "These values do not replace frozen evidence. "
+        )
+        for name, metrics in comparison.metrics_by_controller.items():
+            description += (
+                f"\n{name}: Curtailed energy {metrics.curtailed_mwh:,.0f} MWh; "
+                f"Power-balance violations {metrics.power_balance_violation_rate:.1%}. "
+                f"Supply utilization {_optional_metric(metrics.utilization, '.1%')}; "
+                f"daily reward {_optional_metric(metrics.episode_reward, '.4f')}. "
+            )
+            if metrics.duration is not None:
+                description += _duration_description(metrics.duration)
+        description += (
+            "\nBlackout means zero delivered service when demand is positive; critical "
+            "interruption means less than 99% of critical demand served. Duration gaps compare "
+            "locality totals across the same 24 hours. A zero gap alone does not mean good service."
         )
         self.setAccessibleDescription(description)
         self.setToolTip(description)
+        for value in self.values.values():
+            value.setToolTip(description)
+
+
+def _optional_metric(value: float | None, specification: str) -> str:
+    return "—" if value is None else format(value, specification)
+
+
+def _duration_description(duration: LiveDurationSummary) -> str:
+    return (
+        f"Actual zero-service blackout {duration.blackout_locality_hours:g} locality-hours; "
+        f"critical interruption {duration.critical_interruption_locality_hours:g} locality-hours. "
+        f"Blackout duration range {duration.blackout_duration_range_hours:g} h, "
+        f"mean pairwise gap {duration.blackout_duration_mean_pairwise_gap_hours:.2f} h; "
+        f"critical interruption range {duration.critical_interruption_duration_range_hours:g} h, "
+        "mean pairwise gap "
+        f"{duration.critical_interruption_duration_mean_pairwise_gap_hours:.2f} h. "
+        f"Longest continuous blackout {duration.longest_blackout_hours:g} h; "
+        f"critical interruption {duration.longest_critical_interruption_hours:g} h."
+    )
 
 
 def _set_accessible_text(label: QLabel, text: str) -> None:

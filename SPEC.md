@@ -10,6 +10,26 @@ Source proposal SHA-256: `3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d3
 
 ## Reviewer start here
 
+### Additive proposal coverage, 22 October 2026
+
+The user-authorized extension adds to the original contract rather than replacing its evidence:
+
+- An Optimization controller exhaustively scores all 2,187 joint service-tier actions against
+  the canonical one-hour objective and dispatch constraints, using current/prior state only.
+- Direct per-locality blackout and critical-interruption hours, duration range and mean pairwise
+  gap, and longest consecutive interruptions supplement Jain service-allocation fairness.
+- A separately fitted Ridge AR(3) predictor is compared with persistence and the existing
+  three-hour mean using the same causal inputs and evaluation targets.
+- A separate pinned supplement evaluates all three controllers on seeds 91001–91010, batch 32,
+  across the three coupled shortage levels: 320 independent draws, 960 matched conditions and
+  2,880 controller evaluations. Original frozen artifact bytes and values are retained.
+- The live GUI adds Optimization; Results provides an Extended study dialog. The redesigned
+  thesis and presentation include the additional methodology, measured outcomes and limitations.
+
+The original two-controller clauses below describe the historical benchmark. Current method
+coverage is defined by this additive contract and `docs/PROPOSAL_EXTENSION.md`. Optimization is
+myopic, prediction remains separate from control, and all evidence remains synthetic.
+
 - The historical A01-A24 remediation contract is in
   [docs/DEVILS_ADVOCATE_AUDIT.md](docs/DEVILS_ADVOCATE_AUDIT.md). Current findings and closure gates
   are in [docs/GRADUATION_REVIEW.md](docs/GRADUATION_REVIEW.md). An open ledger row is not release

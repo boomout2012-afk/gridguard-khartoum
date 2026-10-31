@@ -70,7 +70,11 @@ def test_domain_enums_use_only_proposal_vocabulary() -> None:
         "Full Service",
     ]
     assert [int(tier) for tier in ServiceTier] == [0, 1, 2]
-    assert [controller.value for controller in ControllerName] == ["PPO", "Fixed Rotation"]
+    assert [controller.value for controller in ControllerName] == [
+        "PPO",
+        "Fixed Rotation",
+        "Optimization",
+    ]
     assert Locality("East Nile") is Locality.EAST_NILE
     with pytest.raises(ValueError):
         ServiceTier(3)

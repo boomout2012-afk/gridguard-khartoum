@@ -1,0 +1,18 @@
+{
+  "schema": "gridguard.academic_cover.1",
+  "university": "University of Khartoum",
+  "faculty": "Faculty of Mathematical Sciences and Informatics",
+  "project_name": "GridGuard Khartoum",
+  "project_title": "AI-Based Smart Load Shedding and Energy Management System for Developing Countries",
+  "authors": [
+    {"name": "Murtada Asim Ibrahim Bakhit", "index": "18-317"},
+    {"name": "Suliman Elawad Suliman Babiker", "index": "18-310"},
+    {"name": "Abdalhay Abass Mobarak Abass", "index": "15-306"}
+  ],
+  "degree": "Bachelor of Computer Science",
+  "supervisor": "Mrs. Abubakr Siraj",
+  "submission_date": "October 2026",
+  "logos": "docs/assets/university-branding/university-and-faculty-logos.jpg",
+  "branding_source": "docs/assets/university-branding/source.json",
+  "cover_statement": "A graduation project presented to the Faculty of Mathematical Sciences and Informatics, University of Khartoum, in partial fulfilment of the requirements for the degree of Bachelor of Computer Science."
+}

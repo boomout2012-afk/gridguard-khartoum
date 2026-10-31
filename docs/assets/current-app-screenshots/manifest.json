@@ -1,0 +1,456 @@
+{
+  "schema": "gridguard.current_app_capture.1",
+  "captured_utc": "2026-10-23T11:27:32.527493+00:00",
+  "capture_method": "PySide6 QWidget.grab from the actual application; Qt offscreen platform, scale factor 1",
+  "capture_size": [
+    1366,
+    768
+  ],
+  "cuda_device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "policy": {
+    "training_seed": 8111,
+    "checkpoint_iteration": 2500,
+    "model_relative_path": "data/model/focused-ppo-study/seed-8111-selected.npz",
+    "model_sha256": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3",
+    "training_sha256": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624"
+  },
+  "policy_caption": "PPO · seed 8111 · iteration 2500\nSynthetic scenario · Decision support only",
+  "live_execution": {
+    "shortage": "moderate",
+    "scenario_seed": 501,
+    "hour": 12,
+    "controllers": [
+      "PPO",
+      "Fixed Rotation",
+      "Optimization"
+    ],
+    "genuine_cuda_execution": true
+  },
+  "sources": {
+    "src/gridguard/ui/window.py": "ad6d2f70ef3001fbe6c0b2ec12a93d4fa46867ba0fef697a8163e865d546d764",
+    "src/gridguard/ui/overview_page.py": "a01e30315d15a97b34eb4a13b1eee2d83e68dcf471ac53b7b2754dcbeca02b69",
+    "src/gridguard/ui/live_page.py": "ed2709c00a76088567b4accba8d00e8619a99c9b0d34969da5fb6987f13e1d5a",
+    "src/gridguard/ui/live_components.py": "dff601b5db00478aaf9f3c7366b91d2aba0f2a25952d97cb5aa9804959cf3b69",
+    "src/gridguard/ui/live_controls.py": "404a2176399be1b45b9562fe993b9b2692e17b1e8f8ea49428f53411d21835d7",
+    "src/gridguard/ui/live_runner.py": "bc92a5b02c6417be13630a932c8446083226a34eace5649af9ddf7411a5cef10",
+    "src/gridguard/ui/focused_results.py": "61adf94e48e497d7d33fcbe10744518dd3e0249a8cecb59e6d5a074815d2bf90",
+    "src/gridguard/ui/results_page.py": "d2d59ffdcc392a2fb6d6cf6d3c2eb3b8f67282a8c1c2fa9c6e340d40be83ba50",
+    "src/gridguard/ui/results_components.py": "1376b55ffc31a81c5b3e97bab0ad8a9ee709b773e63a6814fa8953ac58907396",
+    "src/gridguard/ui/proposal_results.py": "ceb0164c9c0b4b505d87b7c0f74b69ec0392dc6835baf40ed976bcc910ec3f08",
+    "src/gridguard/ui/theme.py": "300dffccf3d6903b8f96a5f410cb0479ea8f343211477c3fad3da090289fddf6",
+    "src/gridguard/live_policy.py": "05faa0593236fd653e5c80670b25cc23db461793ab3f097c5e4c745f895f236c",
+    "data/evidence/focused-ppo-study.json": "a4d5a849612f06eedef96e0d28e08247e5e3757eba0b4f2e4f1a893e9d4b8247",
+    "data/evidence/focused-ppo-training.json": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624",
+    "data/model/focused-ppo-study/seed-8111-selected.npz": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3"
+  },
+  "capture_script": {
+    "path": "tmp/capture_current_app_refresh.py",
+    "sha256": "aa07f0394a04d9ea2671945dcfabc94aab02ce4d6fa849ef452958e826bdfdae"
+  },
+  "coverage": {
+    "main_navigation_pages": [
+      "Overview",
+      "Live Scenario",
+      "Results"
+    ],
+    "live_states": "Ready plus all three controllers on one matched 24-hour CUDA run; noon/East Nile selected.",
+    "current_study_tabs": [
+      "PPO vs Fixed Rotation",
+      "PPO vs optimizer",
+      "Individual runs",
+      "Shortage levels",
+      "Evidence"
+    ],
+    "earlier_results": "Earlier results and all evidence scroll sections captured.",
+    "extended_study": "Controllers, all paired-comparison choices and Forecasting captured.",
+    "excluded": "Transient loading/error messages, dropdown menus, tooltips and every possible scenario/hour/locality combination are interaction states, not separate pages.",
+    "dialog_size": "Resizable dialogs expanded to the same 1366 x 768 presentation surface."
+  },
+  "pages": [
+    {
+      "page": 1,
+      "title": "Overview",
+      "filename": "overview.png",
+      "sha256": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {},
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 2,
+      "title": "Live Scenario · ready to run",
+      "filename": "live-ready.png",
+      "sha256": "363d3e6cd7f5f4416951872a64c118a1de288229e69c4f5d58f2fb78d10ca220",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {},
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 3,
+      "title": "Live Scenario · PPO",
+      "filename": "live-ppo.png",
+      "sha256": "a3e2adfdbcb3efebac9cceb845cacf697578557a59b7d826760dbf6036479dfb",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "shortage": "Moderate",
+        "scenario_seed": 501,
+        "hour": 12,
+        "controller": "PPO",
+        "locality": "East Nile"
+      },
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 4,
+      "title": "Live Scenario · Fixed Rotation",
+      "filename": "live-fixed.png",
+      "sha256": "38a0e7700384af7eb6c457cbd4baea6596beaef4d83dbe93f0a72f3511a1355a",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "shortage": "Moderate",
+        "scenario_seed": 501,
+        "hour": 12,
+        "controller": "Fixed Rotation",
+        "locality": "East Nile"
+      },
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 5,
+      "title": "Live Scenario · constrained optimizer",
+      "filename": "live-optimizer.png",
+      "sha256": "a93fbdbf374f20b7a32b4b70b13ea6f7e2b98771fc05a7135c193e46671797c7",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "shortage": "Moderate",
+        "scenario_seed": 501,
+        "hour": 12,
+        "controller": "Optimization",
+        "locality": "East Nile"
+      },
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 6,
+      "title": "Results · current five-run study",
+      "filename": "results.png",
+      "sha256": "53ba115a1eb5f02c77d88bbb5da266bee03ba6b16b032e748fc9c10a6eec2d89",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {},
+      "tables": [
+        {
+          "name": "Current three-controller study means",
+          "rows": 5,
+          "columns": 4,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 7,
+      "title": "Current study · PPO vs Fixed Rotation",
+      "filename": "current-paired-fixed.png",
+      "sha256": "07d4e1bf3622c6240b8e9bba488d87211a3f8eda08899d57808e0664cb0598bd",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 0
+      },
+      "tables": [
+        {
+          "name": "PPO vs Fixed Rotation",
+          "rows": 5,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 8,
+      "title": "Current study · PPO vs optimizer",
+      "filename": "current-paired-optimizer.png",
+      "sha256": "65d1c50ffaa89c7f612dff19dd73b223ac13b11503b0c70f93b7acd8e2005157",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 1
+      },
+      "tables": [
+        {
+          "name": "PPO vs optimizer",
+          "rows": 5,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 9,
+      "title": "Current study · Individual runs",
+      "filename": "current-individual-runs.png",
+      "sha256": "a409a77185d170fb8c6231425376edf145ce52848a423937fbe0ab763723301e",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 2
+      },
+      "tables": [
+        {
+          "name": "Individual runs",
+          "rows": 5,
+          "columns": 5,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 10,
+      "title": "Current study · Shortage levels",
+      "filename": "current-shortage-levels.png",
+      "sha256": "e85244106bc2f49a1201c3e6c7fadc34e7705bd000ee2406625b3aae0fed6b0f",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 3
+      },
+      "tables": [
+        {
+          "name": "Shortage levels",
+          "rows": 9,
+          "columns": 5,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 11,
+      "title": "Current study · Evidence",
+      "filename": "current-evidence.png",
+      "sha256": "2efe504998b39b58e2cfadaf201b8fde15df22a8d31e5a8308b3e610ff08c4ca",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 4
+      },
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 12,
+      "title": "Earlier frozen results",
+      "filename": "earlier-results.png",
+      "sha256": "b4c042d7d3c9014a6e9cd8b9d6c3a0774ea4f8594f2b8354d40764cb843d5396",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {},
+      "tables": [
+        {
+          "name": "Paired controller comparison results",
+          "rows": 3,
+          "columns": 4,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 13,
+      "title": "Earlier evidence · section 1 of 1",
+      "filename": "earlier-evidence-01.png",
+      "sha256": "58402fc0bcbaabfd1b0cfa23f851b81059864f154ae24e9dd88088a84c7a9b40",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "scroll_offset": 0,
+        "scroll_maximum": 0
+      },
+      "tables": [],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 14,
+      "title": "Extended study · controller outcomes",
+      "filename": "extended-controllers.png",
+      "sha256": "8406c92c760914a1fa1a038c667c5f91a5442e7c1d73cba4168e863b888d86ff",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {},
+      "tables": [
+        {
+          "name": "Extended study controller means",
+          "rows": 8,
+          "columns": 4,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 15,
+      "title": "Extended study · PPO - Fixed Rotation",
+      "filename": "extended-paired-01.png",
+      "sha256": "240fd47312c727bffe3bfc1fff450f0a5ded764b4dd29fb3fe216ad4a8e0d688",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "pair": "PPO - Fixed Rotation"
+      },
+      "tables": [
+        {
+          "name": "Extended study paired confidence intervals",
+          "rows": 5,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 16,
+      "title": "Extended study · Optimization - Fixed Rotation",
+      "filename": "extended-paired-02.png",
+      "sha256": "3a6828fda2aaab7995c652d19588bc90768a0a34df4a2659aa2a9df380a8e3e4",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "pair": "Optimization - Fixed Rotation"
+      },
+      "tables": [
+        {
+          "name": "Extended study paired confidence intervals",
+          "rows": 5,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 17,
+      "title": "Extended study · PPO - Optimization",
+      "filename": "extended-paired-03.png",
+      "sha256": "df7256cd42a29f28bd8de5d54e39dc60d224b16493f2529f9092871adbe74329",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "pair": "PPO - Optimization"
+      },
+      "tables": [
+        {
+          "name": "Extended study paired confidence intervals",
+          "rows": 5,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    },
+    {
+      "page": 18,
+      "title": "Extended study · forecasting",
+      "filename": "extended-forecast.png",
+      "sha256": "90593053487f9fac0027a3418a4cccf9485b2efb5aba2cc454aa7660b84f1083",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {},
+      "tables": [
+        {
+          "name": "Forecast error comparison in megawatts",
+          "rows": 3,
+          "columns": 5,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ],
+      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+    }
+  ],
+  "capture_validation": {
+    "settled_reproduction_script": {
+      "path": "tmp/capture_current_app_settled.py",
+      "sha256": "bf40aa386973f7830e1ac778d5766390212ca90f628f46edd9d5ad90625e902b"
+    },
+    "all_18_images_byte_identical_to_settled_reproduction": true,
+    "visual_review": {
+      "pages_reviewed": 18,
+      "passed": true,
+      "reviewed_after_removal_of_requested_ui_sentences": true
+    },
+    "all_tables_have_zero_horizontal_and_vertical_scroll_maxima": true,
+    "historical_close_button_bounds": {
+      "x": 1285,
+      "y": 713,
+      "width": 70,
+      "height": 44,
+      "within_canvas": true
+    },
+    "focused_tests": {
+      "passed": 5,
+      "command": "uv run pytest tests/ui/test_focused_results_page.py -q"
+    },
+    "ruff_check_and_format": "passed",
+    "live_policy_and_frozen_scientific_evidence": "unchanged"
+  }
+}

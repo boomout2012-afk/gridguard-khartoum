@@ -1,0 +1,4 @@
+# Optional authoring tools; install after uv sync --locked --extra dev --extra docs.
+# The portable Windows app already contains its runtime and needs none of these.
+matplotlib==3.11.2
+tensorboard==2.21.0

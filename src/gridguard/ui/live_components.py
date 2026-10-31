@@ -50,7 +50,6 @@ def compose_live_page(page, asset) -> None:
     page.state_label.show()
     row.addLayout(text, 1)
     page.scope_note = ClaimBoundaryNote()
-    page.scope_note.setText("Synthetic scenario · Decision support only")
     page.scope_note.setObjectName("liveScopeNote")
     page.scope_note.setWordWrap(False)
     row.addWidget(page.scope_note, 0, Qt.AlignmentFlag.AlignTop)
@@ -216,7 +215,7 @@ QLabel#liveMetricCaption { font-size: 13px;
     }
 QLabel#liveMetricValue { font-family: "Atkinson Hyperlegible";
     font-size: 27px;
-    color: #126F68;
+    color: #183D40;
     }
 QLabel#liveMetricBaseline { font-size: 14px;
     color: #536A67;

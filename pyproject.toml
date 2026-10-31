@@ -49,11 +49,18 @@ exclude = ["/RELEASE_MANIFEST.json"]
 "data/evidence/frozen-benchmark.json" = "gridguard/_bundled/data/evidence/frozen-benchmark.json"
 "data/evidence/paired-benchmark.json" = "gridguard/_bundled/data/evidence/paired-benchmark.json"
 "data/evidence/robustness-supplement.json" = "gridguard/_bundled/data/evidence/robustness-supplement.json"
+"data/evidence/proposal-supplement.json" = "gridguard/_bundled/data/evidence/proposal-supplement.json"
+"data/evidence/focused-ppo-study.json" = "gridguard/_bundled/data/evidence/focused-ppo-study.json"
+"data/evidence/focused-ppo-training.json" = "gridguard/_bundled/data/evidence/focused-ppo-training.json"
+"docs/focused-ppo-validation.json" = "gridguard/_bundled/docs/focused-ppo-validation.json"
 "data/evidence/source-manifest.json" = "gridguard/_bundled/data/evidence/source-manifest.json"
 "data/model/manifest.json" = "gridguard/_bundled/data/model/manifest.json"
 "data/model/ppo-policy.npz" = "gridguard/_bundled/data/model/ppo-policy.npz"
+"data/model/focused-ppo-study/seed-8111-selected.npz" = "gridguard/_bundled/data/model/focused-ppo-study/seed-8111-selected.npz"
 "data/model/training-provenance.yaml" = "gridguard/_bundled/data/model/training-provenance.yaml"
 "docs/source/graduation-project-proposal.pdf" = "gridguard/_bundled/docs/source/graduation-project-proposal.pdf"
+"docs/PROPOSAL_EXTENSION.md" = "gridguard/_bundled/docs/PROPOSAL_EXTENSION.md"
+"tools/evaluate_proposal_extension.py" = "gridguard/_bundled/tools/evaluate_proposal_extension.py"
 "src/gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf" = "gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf"
 "src/gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf" = "gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf"
 "src/gridguard/assets/fonts/IBMPlexMono-Regular.ttf" = "gridguard/assets/fonts/IBMPlexMono-Regular.ttf"
@@ -90,7 +97,7 @@ markers = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["output"]
+extend-exclude = ["output", "data/evidence/accepted-sources"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

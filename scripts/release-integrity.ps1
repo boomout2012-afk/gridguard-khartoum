@@ -20,11 +20,18 @@ $script:RequiredPackagedRuntimeDataPaths = @(
     "_internal/gridguard/_bundled/data/evidence/frozen-benchmark.json",
     "_internal/gridguard/_bundled/data/evidence/paired-benchmark.json",
     "_internal/gridguard/_bundled/data/evidence/robustness-supplement.json",
+    "_internal/gridguard/_bundled/data/evidence/proposal-supplement.json",
+    "_internal/gridguard/_bundled/data/evidence/focused-ppo-study.json",
+    "_internal/gridguard/_bundled/data/evidence/focused-ppo-training.json",
+    "_internal/gridguard/_bundled/docs/focused-ppo-validation.json",
     "_internal/gridguard/_bundled/data/evidence/source-manifest.json",
     "_internal/gridguard/_bundled/data/model/manifest.json",
     "_internal/gridguard/_bundled/data/model/ppo-policy.npz",
+    "_internal/gridguard/_bundled/data/model/focused-ppo-study/seed-8111-selected.npz",
     "_internal/gridguard/_bundled/data/model/training-provenance.yaml",
     "_internal/gridguard/_bundled/docs/source/graduation-project-proposal.pdf",
+    "_internal/gridguard/_bundled/docs/PROPOSAL_EXTENSION.md",
+    "_internal/gridguard/_bundled/tools/evaluate_proposal_extension.py",
     "_internal/gridguard/assets/fonts/AtkinsonHyperlegible-Bold.ttf",
     "_internal/gridguard/assets/fonts/AtkinsonHyperlegible-Regular.ttf",
     "_internal/gridguard/assets/fonts/IBMPlexMono-Regular.ttf",
@@ -288,7 +295,7 @@ function Get-ReleaseSha256 {
 
 function Get-RequiredPackagedProvenanceSourcePaths {
     $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-    $contractPath = Join-Path $projectRoot "src\gridguard\robustness_provenance.py"
+    $contractPath = Join-Path $projectRoot "hatch_build.py"
     if (-not (Test-Path -LiteralPath $contractPath -PathType Leaf)) {
         throw "Robustness provenance source contract is unavailable: $contractPath"
     }
@@ -296,11 +303,12 @@ function Get-RequiredPackagedProvenanceSourcePaths {
 import json
 import runpy
 import sys
+from pathlib import Path
 
 contract = runpy.run_path(sys.argv[1])
 paths = [
-    'src/gridguard/robustness_provenance.py',
-    *(path for path, _sha256, _size_bytes in contract['ROBUSTNESS_IMPLEMENTATION_SOURCE_BINDINGS']),
+    relative.as_posix()
+    for relative, _source in contract['_validated_provenance_sources'](Path(sys.argv[1]).parent)
 ]
 print(json.dumps(list(dict.fromkeys(paths))))
 '@
@@ -325,7 +333,7 @@ print(json.dumps(list(dict.fromkeys(paths))))
     foreach ($repositoryPathValue in $repositoryPaths) {
         $repositoryPath = [string]$repositoryPathValue
         if (
-            $repositoryPath -notmatch "^src/gridguard/[A-Za-z0-9_]+\.py$" -or
+            $repositoryPath -notmatch "^(data/evidence/accepted-sources/)?src/gridguard/[A-Za-z0-9_]+\.py$" -or
             -not $seenPaths.Add($repositoryPath)
         ) {
             throw "Invalid or duplicate packaged provenance source path: $repositoryPath"
@@ -1584,6 +1592,10 @@ function Assert-ReleaseDistributionPolicy {
                 $relativePath.StartsWith(
                     "_internal/gridguard/_bundled/src/",
                     [System.StringComparison]::Ordinal
+                ) -or
+                $relativePath.StartsWith(
+                    "_internal/gridguard/_bundled/data/evidence/accepted-sources/",
+                    [System.StringComparison]::Ordinal
                 )
             ) {
                 $relativePath
@@ -2422,32 +2434,39 @@ live = exact_object(root['live_scenario'], LIVE_FIELDS, 'frozen-smoke live_scena
 exact(live['shortage_level'], 'moderate', 'frozen-smoke live_scenario.shortage_level')
 exact(live['seed'], 50002, 'frozen-smoke live_scenario.seed')
 exact(live['device'], 'cuda:0', 'frozen-smoke live_scenario.device')
-exact(
-    live['controllers'],
-    ['PPO', 'Fixed Rotation'],
-    'frozen-smoke live_scenario.controllers',
-)
+# Retain validation of the original frozen release report; new launcher requires all three.
+legacy_controllers = ['PPO', 'Fixed Rotation']
+current_controllers = [*legacy_controllers, 'Optimization']
+if live['controllers'] not in (legacy_controllers, current_controllers):
+    raise ValueError('frozen-smoke live_scenario.controllers must match a complete release contract')
+has_optimization = live['controllers'] == current_controllers
 frame_counts = exact_object(
     live['frame_counts'],
-    {'PPO', 'Fixed Rotation'},
+    set(live['controllers']),
     'frozen-smoke live_scenario.frame_counts',
 )
 exact(frame_counts['PPO'], 24, 'frozen-smoke PPO frame count')
 exact(frame_counts['Fixed Rotation'], 24, 'frozen-smoke Fixed Rotation frame count')
+if has_optimization:
+    exact(frame_counts['Optimization'], 24, 'frozen-smoke Optimization frame count')
 exact(live['finite_core_values'], True, 'frozen-smoke finite_core_values')
 positive_integer(
     live['validated_core_value_count'],
     'frozen-smoke validated_core_value_count',
 )
 exact(live['installed_in_live_page'], True, 'frozen-smoke installed_in_live_page')
-exact(live['selected_controller'], 'Fixed Rotation', 'frozen-smoke selected_controller')
+exact(
+    live['selected_controller'],
+    'Optimization' if has_optimization else 'Fixed Rotation',
+    'frozen-smoke selected_controller',
+)
 exact(live['selected_hour'], 23, 'frozen-smoke selected_hour')
 exact(live['expected_results_table_rows'], 3, 'frozen-smoke expected_results_table_rows')
 exact(live['results_table_rows'], 3, 'frozen-smoke results_table_rows')
 
 hour_zero = exact_object(
     live['hour_zero'],
-    HOUR_ZERO_FIELDS,
+    HOUR_ZERO_FIELDS | ({'optimization_served_mw'} if has_optimization else set()),
     'frozen-smoke live_scenario.hour_zero',
 )
 demand = finite_nonnegative(hour_zero['demand_mw'], 'frozen-smoke hour-zero demand')
@@ -2465,6 +2484,13 @@ if demand <= 0 or supply <= 0:
 tolerance = 1e-6
 if ppo_served > min(demand, supply) + tolerance or fixed_served > min(demand, supply) + tolerance:
     raise ValueError('frozen-smoke hour-zero served power exceeds demand or supply')
+if has_optimization:
+    optimization_served = finite_nonnegative(
+        hour_zero['optimization_served_mw'],
+        'frozen-smoke hour-zero Optimization served power',
+    )
+    if optimization_served > min(demand, supply) + tolerance:
+        raise ValueError('frozen-smoke hour-zero Optimization power exceeds demand or supply')
 
 transport = json.dumps(
     payload,

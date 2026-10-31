@@ -1,0 +1,1765 @@
+{
+  "schema": "gridguard.review_package.1",
+  "files": [
+    {
+      "path": "data/evidence/accepted-sources/plot_training_diagnostics-3ac68a10ebff.py",
+      "size_bytes": 17092,
+      "sha256": "3ac68a10ebff082b699b978709af19ee09eba26f45dc24c3bb1333a2052cb749"
+    },
+    {
+      "path": "data/evidence/accepted-sources/replay_focused_ppo_study-6df249c337aa.py",
+      "size_bytes": 20947,
+      "sha256": "6df249c337aa7c6b7923978d9f73c22905669e14063786495af521e22b006001"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/claim_contract.py",
+      "size_bytes": 1332,
+      "sha256": "cafc5848930d3115f5909ef25c231cc800385b1b3fdd1f7aff04a10c58327de9"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/controllers.py",
+      "size_bytes": 3619,
+      "sha256": "340d74a3f01a887caa6daa9d93aa36680edd8772400cc52c5b0df3390a0035a3"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/domain.py",
+      "size_bytes": 26417,
+      "sha256": "bd16fb46fd04a8865a6db4498a56f681c8eb77fe3d534497b53a8db4b5c31d90"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/evaluation.py",
+      "size_bytes": 70616,
+      "sha256": "a9addfee69647f9111122c2c1b29fbe0d1523a2be9c0578427ef0d2b3eeb36b1"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/forecast.py",
+      "size_bytes": 2829,
+      "sha256": "9d11f80ed6246466da84203138c48439c2a44cbd707dc53c458d307bb16deeea"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/metrics.py",
+      "size_bytes": 6462,
+      "sha256": "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/paired_inference.py",
+      "size_bytes": 8159,
+      "sha256": "59ee10d34e780f44f91d6cb30abaf4cc1e8862c4718cc5738cd90dd08cc4e9de"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/policy.py",
+      "size_bytes": 19073,
+      "sha256": "22f17e11822c89104fab9b145ee5749c7ee8ea45f0eebc1a9ee314efc084a6f9"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/robustness.py",
+      "size_bytes": 96166,
+      "sha256": "68c5f59d81a1cec877bc65b59130bcb0b3aef03ff6d3a8c36c097e483943f309"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/robustness_inference.py",
+      "size_bytes": 37813,
+      "sha256": "814fa97fd62e08f83fb149fa2afb83382fe3efb9362f178f2d4f1ec536661798"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/scenarios.py",
+      "size_bytes": 14765,
+      "sha256": "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/simulation.py",
+      "size_bytes": 13461,
+      "sha256": "84e8d902e7c2c728a9c431b47cee38f04193cfdca1ca0054eb188c1c7b2c4199"
+    },
+    {
+      "path": "data/evidence/accepted-sources/src/gridguard/statistics.py",
+      "size_bytes": 7279,
+      "sha256": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9"
+    },
+    {
+      "path": "data/evidence/allocation-study.json",
+      "size_bytes": 11599177,
+      "sha256": "f41adb611ae3e323644d38abdc6244f26f17f0c029f567d4621c5969c1e31060"
+    },
+    {
+      "path": "data/evidence/allocation-study.md",
+      "size_bytes": 6298,
+      "sha256": "222645e81aa9f4743b289e8bf344583b23de14c7abf27ddee0894b6b3014f81c"
+    },
+    {
+      "path": "data/evidence/allocation-study.sha256",
+      "size_bytes": 66,
+      "sha256": "54eb22d2c3311ab145909c42626be7163c772da7bb691d276586a0cb5e4873c0"
+    },
+    {
+      "path": "data/evidence/allocation-validation.json",
+      "size_bytes": 12241569,
+      "sha256": "292a3f734558a1de8c818e8ab2daec14b976ca5352b82b9bef398ca0cd30ca90"
+    },
+    {
+      "path": "data/evidence/allocation-validation.md",
+      "size_bytes": 2368,
+      "sha256": "829c8ff10a039ce8e0cd6da2c79445482389f40764ac6e44fef8f19897b51949"
+    },
+    {
+      "path": "data/evidence/allocation-validation.sha256",
+      "size_bytes": 66,
+      "sha256": "ea8720e8a8ae987945ea8fa9d79280f58d2d864608df2231444c5967ddb35211"
+    },
+    {
+      "path": "data/evidence/constrained-ppo-study.json",
+      "size_bytes": 9368599,
+      "sha256": "f2a82b7059eec389ae04bf849d225f4a6776bfb0ea42172688829f39c1d5696c"
+    },
+    {
+      "path": "data/evidence/constrained-ppo-study.sha256",
+      "size_bytes": 94,
+      "sha256": "8dd323c65bada5e8ff2d4066d17f6592ee02f5954b46a44d3d6590ffce33de27"
+    },
+    {
+      "path": "data/evidence/constrained-ppo-training.json",
+      "size_bytes": 442020,
+      "sha256": "4ee4edbcec4b95f8fa53148a304fb2fb5aa03af136bef6544b9ae104b39ca071"
+    },
+    {
+      "path": "data/evidence/constrained-ppo-training.sha256",
+      "size_bytes": 97,
+      "sha256": "268103fd57d40c6884d01d14b396fabd53bdd4939aa3fd903c3da9c9a021f619"
+    },
+    {
+      "path": "data/evidence/focused-ppo-study.json",
+      "size_bytes": 9474293,
+      "sha256": "a4d5a849612f06eedef96e0d28e08247e5e3757eba0b4f2e4f1a893e9d4b8247"
+    },
+    {
+      "path": "data/evidence/focused-ppo-study.sha256",
+      "size_bytes": 90,
+      "sha256": "9b2df77b5f1002801d51e90aee25943e589ba403303d31b5247f967b8137103b"
+    },
+    {
+      "path": "data/evidence/focused-ppo-training-diagnostics.json",
+      "size_bytes": 173955,
+      "sha256": "b4c2c76e481e0f30e323ea22f9359212bac1b2018605f833682875d98face500"
+    },
+    {
+      "path": "data/evidence/focused-ppo-training-diagnostics.sha256",
+      "size_bytes": 104,
+      "sha256": "1197f0fb973527d8735308be5b34a1445c3ba77c2b8abbd16e9daa63ff14b98d"
+    },
+    {
+      "path": "data/evidence/focused-ppo-training.json",
+      "size_bytes": 2197394,
+      "sha256": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624"
+    },
+    {
+      "path": "data/evidence/focused-ppo-training.sha256",
+      "size_bytes": 93,
+      "sha256": "38b0a5bb67459cd5ade112b212e36d1cb1ca97104f8b0e6fef3cbdf29b18019b"
+    },
+    {
+      "path": "data/evidence/frozen-benchmark.json",
+      "size_bytes": 9682,
+      "sha256": "3d720ba87a747a5780119decd7144b4051fc36fc72ab50f229f5750ad749fd15"
+    },
+    {
+      "path": "data/evidence/paired-benchmark.json",
+      "size_bytes": 5097927,
+      "sha256": "7f2009c4f7efbbedf098069ced9218addec51d55a18b969e6c54433027020af5"
+    },
+    {
+      "path": "data/evidence/proposal-supplement.json",
+      "size_bytes": 4168738,
+      "sha256": "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e"
+    },
+    {
+      "path": "data/evidence/robustness-supplement.json",
+      "size_bytes": 4812182,
+      "sha256": "6b56d149331ee191302cd9e6f22365988db0ae301f9441190b61214acf832e48"
+    },
+    {
+      "path": "data/evidence/source-manifest.json",
+      "size_bytes": 8207,
+      "sha256": "3db92467b8bc5d14392a50069fa512608a25f5f78de4226557197efeca381ef2"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/protocol-freeze.json",
+      "size_bytes": 3309,
+      "sha256": "1bb312d3a3080aa0e7ae41e36e05029c5987b1324819860169997da4d3dd2aa7"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/protocol-freeze.sha256",
+      "size_bytes": 88,
+      "sha256": "4a92ce80ed9439abb8d38c5493c50f80bbad505e28c38965090250a87c9d480a"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-1729-behavior-cloning.npz",
+      "size_bytes": 703669,
+      "sha256": "dc1e3179ae8cb2e446a915140bc57ac31fa6d9938eb6a4593cab19cb5fec5e09"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-1729-record.json",
+      "size_bytes": 86051,
+      "sha256": "66895b1e8ae957eb90bc34bd0018a8803ae8b8327e0186c5e340a2988207a3da"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-1729-record.sha256",
+      "size_bytes": 89,
+      "sha256": "268826096a663c5bd3f68ad1b7f7cdf4218b80196e2f656e33091b34e1ffc680"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-1729-selected.npz",
+      "size_bytes": 704182,
+      "sha256": "254a718d1f82870c46fdaf1f94716fa329d915718a338db2fe2db9eacdb16cee"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-2718-behavior-cloning.npz",
+      "size_bytes": 703196,
+      "sha256": "75b3adef71687ff65b769b70e946ca1289bc717788713ff6fe80b55cff782771"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-2718-record.json",
+      "size_bytes": 86172,
+      "sha256": "986242d7d6361787c84072be8480196fa33adfeceb0efee4ef1a155190105022"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-2718-record.sha256",
+      "size_bytes": 89,
+      "sha256": "31c0801323f039cdaa2177f8ed8b3dc41ebd5268399221c869204962d6fcdc23"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-2718-selected.npz",
+      "size_bytes": 703525,
+      "sha256": "a703c3322296bc238d1824aa09ec1a2b93800a07c3ee8855ef8f8a57e279901b"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-3141-behavior-cloning.npz",
+      "size_bytes": 703407,
+      "sha256": "cbd2171c68f27266d0c96e5262eb56a4de9dd3dfd4e7751e289201607cea9403"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-3141-record.json",
+      "size_bytes": 86072,
+      "sha256": "dd0e8ae40277d04bc0a13dd2e584dce2102fd4ea83737d58b35d72473e914d7a"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-3141-record.sha256",
+      "size_bytes": 89,
+      "sha256": "78ffab9ae38641ebac9f4322b6ec9dab157201ea4d364dc7eb02afdacc3f4cf0"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-3141-selected.npz",
+      "size_bytes": 704161,
+      "sha256": "faf3132cc2f598a9db49e95236a2b22b473bd2574008fd350d4f76f48ed7ac7f"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-5772-behavior-cloning.npz",
+      "size_bytes": 703387,
+      "sha256": "425220d615996b688c6cacd72dc9a881f8b9628bb4da5b4577e6690daee00a97"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-5772-record.json",
+      "size_bytes": 86101,
+      "sha256": "d4810c384b66dd6772b18bb2a1a0bf91d93f46f8c9744b98a0085e93dfe3781d"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-5772-record.sha256",
+      "size_bytes": 89,
+      "sha256": "3acdaf7e14212105c8352b70f191254053bc3871e59387c37a52890ee0505ba2"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-5772-selected.npz",
+      "size_bytes": 704051,
+      "sha256": "77399c5f2d6e1f33698c7c8193a9b18c7af54fdb50abbd77398d1935d7de7d52"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-8111-behavior-cloning.npz",
+      "size_bytes": 703324,
+      "sha256": "787408c2c75f125f3cd7bbbb6233148f935e5f12d543e26d1803c5c2307e3bab"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-8111-record.json",
+      "size_bytes": 86064,
+      "sha256": "00de125d745786a45fc6184666fb02f709313e8edcf10e0f2f81e80b68498868"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-8111-record.sha256",
+      "size_bytes": 89,
+      "sha256": "533eb11794de847b8292828cfc897eff4ab5f3d1e7021b31dabfa1f2343091f0"
+    },
+    {
+      "path": "data/model/constrained-ppo-study/seed-8111-selected.npz",
+      "size_bytes": 703943,
+      "sha256": "2b7cee9dbca075f96a1d2b99791f28f9052ef170fc79ca7282aa8aca4956c6ee"
+    },
+    {
+      "path": "data/model/focused-ppo-study/protocol-freeze.json",
+      "size_bytes": 3878,
+      "sha256": "58eaaf418ddabee63552b13163c0b97b1cdebf1d85b0a07e84cdcad5a930b8ff"
+    },
+    {
+      "path": "data/model/focused-ppo-study/protocol-freeze.sha256",
+      "size_bytes": 88,
+      "sha256": "3ef4c75f40affe4e2016200fd9d1957038214854766045d7807383dfee51df9f"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-1729-behavior-cloning.npz",
+      "size_bytes": 703435,
+      "sha256": "daac228d6d3882bc21f197e8444485acae776ff6f1b40871eb4ceff6e5047e24"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-1729-iteration-600.npz",
+      "size_bytes": 704130,
+      "sha256": "df294f29958dcd89d884fa17c493d6413b33399c10fcfe7ea367d2e4e31f01e0"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-1729-record.json",
+      "size_bytes": 422478,
+      "sha256": "64220410dde0e9a98f844362170bf8350a20b1ff7206a25b91da3b7e20513a54"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-1729-record.sha256",
+      "size_bytes": 89,
+      "sha256": "56c658782e3e25ce818243b312a027536fd9d25f50a83ddfe5deedad4b90e349"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-1729-selected.npz",
+      "size_bytes": 704614,
+      "sha256": "cefa8ae9db672ae332d63d37973bb69e30a31e3fbd749815df835f2054c93fef"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-2718-behavior-cloning.npz",
+      "size_bytes": 703317,
+      "sha256": "48666630a9eac7d04c97b8afa711a35ec0b62ec1a49f367df828034b22856104"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-2718-iteration-600.npz",
+      "size_bytes": 703615,
+      "sha256": "e5ac56fe2f5703ca5450b2d1a1af384ad80b9d854b5b27cdbcbe8e7d51f9267c"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-2718-record.json",
+      "size_bytes": 422352,
+      "sha256": "1a5f1774481d8ee07a51266dfc08e508116ed17eb2b6c14e89d6d1d2c31bbd63"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-2718-record.sha256",
+      "size_bytes": 89,
+      "sha256": "401cefbc0033edfe66e3dae60d02c0e185ba5cbf248926e1c161755ceca2e2b4"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-2718-selected.npz",
+      "size_bytes": 704440,
+      "sha256": "81612e01e59fe5434e6b9ebef489a5be63955d6d42a2032ae8527a796a1ae2ac"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-3141-behavior-cloning.npz",
+      "size_bytes": 703363,
+      "sha256": "88c303df5a2dad1e5da98848d638ca6a7d2d5086f1db680754b510bc8c2e3a7c"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-3141-iteration-600.npz",
+      "size_bytes": 703957,
+      "sha256": "5696f97660a16c0ce1661072d84e056e506c79f60340ed7d2d7b27b3fa00d573"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-3141-record.json",
+      "size_bytes": 422395,
+      "sha256": "e4422ed120480e7fc965f90dbda9a42993fe0a95ba53896d81a556415d3a8230"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-3141-record.sha256",
+      "size_bytes": 89,
+      "sha256": "8b5abb15fc0d721d3c2dbee4f89d784f1ec4d487707697c5c9a3169c096264da"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-3141-selected.npz",
+      "size_bytes": 704494,
+      "sha256": "59c0d9790c9b327d4cda862d8d2a5ca435d8842101b33b3fa19ba36118630c6d"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-5772-behavior-cloning.npz",
+      "size_bytes": 703262,
+      "sha256": "17a3b315c077ad44781787ac468711b55f7db579fb7d48ec220f260341ea1063"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-5772-iteration-600.npz",
+      "size_bytes": 704232,
+      "sha256": "25b023e9f2f5db669039555f09fde82f376ea2a2d330559686fa5376d364eb38"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-5772-record.json",
+      "size_bytes": 422366,
+      "sha256": "c9eacb2706c52027f5156ab67ef3029e07f8af44f76790d02d145eadd645f8dc"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-5772-record.sha256",
+      "size_bytes": 89,
+      "sha256": "da50f9e5dd69a0ae8d757f7b4f78642ee95e16e4ef5c79264aedef050deeb20b"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-5772-selected.npz",
+      "size_bytes": 704759,
+      "sha256": "5022e12916c27d191e34389426f63cc05098441c5dd9fb5fc7f68837d8a42cf7"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-8111-behavior-cloning.npz",
+      "size_bytes": 703477,
+      "sha256": "f3f3aeb9504c7bebc3b3003a2c5738278fcaff7e6ac19a0f98676ea240a8cfbc"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-8111-iteration-600.npz",
+      "size_bytes": 704328,
+      "sha256": "61a286a2047c867bb263bddc3e684fb4a0ec56c73b4ddddb6dd720c7dfa79b63"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-8111-record.json",
+      "size_bytes": 422265,
+      "sha256": "b543de51f1a3e0a79048531c8db5de386549e06616333e3b99fe72a6aa0b8be4"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-8111-record.sha256",
+      "size_bytes": 89,
+      "sha256": "f216d67a3b202ae53bc0ddb86de434a9212d0139b76bb80b19f6acc9d13e65ed"
+    },
+    {
+      "path": "data/model/focused-ppo-study/seed-8111-selected.npz",
+      "size_bytes": 705062,
+      "sha256": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3"
+    },
+    {
+      "path": "data/model/manifest.json",
+      "size_bytes": 1609,
+      "sha256": "9803563a6c9820f395f832bc2958fa28c634beb7fe4c87363cd659035e033ee8"
+    },
+    {
+      "path": "data/model/ppo-policy.npz",
+      "size_bytes": 5160058,
+      "sha256": "3e4a7ce44267dd1cf3bbde7e77abafb8f31fdea77ece63acda7be17fa3198ad5"
+    },
+    {
+      "path": "data/model/training-provenance.yaml",
+      "size_bytes": 29126,
+      "sha256": "d2568bce26e9221afa8c266113a704f6fbf2370d3bc949f5aa6c72a7411ba1a8"
+    },
+    {
+      "path": "docs/ALLOCATION_STUDY_PROTOCOL.md",
+      "size_bytes": 10967,
+      "sha256": "0570b92977dce71a0de922b3952d1d4660a512bf2e2894f6c3e3b3766ca3bbc9"
+    },
+    {
+      "path": "docs/CONSTRAINED_PPO_PROTOCOL.md",
+      "size_bytes": 13168,
+      "sha256": "120227eefb004256851fa8d2f1f92a2e52ba496494413cec80ccf87280f63e59"
+    },
+    {
+      "path": "docs/FOCUSED_PPO_PROTOCOL.md",
+      "size_bytes": 12768,
+      "sha256": "e3e04b018846714490db047ec519ed963a371b738957ef09368fd4732be535f8"
+    },
+    {
+      "path": "docs/FOCUSED_THESIS.md",
+      "size_bytes": 72563,
+      "sha256": "d493926f89a3e515ff533d3da619b1a9d6ee351f98f88daf9fc74ad574d60fc0"
+    },
+    {
+      "path": "docs/PROPOSAL_EXTENSION.md",
+      "size_bytes": 14539,
+      "sha256": "4aa3fd8ec2029a42365c24bd60db9d7c599bbd449ea9cb1fba052f103ed67ccd"
+    },
+    {
+      "path": "docs/PROPOSAL_RESULTS.md",
+      "size_bytes": 15509,
+      "sha256": "40c912ca009faff80509a7dfcb5a4f052659c61ad7b4a92a7f64344712991487"
+    },
+    {
+      "path": "docs/academic-cover.json",
+      "size_bytes": 1004,
+      "sha256": "607f317371cad53de15dbe42fab0c05e5959cfda0b12f20ba38e338196d33cbc"
+    },
+    {
+      "path": "docs/academic-refresh-validation.json",
+      "size_bytes": 7208,
+      "sha256": "989de9c0d175e1c98d13983c7a2281081676e11b82506ad9731c50ca61e0bd8e"
+    },
+    {
+      "path": "docs/academic-refresh-validation.sha256",
+      "size_bytes": 66,
+      "sha256": "e8aa444391922dff6d1c4d44313ee84065b3b53e24a9f2378bf742443836b451"
+    },
+    {
+      "path": "docs/allocation-study-validation.json",
+      "size_bytes": 1934,
+      "sha256": "84157697b39d746509cc864b5cfd75a9185adc4abf87ee04c3a2468796298439"
+    },
+    {
+      "path": "docs/assets/app-regression-screenshots/live.png",
+      "size_bytes": 125691,
+      "sha256": "972349bfe5b7ff70235d1f923e20a171bed44fbfc39cf1be096540cacc420c5b"
+    },
+    {
+      "path": "docs/assets/app-regression-screenshots/manifest.json",
+      "size_bytes": 1852,
+      "sha256": "4f986a06d10fa506b33dc669bae21ba0b7932bacb753dca4456aa9711a10672a"
+    },
+    {
+      "path": "docs/assets/app-regression-screenshots/overview.png",
+      "size_bytes": 110964,
+      "sha256": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e"
+    },
+    {
+      "path": "docs/assets/app-regression-screenshots/results.png",
+      "size_bytes": 69710,
+      "sha256": "ed31f21d8f5953ce6903d26560c4327b1420540e9636a200bdfda2fa3748f77e"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/current-evidence.png",
+      "size_bytes": 64853,
+      "sha256": "2efe504998b39b58e2cfadaf201b8fde15df22a8d31e5a8308b3e610ff08c4ca"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/current-individual-runs.png",
+      "size_bytes": 37735,
+      "sha256": "a409a77185d170fb8c6231425376edf145ce52848a423937fbe0ab763723301e"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/current-paired-fixed.png",
+      "size_bytes": 51106,
+      "sha256": "07d4e1bf3622c6240b8e9bba488d87211a3f8eda08899d57808e0664cb0598bd"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/current-paired-optimizer.png",
+      "size_bytes": 49872,
+      "sha256": "65d1c50ffaa89c7f612dff19dd73b223ac13b11503b0c70f93b7acd8e2005157"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/current-shortage-levels.png",
+      "size_bytes": 57905,
+      "sha256": "e85244106bc2f49a1201c3e6c7fadc34e7705bd000ee2406625b3aae0fed6b0f"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/earlier-evidence-01.png",
+      "size_bytes": 95004,
+      "sha256": "58402fc0bcbaabfd1b0cfa23f851b81059864f154ae24e9dd88088a84c7a9b40"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/earlier-results.png",
+      "size_bytes": 84265,
+      "sha256": "b4c042d7d3c9014a6e9cd8b9d6c3a0774ea4f8594f2b8354d40764cb843d5396"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/extended-controllers.png",
+      "size_bytes": 72977,
+      "sha256": "8406c92c760914a1fa1a038c667c5f91a5442e7c1d73cba4168e863b888d86ff"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/extended-forecast.png",
+      "size_bytes": 60097,
+      "sha256": "90593053487f9fac0027a3418a4cccf9485b2efb5aba2cc454aa7660b84f1083"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/extended-paired-01.png",
+      "size_bytes": 56151,
+      "sha256": "240fd47312c727bffe3bfc1fff450f0a5ded764b4dd29fb3fe216ad4a8e0d688"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/extended-paired-02.png",
+      "size_bytes": 56996,
+      "sha256": "3a6828fda2aaab7995c652d19588bc90768a0a34df4a2659aa2a9df380a8e3e4"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/extended-paired-03.png",
+      "size_bytes": 56333,
+      "sha256": "df7256cd42a29f28bd8de5d54e39dc60d224b16493f2529f9092871adbe74329"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/live-fixed.png",
+      "size_bytes": 125254,
+      "sha256": "38a0e7700384af7eb6c457cbd4baea6596beaef4d83dbe93f0a72f3511a1355a"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/live-optimizer.png",
+      "size_bytes": 126139,
+      "sha256": "a93fbdbf374f20b7a32b4b70b13ea6f7e2b98771fc05a7135c193e46671797c7"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/live-ppo.png",
+      "size_bytes": 126368,
+      "sha256": "a3e2adfdbcb3efebac9cceb845cacf697578557a59b7d826760dbf6036479dfb"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/live-ready.png",
+      "size_bytes": 105243,
+      "sha256": "363d3e6cd7f5f4416951872a64c118a1de288229e69c4f5d58f2fb78d10ca220"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/manifest.json",
+      "size_bytes": 15437,
+      "sha256": "326040896b346418a726c7d7347a8b2f658ac748e2ba06e0514e5d3d82c53074"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/overview.png",
+      "size_bytes": 110964,
+      "sha256": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e"
+    },
+    {
+      "path": "docs/assets/current-app-screenshots/results.png",
+      "size_bytes": 70314,
+      "sha256": "53ba115a1eb5f02c77d88bbb5da266bee03ba6b16b032e748fc9c10a6eec2d89"
+    },
+    {
+      "path": "docs/assets/extension-screenshots/live.png",
+      "size_bytes": 120530,
+      "sha256": "7b27b1f71e1369f81dbc1651b632942ee26d5fb92bbcb2cea2b71144c6156309"
+    },
+    {
+      "path": "docs/assets/extension-screenshots/overview.png",
+      "size_bytes": 108922,
+      "sha256": "d08bed2b63ba2d85931553b9122e1e8126aaad57cdc62adc6eedd2cd83c097b3"
+    },
+    {
+      "path": "docs/assets/extension-screenshots/results.png",
+      "size_bytes": 86405,
+      "sha256": "a0edf1759db802f1473ebbdf68ed6bdfe5ad181dcb78c0bc023080a775071335"
+    },
+    {
+      "path": "docs/assets/focused-study/controller-outcomes.png",
+      "size_bytes": 281429,
+      "sha256": "b0132b5ccbef5795b24521a91e4d9b9323a1f2774cd7b5f10c2c778576198413"
+    },
+    {
+      "path": "docs/assets/focused-study/controller-outcomes.svg",
+      "size_bytes": 34017,
+      "sha256": "a4b4f3573dba3bad32fb0aa6a9f02bf6890f432b01b1c4f0664a7cce3d4ec243"
+    },
+    {
+      "path": "docs/assets/focused-study/forecast-errors.png",
+      "size_bytes": 310860,
+      "sha256": "092b3111422263e1bf50a0e70313b026db66f65a4a4cb8994510f01bca5acfc5"
+    },
+    {
+      "path": "docs/assets/focused-study/forecast-errors.svg",
+      "size_bytes": 33106,
+      "sha256": "83ff74384bec275fe5896cc4714543af255b50cd2fab7be881fb56f04bb081be"
+    },
+    {
+      "path": "docs/assets/focused-study/math/019dd42e0f16085088db.png",
+      "size_bytes": 4863,
+      "sha256": "ad98f83a887bea8975a737323a4bd2c29f036838c4c26c2650429db177a89bf6"
+    },
+    {
+      "path": "docs/assets/focused-study/math/019dd42e0f16085088db.svg",
+      "size_bytes": 3061,
+      "sha256": "8308bca0a4a5e289c569aff4153c4daa13d0adea2f196d31539a2274759ee38e"
+    },
+    {
+      "path": "docs/assets/focused-study/math/09c8e061c1ecee96ca63.png",
+      "size_bytes": 1734,
+      "sha256": "4a6eabf6e4ff7579a69dfb849a9e9dbf8e65191c3c6b13389d0d9c201bf80da2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/09c8e061c1ecee96ca63.svg",
+      "size_bytes": 1352,
+      "sha256": "260c3397266c372343352e7514ed5cf2cfcb376c0c063e38b0843c8737fc5613"
+    },
+    {
+      "path": "docs/assets/focused-study/math/1190cb235599299a5c99.png",
+      "size_bytes": 2230,
+      "sha256": "20ef67539709723c75f80ae29e4cd59cd472a3a7f18a09e7d4cdfb3bbe91f961"
+    },
+    {
+      "path": "docs/assets/focused-study/math/1190cb235599299a5c99.svg",
+      "size_bytes": 1458,
+      "sha256": "8fd43523f20783ce7d169a9703df439b089fad61c3e1aa4bcc7a3ee63273ffba"
+    },
+    {
+      "path": "docs/assets/focused-study/math/1b473a3301b20fcea4c3.png",
+      "size_bytes": 2131,
+      "sha256": "b612501b245b9d96567680ad4a2a4b79d8d6a29f1f05135022d53eeaa301d5b4"
+    },
+    {
+      "path": "docs/assets/focused-study/math/1b473a3301b20fcea4c3.svg",
+      "size_bytes": 1603,
+      "sha256": "e245b10b38a72d10ed91544f3492cc1fcf6e1b2974334fe7f05eb2f8782257ff"
+    },
+    {
+      "path": "docs/assets/focused-study/math/1fc37c2d42ac1389f103.png",
+      "size_bytes": 976,
+      "sha256": "cd5665f21bf394f646dc0da3b57ee37d7a8b44f00437a40d8e5134fc5f66811c"
+    },
+    {
+      "path": "docs/assets/focused-study/math/1fc37c2d42ac1389f103.svg",
+      "size_bytes": 848,
+      "sha256": "bafa26f9c335b44e75984c877e6d40e7587fff1a70196079b63231b312ee7641"
+    },
+    {
+      "path": "docs/assets/focused-study/math/20abe43a0e6b7f8507a3.png",
+      "size_bytes": 1969,
+      "sha256": "b33b212f1b8cf9d8d74619953b69f7e1a34375a2dde2328c247af7003a488da2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/20abe43a0e6b7f8507a3.svg",
+      "size_bytes": 1920,
+      "sha256": "c7ad2e09cc16f0a5c70ee03d4218c1c3cdc7fbbe432ebf82916762206d99da86"
+    },
+    {
+      "path": "docs/assets/focused-study/math/2abd426c30a6d6448623.png",
+      "size_bytes": 13432,
+      "sha256": "c72b05d685c0dfdd1e1350361e70fe0f9b77ef247e24486aa8e95a0ef8cff1a2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/2abd426c30a6d6448623.svg",
+      "size_bytes": 9857,
+      "sha256": "07ef4c57ae471aede6bd896dcda26e78e66c48312cef36d7dd79a6435ded5be1"
+    },
+    {
+      "path": "docs/assets/focused-study/math/2e7f3be432c885679111.png",
+      "size_bytes": 26755,
+      "sha256": "2968c8fa6fa5e5834a36135b8b241e6e0f687e69713e43afdd0301ce4df99152"
+    },
+    {
+      "path": "docs/assets/focused-study/math/2e7f3be432c885679111.svg",
+      "size_bytes": 13653,
+      "sha256": "704f7844962ceff4023112398b20c580424ba8e9c191cbe0d272b37cc9bd8aca"
+    },
+    {
+      "path": "docs/assets/focused-study/math/302a47d93da8a773c31b.png",
+      "size_bytes": 1965,
+      "sha256": "f260c8dda5487cb25ee44569b06756a0ef2738d2ce0d02c22ae2fab7a3ad74df"
+    },
+    {
+      "path": "docs/assets/focused-study/math/302a47d93da8a773c31b.svg",
+      "size_bytes": 1315,
+      "sha256": "4bf1b15d49d96ff3733f7f27b5b8e6c50bcf6bca0f20264b8430c1351deb9ad2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/32676aa770d201b45713.png",
+      "size_bytes": 2405,
+      "sha256": "e8d45c8e6daabcfc75e4b07e921e7f101a79095377bea4d8ea83d3e1016d6bdd"
+    },
+    {
+      "path": "docs/assets/focused-study/math/32676aa770d201b45713.svg",
+      "size_bytes": 1493,
+      "sha256": "2796c55830e9ade1b09c173f366ee155ea85fb2060d37652466885d05158c645"
+    },
+    {
+      "path": "docs/assets/focused-study/math/332fb104630062ef13a0.png",
+      "size_bytes": 13720,
+      "sha256": "10e07c93c6953927b9753f0db0344e844d072614e8e5a82399bbc9b58e07cb80"
+    },
+    {
+      "path": "docs/assets/focused-study/math/332fb104630062ef13a0.svg",
+      "size_bytes": 9889,
+      "sha256": "67271a06b0cb2940de37fe66d2e0ac323b141244cd155b8d39a931d57fcb68ac"
+    },
+    {
+      "path": "docs/assets/focused-study/math/34b3cff221e22774f781.png",
+      "size_bytes": 1524,
+      "sha256": "22b15099c5099e08e86b788736c3fd8045e384cdf9f47fd216910ea41db15373"
+    },
+    {
+      "path": "docs/assets/focused-study/math/34b3cff221e22774f781.svg",
+      "size_bytes": 1107,
+      "sha256": "981b2b78c2198a3198a1ebfc52775a7958c4e23e30de12ca08f3a9d5d711242b"
+    },
+    {
+      "path": "docs/assets/focused-study/math/34d79409fc3f6ae768a9.png",
+      "size_bytes": 3308,
+      "sha256": "8f923c826eb0b8105acf30dfc326c1e4100ed82b93332c9535e76f8a6b11b7f0"
+    },
+    {
+      "path": "docs/assets/focused-study/math/34d79409fc3f6ae768a9.svg",
+      "size_bytes": 2551,
+      "sha256": "bc5251cfdfb1c8473e9e297785e3b4b21e4b4db1f50fbf391543bec3a3669f1e"
+    },
+    {
+      "path": "docs/assets/focused-study/math/465333c987a5e26cada9.png",
+      "size_bytes": 2186,
+      "sha256": "a88c3fc685947cc894459e85afa91f4f76b30c40c766c9829fac622c9d1fb03a"
+    },
+    {
+      "path": "docs/assets/focused-study/math/465333c987a5e26cada9.svg",
+      "size_bytes": 1969,
+      "sha256": "bbb688500c2974c559db0643326ab76f9a2d745837a05ac827150f08905216c0"
+    },
+    {
+      "path": "docs/assets/focused-study/math/479ff3f62095342e66f5.png",
+      "size_bytes": 3499,
+      "sha256": "ca188e20697c8a61a10b755860e461156020c576e15ca041fb24c4f0b2f89c20"
+    },
+    {
+      "path": "docs/assets/focused-study/math/479ff3f62095342e66f5.svg",
+      "size_bytes": 1870,
+      "sha256": "4b71c5667719d13f8466d3e50399ff01ea52c7dd8ba69e70b2bcc3db4722d648"
+    },
+    {
+      "path": "docs/assets/focused-study/math/4ef3ab17c7c52e304e5e.png",
+      "size_bytes": 6395,
+      "sha256": "d053a9d246d7f1a377ddd4979d81c2f87f3cfe0f4ea6fcfe653b17d796f95095"
+    },
+    {
+      "path": "docs/assets/focused-study/math/4ef3ab17c7c52e304e5e.svg",
+      "size_bytes": 3354,
+      "sha256": "f2579dd8e1318db6fdc360772016b2f295eda311c3e13434b6fdd957d43dfad2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/50861ad8e229a0047488.png",
+      "size_bytes": 1632,
+      "sha256": "1b90fbf38a1a9e6bfce27f10b3c2261cc36eb5cbc1f5a2d4dfaf41e69ad9bb55"
+    },
+    {
+      "path": "docs/assets/focused-study/math/50861ad8e229a0047488.svg",
+      "size_bytes": 1310,
+      "sha256": "603a0dedbfd899743cf5836d0d7a3346400658010cd176978fc363b2992ee4c0"
+    },
+    {
+      "path": "docs/assets/focused-study/math/5b506adc21e0826bf2d4.png",
+      "size_bytes": 12331,
+      "sha256": "518e50911d1efdc20e6cfdc8863ff68f9eff583f9678d997abc5f91ff4a3860a"
+    },
+    {
+      "path": "docs/assets/focused-study/math/5b506adc21e0826bf2d4.svg",
+      "size_bytes": 6186,
+      "sha256": "84b0842e29aae8f0eeb658f0e5c34351a55466126be82d48cbee5e55493a34c8"
+    },
+    {
+      "path": "docs/assets/focused-study/math/5cdee5cb1a1673b6f01f.png",
+      "size_bytes": 2689,
+      "sha256": "ebe7879f3441298051971476681c705e54a1b42d84812b47e9e5c99153a52f7d"
+    },
+    {
+      "path": "docs/assets/focused-study/math/5cdee5cb1a1673b6f01f.svg",
+      "size_bytes": 2150,
+      "sha256": "c35ccc0e42540716159f897a84fd9d481eef470b4c8c1008320484109c8d3ff3"
+    },
+    {
+      "path": "docs/assets/focused-study/math/5d8bc8955ab25212b7c9.png",
+      "size_bytes": 2233,
+      "sha256": "51eee426369952d03a5b491b4075d47b6af1fbbfc05b0e172a9dd51ff39257c9"
+    },
+    {
+      "path": "docs/assets/focused-study/math/5d8bc8955ab25212b7c9.svg",
+      "size_bytes": 1234,
+      "sha256": "243847c1e7d06ccba1ab1fda68d5d3639c2f431ae317118c35339aef4b24ea63"
+    },
+    {
+      "path": "docs/assets/focused-study/math/60864a5c049ce63e1a96.png",
+      "size_bytes": 1523,
+      "sha256": "81c270a5c20cd9689d9e73f0ab68e26c8eafd314165ff5dcdb2b3b234dc78ab0"
+    },
+    {
+      "path": "docs/assets/focused-study/math/60864a5c049ce63e1a96.svg",
+      "size_bytes": 1416,
+      "sha256": "28bedd45a942e1c7d53ad6af9484f592d2e4cd0df50c7995316747bcce430245"
+    },
+    {
+      "path": "docs/assets/focused-study/math/6ba4a0c6cc9372e3b2b2.png",
+      "size_bytes": 1596,
+      "sha256": "ea2c7bb4c1cb226eb7edcd6d58b270b1d8429729cbaf8866791ae2f80ebd95d7"
+    },
+    {
+      "path": "docs/assets/focused-study/math/6ba4a0c6cc9372e3b2b2.svg",
+      "size_bytes": 1476,
+      "sha256": "0cf8f8c5dd48db0b064300a54959cde5f7289d85e6efeb4da51a88c03c699c20"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7562274c811b1ef7095b.png",
+      "size_bytes": 47735,
+      "sha256": "2644722de01d029a52599a26bbbc294da3b00805a860b33312adc7294c266322"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7562274c811b1ef7095b.svg",
+      "size_bytes": 26466,
+      "sha256": "9cda0849020cea537052140226e18f495e80ec0d95a9e6215ca73bdf3c9c394e"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7b576f4fb7d0fe7f30d6.png",
+      "size_bytes": 7454,
+      "sha256": "547b4d1b9773bf0794aae032b71c9e3e65480f3463f47faa95066ddde3a622fb"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7b576f4fb7d0fe7f30d6.svg",
+      "size_bytes": 4483,
+      "sha256": "90c6e7333ea08cb430df13b1545ae88e0a33c02def3fc758ada590a3d52d9c50"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7ba5786aac374ad02df2.png",
+      "size_bytes": 1847,
+      "sha256": "be9a3ac43686795c60e6be38f8c0d7707f59c04c080702b9569964f2683b3f89"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7ba5786aac374ad02df2.svg",
+      "size_bytes": 1468,
+      "sha256": "c58c8f5d10f240bf561573d0b2769d23320bb3d309374302f7711ba227c04554"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7fd751f9fb639f08a8a2.png",
+      "size_bytes": 3760,
+      "sha256": "f289e1936d26913e33e424d5c2ea98badf898605efa46f4ca6ab21bcdd7bbf54"
+    },
+    {
+      "path": "docs/assets/focused-study/math/7fd751f9fb639f08a8a2.svg",
+      "size_bytes": 1902,
+      "sha256": "08fefb14819d3e14a627f38ba37d80a67dda3e440fae0a448cd6e05ca84d07aa"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8cc962a761a799121994.png",
+      "size_bytes": 1907,
+      "sha256": "09314a1846b7ca78e045574a7a4618e6561bf0442bf24b4027c7b6abcc07b293"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8cc962a761a799121994.svg",
+      "size_bytes": 1633,
+      "sha256": "625851d9773c3320b239da31b25ae511907ed70f6616f7cbfd9586cbf9edfbfd"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8cf2bba24ea03e85de1a.png",
+      "size_bytes": 53958,
+      "sha256": "f541aaf86c71673471cf528feb3591ef3d4e1a1fca2aa09e10f3eafea0601209"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8cf2bba24ea03e85de1a.svg",
+      "size_bytes": 27436,
+      "sha256": "f237b2db3ffdf6cecf2f5fa22a8e2dac4256552937f2341cd0eeaa5414455ba9"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8d71c55d50bdee06f9c7.png",
+      "size_bytes": 35940,
+      "sha256": "8ca164ad69af292e5ce06d601cff21bf0df608bbba2571b251a36cf8878e4f60"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8d71c55d50bdee06f9c7.svg",
+      "size_bytes": 20631,
+      "sha256": "af6775997ac904b1f3aa6203b46aa593f4c229e9d9b77cab07a7f9cb3052db75"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8d95f2cfb0f7db567631.png",
+      "size_bytes": 1189,
+      "sha256": "92fc754ca3331df0879b1ba1747c653ff9ccfc8563f611b8051ce2a6236afe91"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8d95f2cfb0f7db567631.svg",
+      "size_bytes": 880,
+      "sha256": "316d17b37c9bfa7233b573147af896752da8fdf148376aadad907709789fb938"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8ef56ebf55f79fe86092.png",
+      "size_bytes": 2417,
+      "sha256": "2a053017a2960161dd620960f600de48430f55c6357f6896328e1fc2378ee531"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8ef56ebf55f79fe86092.svg",
+      "size_bytes": 2506,
+      "sha256": "65addf4bf4fdbc455710543d47bc8c386b5357b88aeebd86a748585ffed6822d"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8faa90879ce9e620f5bc.png",
+      "size_bytes": 1659,
+      "sha256": "f9101a2f03cfcdbe45cfc7df58e665bd3646bac63b085ca1806e40a48f284107"
+    },
+    {
+      "path": "docs/assets/focused-study/math/8faa90879ce9e620f5bc.svg",
+      "size_bytes": 838,
+      "sha256": "983e2dbf2cb5e1a43000b5276dd422e3ff89d7e19e133a4147789dcb76f90c79"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9419f8dac06a233c7ab5.png",
+      "size_bytes": 2514,
+      "sha256": "3f3bad9566ec4daaf78526c121abc93c886166c5e3a6dcaa119dec178d65bd76"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9419f8dac06a233c7ab5.svg",
+      "size_bytes": 1741,
+      "sha256": "1865b6079a314bd5bcbd8c441a1fed218bd28df684a96fbab86acb990de32bf4"
+    },
+    {
+      "path": "docs/assets/focused-study/math/947143a47917521c77a0.png",
+      "size_bytes": 3110,
+      "sha256": "80f9105909ee1d13c9d9a38f5fd9e647bd0e539dbfb9f3fb9365d4ee0f9763fe"
+    },
+    {
+      "path": "docs/assets/focused-study/math/947143a47917521c77a0.svg",
+      "size_bytes": 2115,
+      "sha256": "b59d289ce5d4ed1644f6f382efbf7f5bfebca281855f387692e65dc3209f4737"
+    },
+    {
+      "path": "docs/assets/focused-study/math/956292f3bde41df9aaec.png",
+      "size_bytes": 1628,
+      "sha256": "d71c3f388441da5b2313f8ae96c9fa7bd362f3a26ba1a0b852c0efa9ef6a32c8"
+    },
+    {
+      "path": "docs/assets/focused-study/math/956292f3bde41df9aaec.svg",
+      "size_bytes": 1034,
+      "sha256": "b61bdac92bea4a8049863503358b2a0b6a255536579f04ab8ee2d56672110aa6"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9cfaecef92ad31beda12.png",
+      "size_bytes": 3112,
+      "sha256": "b992e00ab805b0361ecbc7cdd8e33d4461238ae1b712d0620c783f6e75cf0375"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9cfaecef92ad31beda12.svg",
+      "size_bytes": 2894,
+      "sha256": "9d9badc06936bff991dc32809d825e296f3340f45bc0929ca46007a333e7f6e3"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9f95589d51609c691be3.png",
+      "size_bytes": 24088,
+      "sha256": "2456eadbfa752706a8ea689c5413731286fd93d575743d23a3c3343f5cce664b"
+    },
+    {
+      "path": "docs/assets/focused-study/math/9f95589d51609c691be3.svg",
+      "size_bytes": 13169,
+      "sha256": "cfbd0ca248ae21f9f0a75db1490f58c534fb9e28792212e37ead3fe2417133fb"
+    },
+    {
+      "path": "docs/assets/focused-study/math/a0b030729b1fc0aa5a99.png",
+      "size_bytes": 18126,
+      "sha256": "5edc7a7ba1c74696493f3956b4bdfb5c6ec83371d26e1b86ea7c2f80c53536c2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/a0b030729b1fc0aa5a99.svg",
+      "size_bytes": 12837,
+      "sha256": "1177a240d2635a42711f595dec948d6dd2f8b14405c268bf5cd3f11f1f78b10a"
+    },
+    {
+      "path": "docs/assets/focused-study/math/a197ad0eb0bfe31984bb.png",
+      "size_bytes": 1779,
+      "sha256": "d897945868db2645407c759bbbec8ed2cf590b397167fe3931b2fdbf643cca32"
+    },
+    {
+      "path": "docs/assets/focused-study/math/a197ad0eb0bfe31984bb.svg",
+      "size_bytes": 1482,
+      "sha256": "16b220e87122dd330be35a81399629539b53cf26043bc6ebeaa66f4eaa276f4c"
+    },
+    {
+      "path": "docs/assets/focused-study/math/a54a5418981288188cde.png",
+      "size_bytes": 25511,
+      "sha256": "ba23c6650d1204ce95b05b3b2a3ad066d82f857e32c6f1f19853a7a45b400f6a"
+    },
+    {
+      "path": "docs/assets/focused-study/math/a54a5418981288188cde.svg",
+      "size_bytes": 14134,
+      "sha256": "d4d30bf07af5b1595e0acd82f3d7d14ba8db2603f5c4ae8a6c207bbada794d0f"
+    },
+    {
+      "path": "docs/assets/focused-study/math/abbf46ddbb3eae6ca667.png",
+      "size_bytes": 2362,
+      "sha256": "7e29a79cd68534e1f00bc68d2ad5438fac5cb51e37a296635142ea4aeb6323e4"
+    },
+    {
+      "path": "docs/assets/focused-study/math/abbf46ddbb3eae6ca667.svg",
+      "size_bytes": 1700,
+      "sha256": "2b0ed6d8555a40ec3bd3cf447b293179ac44c9f35c21eb29a29d20dc4c8de58d"
+    },
+    {
+      "path": "docs/assets/focused-study/math/b50bda6a27e01b903ed1.png",
+      "size_bytes": 14566,
+      "sha256": "b231caada4dd8a715e53b21e1e34f072fc465c155435853dcb65023260be877e"
+    },
+    {
+      "path": "docs/assets/focused-study/math/b50bda6a27e01b903ed1.svg",
+      "size_bytes": 7311,
+      "sha256": "a8c1d6192b196e7cf6d792ba3b256a4ccdc7d249fea6154a5c1b40addba3f2d9"
+    },
+    {
+      "path": "docs/assets/focused-study/math/bbb78a4bf6c463f1d963.png",
+      "size_bytes": 1025,
+      "sha256": "fd83e10ad20fd6ef32e6e78c01b95cd0b885e0a73d889abc9be74ecf9f9a6236"
+    },
+    {
+      "path": "docs/assets/focused-study/math/bbb78a4bf6c463f1d963.svg",
+      "size_bytes": 769,
+      "sha256": "bc68740498a00e10267a71e5fe981e443f7afe4dae882b110a9dc5a6236b60f1"
+    },
+    {
+      "path": "docs/assets/focused-study/math/bd814320c307c35496b0.png",
+      "size_bytes": 2221,
+      "sha256": "5ee532c5cd2542e68c1e13a2719a31ee2860a03808670e53fa13f31c10bb897c"
+    },
+    {
+      "path": "docs/assets/focused-study/math/bd814320c307c35496b0.svg",
+      "size_bytes": 1512,
+      "sha256": "eb13fe7f276c87a06f6bd270a2fc8c1d3421f1b0005de02a9756a42ace6981d1"
+    },
+    {
+      "path": "docs/assets/focused-study/math/bed4bc34e1961040a307.png",
+      "size_bytes": 2621,
+      "sha256": "3610278eca5166fb7c440b9fdf11a505869e7e8203a6c1f998877f5f0a3970f8"
+    },
+    {
+      "path": "docs/assets/focused-study/math/bed4bc34e1961040a307.svg",
+      "size_bytes": 1356,
+      "sha256": "0f6f9a1cb6950e93c6c7029f25c621b252ea1185239d0b179629ca33e1202af2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/c8145d13b957457bdf8b.png",
+      "size_bytes": 1327,
+      "sha256": "aaf2d4c435cfd48aaac7a78d9dc206992208c95929a4a3b2825f0ceccb38f158"
+    },
+    {
+      "path": "docs/assets/focused-study/math/c8145d13b957457bdf8b.svg",
+      "size_bytes": 902,
+      "sha256": "f53c9d17c51092d59c81687998ddd1d54f778c3590e73ec66f319e009327108c"
+    },
+    {
+      "path": "docs/assets/focused-study/math/ce0f10090a41744ed440.png",
+      "size_bytes": 5286,
+      "sha256": "e7cf07377ba99e75f7c0dee18013bed2596d57676f73121740750ffd7fae7505"
+    },
+    {
+      "path": "docs/assets/focused-study/math/ce0f10090a41744ed440.svg",
+      "size_bytes": 3967,
+      "sha256": "5c7a95aa6a1842d750ee7cf4bd21514b12327c4e237434fd420084ed346bd548"
+    },
+    {
+      "path": "docs/assets/focused-study/math/d37d60273130b0ed3978.png",
+      "size_bytes": 2129,
+      "sha256": "156c42e3c1b7c4666eb8d302c43327349dcf37d27f5a474ca4378dba853f4074"
+    },
+    {
+      "path": "docs/assets/focused-study/math/d37d60273130b0ed3978.svg",
+      "size_bytes": 1025,
+      "sha256": "5fc2ae3d41e30f270503c52ecfa71089545e958e89ecee95e9dc2052d9e92c7b"
+    },
+    {
+      "path": "docs/assets/focused-study/math/d7d8d1b66bac73f10bfc.png",
+      "size_bytes": 2810,
+      "sha256": "de714633c368b9632e7d3a4e0a8fb3d646846eb90952e64e8e4118b821bf36e3"
+    },
+    {
+      "path": "docs/assets/focused-study/math/d7d8d1b66bac73f10bfc.svg",
+      "size_bytes": 1927,
+      "sha256": "42e28c06aadf13d7c7d2ebf569542d6977cb30ee54a13e1a1cee6970aa55200b"
+    },
+    {
+      "path": "docs/assets/focused-study/math/eddc72c1badd40393023.png",
+      "size_bytes": 931,
+      "sha256": "367c46bb1058e0c1066ba6499cf1ca0dde2addd3f5c99e8f8d57de5e075771bf"
+    },
+    {
+      "path": "docs/assets/focused-study/math/eddc72c1badd40393023.svg",
+      "size_bytes": 810,
+      "sha256": "3ed84f7faeb9b09eaf001cbb2e8f7e4cf7f7ecbf6ce98dc124615c2348a1aaa2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/ee2575a69e5c11c76bb2.png",
+      "size_bytes": 3634,
+      "sha256": "75440d0a65a3b7b85caf007906f052192cdcebb3f1dd4bfb05dfbae8b9aab23b"
+    },
+    {
+      "path": "docs/assets/focused-study/math/ee2575a69e5c11c76bb2.svg",
+      "size_bytes": 1800,
+      "sha256": "0c9e7c367bf621fb3dae5556e406a0121ec475cc7b4068c71a061b6964b4b5a5"
+    },
+    {
+      "path": "docs/assets/focused-study/math/f3eca9f112e0d83fe3ab.png",
+      "size_bytes": 15566,
+      "sha256": "f42097fcf12e82f5663cc68b4b191ab11f4add4ae96ed5ba67db8db193c41ed2"
+    },
+    {
+      "path": "docs/assets/focused-study/math/f3eca9f112e0d83fe3ab.svg",
+      "size_bytes": 9591,
+      "sha256": "48ad4648c9a29be7c7e725a30c01ed95e2af55b8c5ae72480a573cbdadee9704"
+    },
+    {
+      "path": "docs/assets/focused-study/math/f718ec0cae33f297167a.png",
+      "size_bytes": 2599,
+      "sha256": "8221de85f8b2b473654c18ba804b358b2388da228d9ba5330ae966111ec0efbf"
+    },
+    {
+      "path": "docs/assets/focused-study/math/f718ec0cae33f297167a.svg",
+      "size_bytes": 1818,
+      "sha256": "f7022443cbd4d2be4a878ea30f8df6079f49d7e6829b0b6c026779ba6564797d"
+    },
+    {
+      "path": "docs/assets/focused-study/math/faf1b561b27c48b432f5.png",
+      "size_bytes": 23650,
+      "sha256": "eca5a6e49bcf16937349fde52c25f11d8333e0fa8be1f4a35ba708786acc0405"
+    },
+    {
+      "path": "docs/assets/focused-study/math/faf1b561b27c48b432f5.svg",
+      "size_bytes": 10625,
+      "sha256": "e172cb24013a1edc91d094f4dc62e120acb9a5a0c93b1912c76cfd7a8be0407a"
+    },
+    {
+      "path": "docs/assets/focused-study/paired-effects.png",
+      "size_bytes": 211258,
+      "sha256": "ca52213a4c33f604f8bf178079bbbc5f95474ffe84257e6eb0bf76a879b83697"
+    },
+    {
+      "path": "docs/assets/focused-study/paired-effects.svg",
+      "size_bytes": 30611,
+      "sha256": "27c1126c6bdf79de4aeaa28dd655ad5d8ed41a2cc1686a65ab741c1ba68a0888"
+    },
+    {
+      "path": "docs/assets/focused-study/tensorboard-diagnostics.png",
+      "size_bytes": 931055,
+      "sha256": "90fa992943aed7c59f3928f0c5d33dfe988d9755bf5691ec047ad5115428113f"
+    },
+    {
+      "path": "docs/assets/focused-study/tensorboard-diagnostics.svg",
+      "size_bytes": 200616,
+      "sha256": "6a6c2835b6da810fae0c14cc6e5aced042952a2a2fa6994d99ec4bb0e5b59d1c"
+    },
+    {
+      "path": "docs/assets/focused-study/training-curves.png",
+      "size_bytes": 415434,
+      "sha256": "2ddd34c63a5f12d822418399ff41b899dfa8b0bea2bab9cbd273d147132466fd"
+    },
+    {
+      "path": "docs/assets/focused-study/training-curves.svg",
+      "size_bytes": 44887,
+      "sha256": "ba08ef45182d2eb6424692909425043f5ffa5ce3afc25270d8fc79a412a45ff3"
+    },
+    {
+      "path": "docs/assets/focused-study/training-variance.png",
+      "size_bytes": 371928,
+      "sha256": "180f2e2d67e5040d15facae1b491a4bdfbbb8b1d3a3e795d814aa356e3867f70"
+    },
+    {
+      "path": "docs/assets/focused-study/training-variance.svg",
+      "size_bytes": 44236,
+      "sha256": "f47c6e308ea0837456e48dea494261d361b35ae8ce48ee88e960c2811cf0d64b"
+    },
+    {
+      "path": "docs/assets/fonts/AtkinsonHyperlegible-BoldItalic.ttf",
+      "size_bytes": 55288,
+      "sha256": "7a46f1b0ef2f64b61065c1a6b5a11fcb9b019b44062d88ba121a083cc39e86bf"
+    },
+    {
+      "path": "docs/assets/fonts/AtkinsonHyperlegible-Italic.ttf",
+      "size_bytes": 54892,
+      "sha256": "021beda4d3c6edfc78872e436d74009f9a1bcb294331908fe5747c61d3dcc514"
+    },
+    {
+      "path": "docs/assets/fonts/OFL.txt",
+      "size_bytes": 4352,
+      "sha256": "f32d22b3908fcad2c86a74000614ec22e6a7f66ea7e867e616026a27aebdc143"
+    },
+    {
+      "path": "docs/assets/fonts/README.md",
+      "size_bytes": 692,
+      "sha256": "4f7ad9165304dddfca638a22fb78523ec93413044aff099c0f8c59690941f499"
+    },
+    {
+      "path": "docs/assets/presentation/focused/app-results.png",
+      "size_bytes": 70314,
+      "sha256": "53ba115a1eb5f02c77d88bbb5da266bee03ba6b16b032e748fc9c10a6eec2d89"
+    },
+    {
+      "path": "docs/assets/presentation/focused/build-manifest.json",
+      "size_bytes": 4088,
+      "sha256": "8257bb556c863dcba5d3b17cde7189d2cc641980a0c3a9dc4684a26e47c67667"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math-manifest.json",
+      "size_bytes": 4418,
+      "sha256": "7f7b95b4f08463c08c7a340d13428b305a914763334d4c9692dfd7db93fa2acd"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/ar.png",
+      "size_bytes": 30613,
+      "sha256": "1f154f89c674a5b6c7b8960490cbe6f0421c83ac3f99fd22c3264ab70d7aa2bc"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/ar.svg",
+      "size_bytes": 18358,
+      "sha256": "2db16a0ad6400c67a53c8ed5a5a952e4d70a76f001e83b8dc307af44c9fa5856"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/constraint.png",
+      "size_bytes": 23910,
+      "sha256": "2ed2e482be1115952120b59d30c31a409fac3c14fd98fa14799063e679bc3a3e"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/constraint.svg",
+      "size_bytes": 11956,
+      "sha256": "59c4933b92413dbe607bc9786b1250497311261a77430715ef066df8f7b40069"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/dispatch.png",
+      "size_bytes": 42418,
+      "sha256": "51e3a803847c40abf86734646769f9bcf40e018dd4df60734acb30fa403fc626"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/dispatch.svg",
+      "size_bytes": 20469,
+      "sha256": "2c7ae4b918518af53ff3c0d7205a2c040d2b0bdefbdea22ba02806d722472315"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/horizons.png",
+      "size_bytes": 46692,
+      "sha256": "564b2bc9b31eedd490d4b79df99b3cf060f72e1e628583d10c16179f3f10174e"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/horizons.svg",
+      "size_bytes": 27013,
+      "sha256": "bb4cb446e1f5c23a0d245975e53c3d417646fc64660bd1f507093d5118402b44"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/jain.png",
+      "size_bytes": 25511,
+      "sha256": "ba23c6650d1204ce95b05b3b2a3ad066d82f857e32c6f1f19853a7a45b400f6a"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/jain.svg",
+      "size_bytes": 14189,
+      "sha256": "0f5acd59e0724ab1fbd0c830c06405340287f1bf44824b3d35d4270c0006581d"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/loss.png",
+      "size_bytes": 58702,
+      "sha256": "cf1f38aa9f82ebbc420f00c5f38b57aae7e8b3d953a54387ee382b4d5335daef"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/loss.svg",
+      "size_bytes": 32967,
+      "sha256": "9666b2b2af472d23eabcd6c2d9e569b9275a5c3bb5dd9b13dfa9921858169af9"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/ratio.png",
+      "size_bytes": 24088,
+      "sha256": "2456eadbfa752706a8ea689c5413731286fd93d575743d23a3c3343f5cce664b"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/ratio.svg",
+      "size_bytes": 13169,
+      "sha256": "cfbd0ca248ae21f9f0a75db1490f58c534fb9e28792212e37ead3fe2417133fb"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/reward.png",
+      "size_bytes": 26755,
+      "sha256": "2968c8fa6fa5e5834a36135b8b241e6e0f687e69713e43afdd0301ce4df99152"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/reward.svg",
+      "size_bytes": 13653,
+      "sha256": "704f7844962ceff4023112398b20c580424ba8e9c191cbe0d272b37cc9bd8aca"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/variance.png",
+      "size_bytes": 35451,
+      "sha256": "496c12d3cefd540cde2e7a40a795f145b081588343c4648c3646d13a004cd11c"
+    },
+    {
+      "path": "docs/assets/presentation/focused/math/variance.svg",
+      "size_bytes": 20427,
+      "sha256": "3a6eaf6b7fb9d807e3241e0835276b551263186756d3421d6d224b8d463607d3"
+    },
+    {
+      "path": "docs/assets/screenshots/live.png",
+      "size_bytes": 120153,
+      "sha256": "b547276f50279af853c27405f72b11d3d77494c944f3f0223fe033e9e26c49b2"
+    },
+    {
+      "path": "docs/assets/screenshots/methodology.png",
+      "size_bytes": 142202,
+      "sha256": "4c1699fa5c057557d1d56bd1819a5e6de1c672915bd42801cab738b765949bee"
+    },
+    {
+      "path": "docs/assets/screenshots/overview.png",
+      "size_bytes": 108922,
+      "sha256": "d08bed2b63ba2d85931553b9122e1e8126aaad57cdc62adc6eedd2cd83c097b3"
+    },
+    {
+      "path": "docs/assets/screenshots/results.png",
+      "size_bytes": 85550,
+      "sha256": "0aba8b3518ec3fd8ba5b3a9088e50e97bc8ba77ef99c1c2ebaf17255f3d56067"
+    },
+    {
+      "path": "docs/assets/university-branding/source.json",
+      "size_bytes": 564,
+      "sha256": "2d99456d9f2b0cfd5afd0b4b7c6a7397493f91800cfb40e60f6512e7bad9a2c2"
+    },
+    {
+      "path": "docs/assets/university-branding/university-and-faculty-logos.jpg",
+      "size_bytes": 13774,
+      "sha256": "2feb6575ec16335d867649d651281b2bc1aa2c5d8c6226cc2d862f9055b8dff9"
+    },
+    {
+      "path": "docs/constrained-ppo-validation.json",
+      "size_bytes": 30460,
+      "sha256": "d1242346aba9da40327b5921f546a6328ea1d03fe2f8c1174687253b26af8f07"
+    },
+    {
+      "path": "docs/constrained-ppo-validation.sha256",
+      "size_bytes": 99,
+      "sha256": "2242b917aff7b58c840fd724c9fe87cc293d9729f3832fdd299272d4b12587bd"
+    },
+    {
+      "path": "docs/focused-ppo-validation.json",
+      "size_bytes": 30406,
+      "sha256": "df1cc59a3a1cd94f8333f77693dc47ef1afb6007093d940dd9deab06383a1fe1"
+    },
+    {
+      "path": "docs/focused-ppo-validation.sha256",
+      "size_bytes": 95,
+      "sha256": "d052c07c49fc9442e0e37a7f194bcd28c1e8d4d07c87432cec799ba227153fc7"
+    },
+    {
+      "path": "docs/focused-thesis-validation.json",
+      "size_bytes": 11495,
+      "sha256": "6213f3a10f5ab921e4905fdfbab00fdae7ccf76b4622c1c9d16a03254a778865"
+    },
+    {
+      "path": "docs/focused-thesis-validation.sha256",
+      "size_bytes": 66,
+      "sha256": "f885e065a91d1a2cff46c403d46dc156e64d4a09b621168d2c81d789455f81f3"
+    },
+    {
+      "path": "docs/gui-document-refresh-validation.json",
+      "size_bytes": 4483,
+      "sha256": "2214e1d2a4b831070f928d5a50893c48e9cf271ae03844e27f3205efa086bbc7"
+    },
+    {
+      "path": "docs/gui-document-refresh-validation.sha256",
+      "size_bytes": 66,
+      "sha256": "a9f18ba618eeda6a068aab210aa9a7817ca550f535a08d4b20bec2a311fee15d"
+    },
+    {
+      "path": "docs/live-ppo-deployment-validation.json",
+      "size_bytes": 6912,
+      "sha256": "0848526076c7fad85e6d759f8615602b4656b91ac1b19da63d9359c6bdbfe78d"
+    },
+    {
+      "path": "docs/live-ppo-deployment-validation.sha256",
+      "size_bytes": 66,
+      "sha256": "976af3c546b4f7962c23d7995275eba99263a2e5c912c10dd12f4ba59a11a52f"
+    },
+    {
+      "path": "docs/proposal-extension-validation.json",
+      "size_bytes": 3769,
+      "sha256": "e699e15b48b4304ed66b08edd460f7c137671a26f020c741eb9298063d1c4a02"
+    },
+    {
+      "path": "docs/release-machine-validation.json",
+      "size_bytes": 285330,
+      "sha256": "a264c1ff1ad8fbf3b776eb8ae5756d0f5feedb35a4127a2b49688de77a1e9329"
+    },
+    {
+      "path": "docs/release-visual-review.json",
+      "size_bytes": 12944,
+      "sha256": "f1f7aef6e7d30229f18a4e9624a0e002767e73dae86893978767abaccc14edfd"
+    },
+    {
+      "path": "docs/source/graduation-project-proposal.pdf",
+      "size_bytes": 66494,
+      "sha256": "3432e64a21ab9741bf47646fd0f4f561522ddfd81d4005deb892d38672c65e48"
+    },
+    {
+      "path": "docs/source/literature-review-authors.docx",
+      "size_bytes": 1008225,
+      "sha256": "d2d8f1c0a65e1271976335c314b4b1ec43ec6b4bd1805a0e0160934e027a3edd"
+    },
+    {
+      "path": "output/pdf/gridguard-khartoum-gui-pages.build.json",
+      "size_bytes": 2404,
+      "sha256": "43ba60d39a76ce81073e3999051bec0a87dd70654654be9036bb39fdc44b3985"
+    },
+    {
+      "path": "output/pdf/gridguard-khartoum-gui-pages.pdf",
+      "size_bytes": 1478523,
+      "sha256": "4c3778bc745dd24aab9af9b8bf29ce74c927ffcf8ef61eac3be1e12141fcaa2d"
+    },
+    {
+      "path": "output/pdf/updated/gridguard-khartoum-project-presentation.pdf",
+      "size_bytes": 737092,
+      "sha256": "b72ea6ed7f9ca65e3cef91f83a70daa6f15abaf44b7b5ec7339b475640753599"
+    },
+    {
+      "path": "output/pdf/updated/gridguard-khartoum-thesis.build.json",
+      "size_bytes": 10390,
+      "sha256": "356188839a0e5c7b67b2fae2e9b6167549e07b08221231ddb20957949275fd33"
+    },
+    {
+      "path": "output/pdf/updated/gridguard-khartoum-thesis.pdf",
+      "size_bytes": 3833903,
+      "sha256": "d85e0e3607b27752ab0733b15162adf1fbb59360ee420cf4d86a58adffee619e"
+    },
+    {
+      "path": "output/pdf/updated/gridguard-khartoum-thesis.source.md",
+      "size_bytes": 79060,
+      "sha256": "f86399e2c9de9ff5199af6c500b10f19da654b3dc6869baba255d2674e53d9cb"
+    },
+    {
+      "path": "output/presentation/updated/gridguard-khartoum-defense.pptx",
+      "size_bytes": 840877,
+      "sha256": "2b5ab243d4a5a79bceabcca327289b771b1aeddc889b1cbdde382a5ebe33441f"
+    },
+    {
+      "path": "packaging/gridguard.spec",
+      "size_bytes": 14408,
+      "sha256": "d0a3c88979afad01286ceceec52068e840ccd4d2175bc7ca1c0fee43a97e2074"
+    },
+    {
+      "path": "packaging/gridguard_launcher.py",
+      "size_bytes": 15563,
+      "sha256": "ec5bae7e1799fd833a03717618464267ab93e47792ead00cb613e616185b30da"
+    },
+    {
+      "path": "scripts/release-integrity.ps1",
+      "size_bytes": 139110,
+      "sha256": "05c33c197ab625615ddc3ab989e5ff8f24c074c0627f7803d5d4aa224ae516e8"
+    },
+    {
+      "path": "src/gridguard/allocation_study.py",
+      "size_bytes": 24114,
+      "sha256": "64c8b07ea84a047dd483c11498ab101efbf602417686fbd7e15634fb8483c05d"
+    },
+    {
+      "path": "src/gridguard/claim_contract.py",
+      "size_bytes": 1332,
+      "sha256": "cafc5848930d3115f5909ef25c231cc800385b1b3fdd1f7aff04a10c58327de9"
+    },
+    {
+      "path": "src/gridguard/constrained.py",
+      "size_bytes": 8934,
+      "sha256": "68bc8eec390d54b4c112d2fa5df65ccbdf291e710c5fe1617d4364e78d0d41f4"
+    },
+    {
+      "path": "src/gridguard/constrained_ppo.py",
+      "size_bytes": 17523,
+      "sha256": "1b12357fff425f222aec59a1957b613dd35f3031cad50d5cc6f0a8668a699bd1"
+    },
+    {
+      "path": "src/gridguard/controllers.py",
+      "size_bytes": 5705,
+      "sha256": "dcd94a9bb601493570bbbc0c2053c35ce41e6d27a6d0d2e14f8e97e21f896c73"
+    },
+    {
+      "path": "src/gridguard/domain.py",
+      "size_bytes": 26451,
+      "sha256": "1031b66ada35baba6a5bc9af32a0e3dc6823803cafe3f9f4eefa6e87d309d024"
+    },
+    {
+      "path": "src/gridguard/duration_metrics.py",
+      "size_bytes": 8930,
+      "sha256": "49d2e93a4463ca9888219f3772185645d0518c1ce7a139f2d638c517cc6d1f7a"
+    },
+    {
+      "path": "src/gridguard/evaluation.py",
+      "size_bytes": 70616,
+      "sha256": "a9addfee69647f9111122c2c1b29fbe0d1523a2be9c0578427ef0d2b3eeb36b1"
+    },
+    {
+      "path": "src/gridguard/focused_results.py",
+      "size_bytes": 8691,
+      "sha256": "81c8f63096608fa3619d0be02dd19b0a29bbba42c54af4010890d987a6c4bca5"
+    },
+    {
+      "path": "src/gridguard/focused_training.py",
+      "size_bytes": 6324,
+      "sha256": "3676ac345d049ddc100d393e09515bdc76b19efffb7b6f24bc96fa49ac0fe383"
+    },
+    {
+      "path": "src/gridguard/forecast.py",
+      "size_bytes": 2829,
+      "sha256": "9d11f80ed6246466da84203138c48439c2a44cbd707dc53c458d307bb16deeea"
+    },
+    {
+      "path": "src/gridguard/forecast_model.py",
+      "size_bytes": 11629,
+      "sha256": "80970d419f41202fb0273c3f157be083aeba5a4605fe57100174707283570a33"
+    },
+    {
+      "path": "src/gridguard/hybrid.py",
+      "size_bytes": 6623,
+      "sha256": "ae22cb29a8aa7dd2e1a801d90e256e84e5fbc6b7974d89aef61a357729f0f35d"
+    },
+    {
+      "path": "src/gridguard/live_policy.py",
+      "size_bytes": 4896,
+      "sha256": "05faa0593236fd653e5c80670b25cc23db461793ab3f097c5e4c745f895f236c"
+    },
+    {
+      "path": "src/gridguard/metrics.py",
+      "size_bytes": 6462,
+      "sha256": "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a"
+    },
+    {
+      "path": "src/gridguard/optimization.py",
+      "size_bytes": 7138,
+      "sha256": "a426f28ede9e6c33fc806e4ee1014982b511fa7817c88be61b48036b908c1431"
+    },
+    {
+      "path": "src/gridguard/paired_inference.py",
+      "size_bytes": 8159,
+      "sha256": "59ee10d34e780f44f91d6cb30abaf4cc1e8862c4718cc5738cd90dd08cc4e9de"
+    },
+    {
+      "path": "src/gridguard/policy.py",
+      "size_bytes": 19073,
+      "sha256": "22f17e11822c89104fab9b145ee5749c7ee8ea45f0eebc1a9ee314efc084a6f9"
+    },
+    {
+      "path": "src/gridguard/ppo_experiment.py",
+      "size_bytes": 5357,
+      "sha256": "ff257822e175be4c28d6294a17c2ad472111f4e67c1cd60fe5c226c826acb0e7"
+    },
+    {
+      "path": "src/gridguard/ppo_study.py",
+      "size_bytes": 11485,
+      "sha256": "1231ebe8d9284af74957b220f836161489d0725b0c86a788c10fdff90f6f1372"
+    },
+    {
+      "path": "src/gridguard/ppo_training.py",
+      "size_bytes": 16489,
+      "sha256": "693e94daf8c851cf4e58554d6b98ada9ab11f22521804fbc0d53a8918eb9980f"
+    },
+    {
+      "path": "src/gridguard/robustness.py",
+      "size_bytes": 96166,
+      "sha256": "68c5f59d81a1cec877bc65b59130bcb0b3aef03ff6d3a8c36c097e483943f309"
+    },
+    {
+      "path": "src/gridguard/robustness_inference.py",
+      "size_bytes": 37813,
+      "sha256": "814fa97fd62e08f83fb149fa2afb83382fe3efb9362f178f2d4f1ec536661798"
+    },
+    {
+      "path": "src/gridguard/robustness_provenance.py",
+      "size_bytes": 3859,
+      "sha256": "edc944525407967eb56c4d65d3e60bc68008275598b62648cbb133d0f0adf539"
+    },
+    {
+      "path": "src/gridguard/scenarios.py",
+      "size_bytes": 14765,
+      "sha256": "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990"
+    },
+    {
+      "path": "src/gridguard/simulation.py",
+      "size_bytes": 13812,
+      "sha256": "a058fa35d9c63615bbe53037239705cbafa4ffab99fd96dc0ad46fa002a712b0"
+    },
+    {
+      "path": "src/gridguard/statistics.py",
+      "size_bytes": 7279,
+      "sha256": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9"
+    },
+    {
+      "path": "src/gridguard/ui/app.py",
+      "size_bytes": 5430,
+      "sha256": "a8de01cfa280845bcb73c99969f0e6ddb338673ea8f6e2f947cbb4fb0a424e2c"
+    },
+    {
+      "path": "src/gridguard/ui/focused_results.py",
+      "size_bytes": 12007,
+      "sha256": "61adf94e48e497d7d33fcbe10744518dd3e0249a8cecb59e6d5a074815d2bf90"
+    },
+    {
+      "path": "src/gridguard/ui/live_components.py",
+      "size_bytes": 7228,
+      "sha256": "dff601b5db00478aaf9f3c7366b91d2aba0f2a25952d97cb5aa9804959cf3b69"
+    },
+    {
+      "path": "src/gridguard/ui/live_controls.py",
+      "size_bytes": 15478,
+      "sha256": "404a2176399be1b45b9562fe993b9b2692e17b1e8f8ea49428f53411d21835d7"
+    },
+    {
+      "path": "src/gridguard/ui/live_models.py",
+      "size_bytes": 12402,
+      "sha256": "fb2fe3b7536767b4b2fbdc8d5a5c1314833bb64688d1a932bf7c98fddf98dc6a"
+    },
+    {
+      "path": "src/gridguard/ui/live_page.py",
+      "size_bytes": 8788,
+      "sha256": "ed2709c00a76088567b4accba8d00e8619a99c9b0d34969da5fb6987f13e1d5a"
+    },
+    {
+      "path": "src/gridguard/ui/live_runner.py",
+      "size_bytes": 12152,
+      "sha256": "bc92a5b02c6417be13630a932c8446083226a34eace5649af9ddf7411a5cef10"
+    },
+    {
+      "path": "src/gridguard/ui/live_visualization.py",
+      "size_bytes": 23756,
+      "sha256": "02fa115be48cb16232c78825413dd7f2da443ca857bf502fb9b43c2c2c195ffc"
+    },
+    {
+      "path": "src/gridguard/ui/overview_page.py",
+      "size_bytes": 13033,
+      "sha256": "a01e30315d15a97b34eb4a13b1eee2d83e68dcf471ac53b7b2754dcbeca02b69"
+    },
+    {
+      "path": "src/gridguard/ui/proposal_results.py",
+      "size_bytes": 13971,
+      "sha256": "ceb0164c9c0b4b505d87b7c0f74b69ec0392dc6835baf40ed976bcc910ec3f08"
+    },
+    {
+      "path": "src/gridguard/ui/results_components.py",
+      "size_bytes": 11335,
+      "sha256": "1376b55ffc31a81c5b3e97bab0ad8a9ee709b773e63a6814fa8953ac58907396"
+    },
+    {
+      "path": "src/gridguard/ui/results_page.py",
+      "size_bytes": 14397,
+      "sha256": "d2d59ffdcc392a2fb6d6cf6d3c2eb3b8f67282a8c1c2fa9c6e340d40be83ba50"
+    },
+    {
+      "path": "src/gridguard/ui/theme.py",
+      "size_bytes": 10193,
+      "sha256": "300dffccf3d6903b8f96a5f410cb0479ea8f343211477c3fad3da090289fddf6"
+    },
+    {
+      "path": "src/gridguard/ui/window.py",
+      "size_bytes": 6484,
+      "sha256": "ad6d2f70ef3001fbe6c0b2ec12a93d4fa46867ba0fef697a8163e865d546d764"
+    },
+    {
+      "path": "tools/build_current_gui_pdf.py",
+      "size_bytes": 5361,
+      "sha256": "4760fb50245de0d4e3140c03fbebf58c7fd50c85622f33a236b117f421bc5e18"
+    },
+    {
+      "path": "tools/build_focused_thesis.py",
+      "size_bytes": 20381,
+      "sha256": "4a74e1662a2989504d9812eace1525f8977ca5072560b2bb8b9f7695ee4ab2a7"
+    },
+    {
+      "path": "tools/evaluate_allocation_study.py",
+      "size_bytes": 21393,
+      "sha256": "91900ac9251117d15fcbe564439e389e362f32b07ae30903f68e1f913a61d3f3"
+    },
+    {
+      "path": "tools/evaluate_constrained_ppo.py",
+      "size_bytes": 26525,
+      "sha256": "571277c254c51a4ad88f87d77cda6819db399678e2b7b25c5cafd05915a868ea"
+    },
+    {
+      "path": "tools/evaluate_focused_ppo.py",
+      "size_bytes": 35066,
+      "sha256": "10243fe7b6228c2e59d7c9d265017531f34d4d4fd3b1d6768122d5c0819ce3c0"
+    },
+    {
+      "path": "tools/evaluate_proposal_extension.py",
+      "size_bytes": 13479,
+      "sha256": "3750c01548cc5cf9a9f6073d77a6caecee2867a24193ec46e40a18744addf25f"
+    },
+    {
+      "path": "tools/plot_focused_thesis.py",
+      "size_bytes": 7793,
+      "sha256": "fb28b88abc602440673ed3ca727a60cb9e92b0c987f7d79b673833a7ec7c96d2"
+    },
+    {
+      "path": "tools/plot_training_diagnostics.py",
+      "size_bytes": 17787,
+      "sha256": "568b8456e30a6410aae7f09f1d8b93b5a4474fcfc5b3be1a16249aaf2ef847e4"
+    },
+    {
+      "path": "tools/render_thesis_math.cjs",
+      "size_bytes": 2764,
+      "sha256": "0d8579475a53d82fcd20aed09558ef3d6b3911f759846ae0b0c8308e69b6e3b7"
+    },
+    {
+      "path": "tools/train_constrained_ppo.py",
+      "size_bytes": 12170,
+      "sha256": "0655724199e93b2d4d107b4a5df30ffb57b7e99e92db126863c9b9827d022db5"
+    },
+    {
+      "path": "tools/train_focused_ppo.py",
+      "size_bytes": 16828,
+      "sha256": "9fb869d55aa53de0002f42f1728e588da07cc8a2ce7462b68488d6be049f43fd"
+    }
+  ]
+}

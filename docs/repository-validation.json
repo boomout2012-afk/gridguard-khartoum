@@ -1,0 +1,49 @@
+{
+  "schema": "gridguard.repository-validation.1",
+  "review_date": "2026-10-31",
+  "passed": true,
+  "source_tests": {
+    "command": "uv run --no-sync pytest -ra -m \"not source_archive and not release_artifact\"",
+    "passed": 1569,
+    "failed": 0,
+    "skipped": 0,
+    "deselected": 11,
+    "deselected_scope": "source_archive and release_artifact: optional historical external archive/release tree gates",
+    "junit_sha256": "797754efb514d4b29090f2baa3ba389578a7c75238730181d0dc2eda88d60a87"
+  },
+  "lint": {
+    "ruff_check": "passed",
+    "ruff_format": "passed",
+    "python_files": 205
+  },
+  "cuda_preflight": "PASS: RTX5060 Laptop, PyTorch2.8.0+cu128, CuPy14.1.1",
+  "evidence_checks": {
+    "historical_evidence": "passed",
+    "focused_study_replay": "passed",
+    "decisions_changed": false
+  },
+  "fresh_staged_checkout": {
+    "passed": true,
+    "files": 352,
+    "size_bytes": 101639827,
+    "manifest": "docs/review-package-manifest.json"
+  },
+  "review_manifest_sha256": "853ef0cb67d3230117b6869a991842ec3529c1ba6c4a8ffc3188c29c0a5eaf38",
+  "distribution_checks": {
+    "offline_sdist_and_wheel_build": "passed",
+    "installed_wheel_uses_its_own_bundled_assets": true,
+    "installed_wheel_cuda_live_smoke": "passed across Mild, Moderate, Severe and all three primary controllers",
+    "final_documents_in_source_archive": "all three PDFs and editable PPTX verified"
+  },
+  "preserved_identities": {
+    "sources": 19,
+    "models": 15,
+    "published_pdfs_deck_exe": 5
+  },
+  "limits": [
+    "This local source/GPU review is distinct from GitHub portable CI; use the Quality workflow for the remote run status.",
+    "Eleven optional historical external source-archive/release-artifact tests were explicitly deselected.",
+    "Final document and executable hashes were verified; this repository cleanup did not rebuild or visually re-review them.",
+    "Checksums demonstrate consistency with the committed manifest, not independent authenticity."
+  ]
+}

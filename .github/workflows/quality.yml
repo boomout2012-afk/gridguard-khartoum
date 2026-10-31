@@ -32,6 +32,9 @@ jobs:
           version: "0.10.10"
           enable-cache: true
 
+      - name: Verify submitted documents and evidence
+        run: python tools/verify_review_package.py
+
       - name: Install locked dependencies
         run: uv sync --locked --extra dev --extra docs
 

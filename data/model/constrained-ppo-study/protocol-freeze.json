@@ -1,0 +1,80 @@
+{
+  "config": {
+    "bc_episodes_per_severity": 455,
+    "bc_epochs": 10,
+    "bc_learning_rate": 0.0003,
+    "bc_minibatch_size": 1024,
+    "bc_scenario_seed": "3000000 + run_index * 10000",
+    "bc_value_coefficient": 0.5,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20261023,
+    "checkpoint_interval": 50,
+    "episodes_per_iteration": 256,
+    "evaluation_batch_size": 32,
+    "fairness_reward_tolerance": 0.005,
+    "iterations": 600,
+    "test_seeds": [
+      112201,
+      112202,
+      112203,
+      112204,
+      112205,
+      112206,
+      112207,
+      112208,
+      112209,
+      112210
+    ],
+    "training_scenario_seed": "2000000 + run_index * 10000 + iteration_index",
+    "training_seeds": [
+      1729,
+      2718,
+      3141,
+      5772,
+      8111
+    ],
+    "training_severity_batches": "85 each; extra episode rotates iteration_index % 3",
+    "validation_seeds": [
+      112101,
+      112102,
+      112103,
+      112104,
+      112105
+    ]
+  },
+  "frozen_at_utc": "2026-10-23T08:31:32.480088+00:00",
+  "ppo_config": {
+    "adam_epsilon": 1e-05,
+    "clip_ratio": 0.2,
+    "entropy_end": 0.001,
+    "entropy_start": 0.01,
+    "epochs": 4,
+    "gae_lambda": 0.95,
+    "gamma": 1.0,
+    "learning_rate": 0.0003,
+    "max_grad_norm": 0.5,
+    "minibatch_size": 1024,
+    "value_coefficient": 0.5
+  },
+  "schema": "gridguard.constrained_ppo_freeze.1",
+  "source_sha256": {
+    "data/evidence/allocation-validation.json": "292a3f734558a1de8c818e8ab2daec14b976ca5352b82b9bef398ca0cd30ca90",
+    "docs/CONSTRAINED_PPO_PROTOCOL.md": "120227eefb004256851fa8d2f1f92a2e52ba496494413cec80ccf87280f63e59",
+    "src/gridguard/allocation_study.py": "64c8b07ea84a047dd483c11498ab101efbf602417686fbd7e15634fb8483c05d",
+    "src/gridguard/constrained.py": "68bc8eec390d54b4c112d2fa5df65ccbdf291e710c5fe1617d4364e78d0d41f4",
+    "src/gridguard/constrained_ppo.py": "1b12357fff425f222aec59a1957b613dd35f3031cad50d5cc6f0a8668a699bd1",
+    "src/gridguard/controllers.py": "dcd94a9bb601493570bbbc0c2053c35ce41e6d27a6d0d2e14f8e97e21f896c73",
+    "src/gridguard/domain.py": "1031b66ada35baba6a5bc9af32a0e3dc6823803cafe3f9f4eefa6e87d309d024",
+    "src/gridguard/duration_metrics.py": "49d2e93a4463ca9888219f3772185645d0518c1ce7a139f2d638c517cc6d1f7a",
+    "src/gridguard/metrics.py": "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a",
+    "src/gridguard/optimization.py": "a426f28ede9e6c33fc806e4ee1014982b511fa7817c88be61b48036b908c1431",
+    "src/gridguard/ppo_experiment.py": "ff257822e175be4c28d6294a17c2ad472111f4e67c1cd60fe5c226c826acb0e7",
+    "src/gridguard/ppo_study.py": "1231ebe8d9284af74957b220f836161489d0725b0c86a788c10fdff90f6f1372",
+    "src/gridguard/ppo_training.py": "693e94daf8c851cf4e58554d6b98ada9ab11f22521804fbc0d53a8918eb9980f",
+    "src/gridguard/scenarios.py": "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990",
+    "src/gridguard/simulation.py": "a058fa35d9c63615bbe53037239705cbafa4ffab99fd96dc0ad46fa002a712b0",
+    "src/gridguard/statistics.py": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9",
+    "tools/evaluate_constrained_ppo.py": "571277c254c51a4ad88f87d77cda6819db399678e2b7b25c5cafd05915a868ea",
+    "tools/train_constrained_ppo.py": "0655724199e93b2d4d107b4a5df30ffb57b7e99e92db126863c9b9827d022db5"
+  }
+}

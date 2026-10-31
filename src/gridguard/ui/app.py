@@ -47,6 +47,7 @@ def prepare_startup(
 ) -> StartupBundle:
     """Run the complete project gate, then load its pinned presentation evidence."""
 
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     project = preflight()
     snapshot = snapshot_loader()
     return StartupBundle(gpu=project.gpu, snapshot=snapshot)

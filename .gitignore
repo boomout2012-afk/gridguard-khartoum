@@ -10,6 +10,7 @@ __pycache__/
 .coverage
 htmlcov/
 .codebase-memory/
+.chart-data-*/
 
 # Local configuration and secrets
 .env
@@ -19,13 +20,14 @@ htmlcov/
 # Packaging output
 build/
 dist/
+output/app/
+output/submission/
 *.egg-info/
 
 # Local design explorations; released report and presentation stay tracked.
 output/design/
 output/pdf/.previous/
 output/pdf/gridguard-khartoum-design-directions.pdf
-output/pdf/gridguard-khartoum-gui-pages.pdf
 
 # Temporary and log files
 tmp/

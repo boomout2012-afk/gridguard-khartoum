@@ -19,6 +19,7 @@ from gridguard.ui.live_models import (
 from gridguard.ui.map_asset import EXPECTED_LOCALITY_IDS
 from gridguard.ui.methodology_page import MethodologyPage
 from gridguard.ui.presentation_model import PresentationSnapshot
+from gridguard.ui.results_page import ResultsPage
 from gridguard.ui.theme import PALETTE
 from gridguard.ui.window import PresentationWindow
 
@@ -138,7 +139,7 @@ def _snapshot() -> PresentationSnapshot:
     )
 
 
-def test_window_has_presentation_pages_and_only_approved_controllers(qtbot) -> None:
+def test_window_has_presentation_pages_and_current_study_controllers(qtbot) -> None:
     window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
     qtbot.addWidget(window)
 
@@ -147,9 +148,11 @@ def test_window_has_presentation_pages_and_only_approved_controllers(qtbot) -> N
         "Live Scenario",
         "Results",
     ]
-    assert all(
-        list(panel.value_labels) == ["PPO", "Fixed Rotation"]
-        for panel in window.results_page.outcome_panels.values()
+    assert window.results_page.study_view.means.columns == (
+        "Outcome",
+        "Fixed Rotation",
+        "Constrained optimizer",
+        "PPO",
     )
     assert window.minimumSize().width() <= 1366
     assert window.minimumSize().height() <= 768
@@ -170,7 +173,9 @@ def test_live_controls_emit_selected_shortage_and_seed(qtbot) -> None:
 
 
 def test_results_table_displays_values_from_injected_evidence(qtbot) -> None:
-    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    window = PresentationWindow(
+        _snapshot(), runtime_label="Test CUDA runtime", results_page_factory=ResultsPage
+    )
     qtbot.addWidget(window)
 
     table = window.results_page.results_table
@@ -202,7 +207,9 @@ def test_results_table_displays_values_from_injected_evidence(qtbot) -> None:
 def test_results_comparisons_do_not_clip_headlines_at_1366_by_768(qtbot, qapp) -> None:
     theme.apply_theme(qapp)
     snapshot = _snapshot()
-    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    window = PresentationWindow(
+        snapshot, runtime_label="Test CUDA runtime", results_page_factory=ResultsPage
+    )
     qtbot.addWidget(window)
     window.resize(1366, 768)
     window.show()
@@ -224,7 +231,9 @@ def test_results_comparisons_do_not_clip_headlines_at_1366_by_768(qtbot, qapp) -
 
 
 def test_results_page_keeps_safety_and_scope_limits_visible(qtbot) -> None:
-    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    window = PresentationWindow(
+        _snapshot(), runtime_label="Test CUDA runtime", results_page_factory=ResultsPage
+    )
     qtbot.addWidget(window)
     window.resize(1366, 768)
     window.show()
@@ -270,7 +279,9 @@ def test_results_page_keeps_safety_and_scope_limits_visible(qtbot) -> None:
 
 
 def test_results_inference_banner_is_fully_visible_at_presentation_width(qtbot) -> None:
-    window = PresentationWindow(_snapshot(), runtime_label="Test CUDA runtime")
+    window = PresentationWindow(
+        _snapshot(), runtime_label="Test CUDA runtime", results_page_factory=ResultsPage
+    )
     qtbot.addWidget(window)
     window.resize(1366, 768)
     window.show()
@@ -413,7 +424,9 @@ def test_navigation_focus_is_blue_and_distinct_from_current_page(qtbot, qapp) ->
 
 def test_results_page_displays_evidence_derived_provenance(qtbot) -> None:
     snapshot = _snapshot()
-    window = PresentationWindow(snapshot, runtime_label="Test CUDA runtime")
+    window = PresentationWindow(
+        snapshot, runtime_label="Test CUDA runtime", results_page_factory=ResultsPage
+    )
     qtbot.addWidget(window)
 
     results = window.results_page

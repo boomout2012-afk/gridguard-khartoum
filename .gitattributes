@@ -6,6 +6,10 @@
 uv.lock text eol=lf
 
 *.py text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+# Historical evidence sources are byte-bound, including their original line endings.
+data/evidence/accepted-sources/** -text whitespace=cr-at-eol
 *.toml text eol=lf
 *.md text eol=lf
 *.json text eol=lf
@@ -20,3 +24,43 @@ uv.lock text eol=lf
 *.png binary
 *.pptx binary
 *.zst binary
+*.docx binary
+*.jpg binary
+*.ttf binary
+
+# Published evidence and its provenance are byte-bound, including original endings.
+# These exceptions must follow the generic text rules above. Do not normalize a
+# frozen artifact to fix a checksum: preserve the bytes used by its audit record.
+data/evidence/** -text whitespace=cr-at-eol
+data/model/** -text whitespace=cr-at-eol
+docs/*-validation.json -text whitespace=cr-at-eol
+docs/*.sha256 -text whitespace=cr-at-eol
+docs/assets/** -text whitespace=cr-at-eol
+docs/academic-cover.json -text whitespace=cr-at-eol
+docs/review-package-manifest.json -text whitespace=cr-at-eol
+docs/FOCUSED_THESIS.md -text whitespace=cr-at-eol
+docs/ALLOCATION_STUDY_PROTOCOL.md -text whitespace=cr-at-eol
+docs/CONSTRAINED_PPO_PROTOCOL.md -text whitespace=cr-at-eol
+docs/FOCUSED_PPO_PROTOCOL.md -text whitespace=cr-at-eol
+docs/PROPOSAL_EXTENSION.md -text whitespace=cr-at-eol
+docs/PROPOSAL_RESULTS.md -text whitespace=cr-at-eol
+output/**/*.build.json -text whitespace=cr-at-eol
+output/**/*.source.md -text whitespace=cr-at-eol
+src/gridguard/ui/live_components.py -text whitespace=cr-at-eol
+src/gridguard/ui/theme.py -text whitespace=cr-at-eol
+packaging/gridguard.spec -text whitespace=cr-at-eol
+scripts/release-integrity.ps1 -text whitespace=cr-at-eol
+
+# Keep generated evidence and rendered artifacts available without obscuring code review.
+data/evidence/** linguist-generated=true
+data/model/** linguist-generated=true
+docs/assets/focused-study/** linguist-generated=true
+docs/assets/presentation/** linguist-generated=true
+docs/assets/*screenshots/** linguist-generated=true
+output/** linguist-generated=true
+
+# Preserve generator/license whitespace in frozen non-code publication inputs.
+docs/assets/focused-study/*.svg -whitespace
+docs/assets/fonts/OFL.txt -whitespace
+docs/FOCUSED_THESIS.md whitespace=cr-at-eol,-blank-at-eof
+output/**/*.source.md whitespace=cr-at-eol,-blank-at-eof
