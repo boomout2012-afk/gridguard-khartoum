@@ -1,9 +1,49 @@
+import json
 from pathlib import Path
 
 import pytest
 from pypdf import PdfReader
 
 from tools import build_focused_thesis as thesis
+
+
+def test_locality_figure_requires_matching_derivation_and_images(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(thesis, "ROOT", tmp_path)
+    monkeypatch.setattr(thesis, "FIGURES", tmp_path)
+    images = [tmp_path / ("locality-allocation." + suffix) for suffix in ("png", "svg")]
+    for image in images:
+        image.write_bytes(b"original figure")
+    source = tmp_path / "locality-allocation.json"
+    source.write_text(
+        json.dumps(
+            {
+                "schema": "gridguard.focused_locality_interpretation.1",
+                "figure_sha256": {image.name: thesis.sha(image) for image in images},
+                "source_sha256": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+    source.with_suffix(".sha256").write_text(thesis.sha(source), encoding="utf-8")
+    details = tmp_path / "interpretation-details.json"
+    details.write_text(
+        json.dumps(
+            {
+                "schema": "gridguard.focused_training_generator_interpretation.1",
+                "source_sha256": {source.name: thesis.sha(source)},
+            }
+        ),
+        encoding="utf-8",
+    )
+    details.with_suffix(".sha256").write_text(thesis.sha(details), encoding="utf-8")
+    assert thesis.derived_figure_evidence("No derived figure here") == {}
+    assert thesis.derived_figure_evidence("[[FIGURE:locality]]")[source.name] == thesis.sha(source)
+    images[0].write_bytes(b"altered figure")
+    with pytest.raises(ValueError, match="figure differs"):
+        thesis.derived_figure_evidence("[[FIGURE:locality]]")
+    source.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="SHA-256 record"):
+        thesis.derived_figure_evidence("[[FIGURE:locality]]")
 
 
 def test_navigation_rejects_uncaptioned_tables_and_broken_references() -> None:

@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="693.501484pt" height="406.752pt" viewBox="0 0 693.501484 406.752" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 406.752 
+L 693.501484 406.752 
+L 693.501484 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 64.962656 291.168 
+L 404.277172 291.168 
+L 404.277172 90.72 
+L 64.962656 90.72 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 64.962656 291.168 
+L 64.962656 90.72 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="m577e0a4cbb" d="M 0 0 
+L 0 3.5 
+" style="stroke: #000000; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="64.962656" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="64.962656" y="308.618" transform="rotate(-0 64.962656 308.618)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 132.825559 291.168 
+L 132.825559 90.72 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="132.825559" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="132.825559" y="308.618" transform="rotate(-0 132.825559 308.618)">20</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 200.688463 291.168 
+L 200.688463 90.72 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="200.688463" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="200.688463" y="308.618" transform="rotate(-0 200.688463 308.618)">40</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 268.551366 291.168 
+L 268.551366 90.72 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="268.551366" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="268.551366" y="308.618" transform="rotate(-0 268.551366 308.618)">60</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 336.414269 291.168 
+L 336.414269 90.72 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="336.414269" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="336.414269" y="308.618" transform="rotate(-0 336.414269 308.618)">80</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_11">
+      <path d="M 404.277172 291.168 
+L 404.277172 90.72 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="404.277172" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="404.277172" y="308.618" transform="rotate(-0 404.277172 308.618)">100</text>
+     </g>
+    </g>
+    <g id="text_7">
+     <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle; fill: #173f43" x="234.619914" y="326.258" transform="rotate(-0 234.619914 326.258)">End-of-day demand served (%)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_13"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="114.906297" transform="rotate(-0 61.462656 114.906297)">Khartoum</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_14"/>
+     <g id="text_9">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="141.993865" transform="rotate(-0 61.462656 141.993865)">Omdurman</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_15"/>
+     <g id="text_10">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="169.081432" transform="rotate(-0 61.462656 169.081432)">Bahri</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_16"/>
+     <g id="text_11">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="196.169" transform="rotate(-0 61.462656 196.169)">East Nile</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_17"/>
+     <g id="text_12">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="223.256568" transform="rotate(-0 61.462656 223.256568)">Jebel Awlia</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_18"/>
+     <g id="text_13">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="250.344135" transform="rotate(-0 61.462656 250.344135)">Karari</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_19"/>
+     <g id="text_14">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="61.462656" y="277.431703" transform="rotate(-0 61.462656 277.431703)">Ombada</text>
+     </g>
+    </g>
+   </g>
+   <g id="line2d_20">
+    <path d="M 299.124124 109.681297 
+L 290.896743 109.681297 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_21">
+    <path d="M 283.312302 136.768865 
+L 276.033447 136.768865 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_22">
+    <path d="M 264.700539 163.856432 
+L 270.300046 163.856432 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_23">
+    <path d="M 269.77513 190.944 
+L 276.449954 190.944 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_24">
+    <path d="M 252.450424 218.031568 
+L 251.020189 218.031568 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_25">
+    <path d="M 267.63909 245.119135 
+L 266.677037 245.119135 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_26">
+    <path d="M 262.423271 272.206703 
+L 265.802636 272.206703 
+" clip-path="url(#p04b874c24f)" style="fill: none; stroke: #b8cac3; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 64.962656 291.168 
+L 64.962656 90.72 
+" style="fill: none; stroke: #dce7e1; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 64.962656 291.168 
+L 404.277172 291.168 
+" style="fill: none; stroke: #dce7e1; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="112.651297" transform="rotate(-0 390.704592 112.651297)">-2.42 pp</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="139.738865" transform="rotate(-0 390.704592 139.738865)">-2.15 pp</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="166.826432" transform="rotate(-0 390.704592 166.826432)">+1.65 pp</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="193.914" transform="rotate(-0 390.704592 193.914)">+1.97 pp</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="221.001568" transform="rotate(-0 390.704592 221.001568)">-0.42 pp</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="248.089135" transform="rotate(-0 390.704592 248.089135)">-0.28 pp</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="275.176703" transform="rotate(-0 390.704592 275.176703)">+1.00 pp</text>
+   </g>
+   <g id="PathCollection_1">
+    <defs>
+     <path id="md64a1718a6" d="M -3.041381 3.041381 
+L 3.041381 3.041381 
+L 3.041381 -3.041381 
+L -3.041381 -3.041381 
+z
+" style="stroke: #718789"/>
+    </defs>
+    <g clip-path="url(#p04b874c24f)">
+     <use xlink:href="#md64a1718a6" x="223.71019" y="109.681297" style="fill: #718789; stroke: #718789"/>
+     <use xlink:href="#md64a1718a6" x="228.335104" y="136.768865" style="fill: #718789; stroke: #718789"/>
+     <use xlink:href="#md64a1718a6" x="225.573436" y="163.856432" style="fill: #718789; stroke: #718789"/>
+     <use xlink:href="#md64a1718a6" x="187.199974" y="190.944" style="fill: #718789; stroke: #718789"/>
+     <use xlink:href="#md64a1718a6" x="192.890855" y="218.031568" style="fill: #718789; stroke: #718789"/>
+     <use xlink:href="#md64a1718a6" x="194.372119" y="245.119135" style="fill: #718789; stroke: #718789"/>
+     <use xlink:href="#md64a1718a6" x="203.158054" y="272.206703" style="fill: #718789; stroke: #718789"/>
+    </g>
+   </g>
+   <g id="PathCollection_2">
+    <defs>
+     <path id="m7813de94b1" d="M 0 3.041381 
+C 0.806584 3.041381 1.58024 2.720922 2.150581 2.150581 
+C 2.720922 1.58024 3.041381 0.806584 3.041381 0 
+C 3.041381 -0.806584 2.720922 -1.58024 2.150581 -2.150581 
+C 1.58024 -2.720922 0.806584 -3.041381 0 -3.041381 
+C -0.806584 -3.041381 -1.58024 -2.720922 -2.150581 -2.150581 
+C -2.720922 -1.58024 -3.041381 -0.806584 -3.041381 0 
+C -3.041381 0.806584 -2.720922 1.58024 -2.150581 2.150581 
+C -1.58024 2.720922 -0.806584 3.041381 0 3.041381 
+z
+" style="stroke: #e77d60"/>
+    </defs>
+    <g clip-path="url(#p04b874c24f)">
+     <use xlink:href="#m7813de94b1" x="299.124124" y="109.681297" style="fill: #e77d60; stroke: #e77d60"/>
+     <use xlink:href="#m7813de94b1" x="283.312302" y="136.768865" style="fill: #e77d60; stroke: #e77d60"/>
+     <use xlink:href="#m7813de94b1" x="264.700539" y="163.856432" style="fill: #e77d60; stroke: #e77d60"/>
+     <use xlink:href="#m7813de94b1" x="269.77513" y="190.944" style="fill: #e77d60; stroke: #e77d60"/>
+     <use xlink:href="#m7813de94b1" x="252.450424" y="218.031568" style="fill: #e77d60; stroke: #e77d60"/>
+     <use xlink:href="#m7813de94b1" x="267.63909" y="245.119135" style="fill: #e77d60; stroke: #e77d60"/>
+     <use xlink:href="#m7813de94b1" x="262.423271" y="272.206703" style="fill: #e77d60; stroke: #e77d60"/>
+    </g>
+   </g>
+   <g id="PathCollection_3">
+    <defs>
+     <path id="ma90060509d" d="M 0 4.301163 
+L 4.301163 0 
+L 0 -4.301163 
+L -4.301163 0 
+z
+" style="stroke: #137b73"/>
+    </defs>
+    <g clip-path="url(#p04b874c24f)">
+     <use xlink:href="#ma90060509d" x="290.896743" y="109.681297" style="fill: #137b73; stroke: #137b73"/>
+     <use xlink:href="#ma90060509d" x="276.033447" y="136.768865" style="fill: #137b73; stroke: #137b73"/>
+     <use xlink:href="#ma90060509d" x="270.300046" y="163.856432" style="fill: #137b73; stroke: #137b73"/>
+     <use xlink:href="#ma90060509d" x="276.449954" y="190.944" style="fill: #137b73; stroke: #137b73"/>
+     <use xlink:href="#ma90060509d" x="251.020189" y="218.031568" style="fill: #137b73; stroke: #137b73"/>
+     <use xlink:href="#ma90060509d" x="266.677037" y="245.119135" style="fill: #137b73; stroke: #137b73"/>
+     <use xlink:href="#ma90060509d" x="265.802636" y="272.206703" style="fill: #137b73; stroke: #137b73"/>
+    </g>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 9px; font-family: 'Atkinson Hyperlegible'; text-anchor: end; fill: #173f43" x="390.704592" y="83.406357" transform="rotate(-0 390.704592 83.406357)">PPO minus optimizer</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 12px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="64.962656" y="80.72" transform="rotate(-0 64.962656 80.72)">Mean locality demand fraction served</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_5">
+    <path d="M 522.728785 291.168 
+L 676.962656 291.168 
+L 676.962656 90.72 
+L 522.728785 90.72 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_7">
+     <g id="line2d_27">
+      <path d="M 522.728785 291.168 
+L 522.728785 90.72 
+" clip-path="url(#p76dbba5829)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_28">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="522.728785" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_24">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="522.728785" y="308.618" transform="rotate(-0 522.728785 308.618)">0</text>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_29">
+      <path d="M 561.287253 291.168 
+L 561.287253 90.72 
+" clip-path="url(#p76dbba5829)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_30">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="561.287253" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_25">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="561.287253" y="308.618" transform="rotate(-0 561.287253 308.618)">25</text>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_31">
+      <path d="M 599.845721 291.168 
+L 599.845721 90.72 
+" clip-path="url(#p76dbba5829)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_32">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="599.845721" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_26">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="599.845721" y="308.618" transform="rotate(-0 599.845721 308.618)">50</text>
+     </g>
+    </g>
+    <g id="xtick_10">
+     <g id="line2d_33">
+      <path d="M 638.404189 291.168 
+L 638.404189 90.72 
+" clip-path="url(#p76dbba5829)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_34">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="638.404189" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_27">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="638.404189" y="308.618" transform="rotate(-0 638.404189 308.618)">75</text>
+     </g>
+    </g>
+    <g id="xtick_11">
+     <g id="line2d_35">
+      <path d="M 676.962656 291.168 
+L 676.962656 90.72 
+" clip-path="url(#p76dbba5829)" style="fill: none; stroke: #e6ece8; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_36">
+      <g>
+       <use xlink:href="#m577e0a4cbb" x="676.962656" y="291.168" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_28">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle" x="676.962656" y="308.618" transform="rotate(-0 676.962656 308.618)">100</text>
+     </g>
+    </g>
+    <g id="text_29">
+     <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle; fill: #173f43" x="599.845721" y="326.258" transform="rotate(-0 599.845721 326.258)">Mean minimum service (%)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4">
+    <g id="ytick_8">
+     <g id="line2d_37">
+      <defs>
+       <path id="m18f8b24f2d" d="M 0 0 
+L -3.5 0 
+" style="stroke: #000000; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m18f8b24f2d" x="522.728785" y="135.264" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_30">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'" transform="translate(489.438785 133.669)">Fixed</text>
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'" transform="translate(474.808785 147.309)">Rotation</text>
+     </g>
+    </g>
+    <g id="ytick_9">
+     <g id="line2d_38">
+      <g>
+       <use xlink:href="#m18f8b24f2d" x="522.728785" y="190.944" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_31">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'" transform="translate(457.253473 189.349)">Constrained</text>
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'" transform="translate(453.030504 202.989)">Optimization</text>
+     </g>
+    </g>
+    <g id="ytick_10">
+     <g id="line2d_39">
+      <g>
+       <use xlink:href="#m18f8b24f2d" x="522.728785" y="246.624" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_32">
+      <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: end" x="515.728785" y="251.849" transform="rotate(-0 515.728785 251.849)">PPO</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_6">
+    <path d="M 522.728785 291.168 
+L 522.728785 90.72 
+" style="fill: none; stroke: #dce7e1; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 522.728785 291.168 
+L 676.962656 291.168 
+" style="fill: none; stroke: #dce7e1; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 522.728785 121.344 
+L 578.291202 121.344 
+L 578.291202 149.184 
+L 522.728785 149.184 
+z
+" clip-path="url(#p76dbba5829)" style="fill: #718789"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 522.728785 177.024 
+L 591.977888 177.024 
+L 591.977888 204.864 
+L 522.728785 204.864 
+z
+" clip-path="url(#p76dbba5829)" style="fill: #e77d60"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 522.728785 232.704 
+L 598.02046 232.704 
+L 598.02046 260.544 
+L 522.728785 260.544 
+z
+" clip-path="url(#p76dbba5829)" style="fill: #137b73"/>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="582.291202" y="138.894" transform="rotate(-0 582.291202 138.894)">36.02%</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="595.977888" y="194.574" transform="rotate(-0 595.977888 194.574)">44.90%</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 11px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="602.02046" y="250.254" transform="rotate(-0 602.02046 250.254)">48.82%</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 12px; font-family: 'Atkinson Hyperlegible'; fill: #173f43" transform="translate(522.728785 65.84)">Worst-served locality</text>
+    <text style="font-size: 12px; font-family: 'Atkinson Hyperlegible'; fill: #173f43" transform="translate(522.728785 80.72)">within each condition</text>
+   </g>
+  </g>
+  <g id="text_37">
+   <text style="font-size: 16px; font-family: 'Atkinson Hyperlegible'; text-anchor: middle; fill: #173f43" x="331.362656" y="22.4" transform="rotate(-0 331.362656 22.4)">Locality service at the end of the day</text>
+  </g>
+  <g id="text_38">
+   <text style="font-size: 10px; font-family: 'Atkinson Hyperlegible'; fill: #5c7475" transform="translate(133.568125 371.852)">960 matched conditions; PPO weights five selected runs equally. Means of episode ratios.</text>
+   <text style="font-size: 10px; font-family: 'Atkinson Hyperlegible'; fill: #5c7475" transform="translate(189.54 384.252)">Right: take the minimum within each condition before averaging.</text>
+   <text style="font-size: 10px; font-family: 'Atkinson Hyperlegible'; fill: #5c7475" transform="translate(135.147812 396.652)">These endpoint measures differ from hourly-mean Jain fairness and pooled energy ratios.</text>
+  </g>
+  <g id="legend_1">
+   <g id="PathCollection_4">
+    <g>
+     <use xlink:href="#md64a1718a6" x="195.689219" y="43.955" style="fill: #718789; stroke: #718789"/>
+    </g>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 10px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="213.689219" y="46.58" transform="rotate(-0 213.689219 46.58)">Fixed Rotation</text>
+   </g>
+   <g id="PathCollection_5">
+    <g>
+     <use xlink:href="#m7813de94b1" x="307.589219" y="43.955" style="fill: #e77d60; stroke: #e77d60"/>
+    </g>
+   </g>
+   <g id="text_40">
+    <text style="font-size: 10px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="325.589219" y="46.58" transform="rotate(-0 325.589219 46.58)">Constrained Optimization</text>
+   </g>
+   <g id="PathCollection_6">
+    <g>
+     <use xlink:href="#ma90060509d" x="468.547031" y="43.955" style="fill: #137b73; stroke: #137b73"/>
+    </g>
+   </g>
+   <g id="text_41">
+    <text style="font-size: 10px; font-family: 'Atkinson Hyperlegible'; text-anchor: start; fill: #173f43" x="486.547031" y="46.58" transform="rotate(-0 486.547031 46.58)">PPO</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p04b874c24f">
+   <rect x="64.962656" y="90.72" width="339.314516" height="200.448"/>
+  </clipPath>
+  <clipPath id="p76dbba5829">
+   <rect x="522.728785" y="90.72" width="154.233871" height="200.448"/>
+  </clipPath>
+ </defs>
+</svg>

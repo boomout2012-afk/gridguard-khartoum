@@ -1,0 +1,78 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>&#x3B4;</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <msub>
+    <mi>r</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>+</mo>
+  <mi>&#x3B3;</mi>
+  <msub>
+    <mi>v</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>t</mi>
+      <mo>+</mo>
+      <mn>1</mn>
+    </mrow>
+  </msub>
+  <mo>&#x2212;</mo>
+  <msub>
+    <mi>v</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <msubsup>
+    <mi>A</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mn>24</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">raw</mi>
+      </mrow>
+    </mrow>
+  </msubsup>
+  <mo>=</mo>
+  <mn>0</mn>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <msubsup>
+    <mi>A</mi>
+    <mi>t</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">raw</mi>
+      </mrow>
+    </mrow>
+  </msubsup>
+  <mo>=</mo>
+  <msub>
+    <mi>&#x3B4;</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>+</mo>
+  <mi>&#x3B3;</mi>
+  <mi>&#x3BB;</mi>
+  <msubsup>
+    <mi>A</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>t</mi>
+      <mo>+</mo>
+      <mn>1</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">raw</mi>
+      </mrow>
+    </mrow>
+  </msubsup>
+  <mo>.</mo>
+</math>

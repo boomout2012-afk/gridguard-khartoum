@@ -1,0 +1,21 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>v</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <msub>
+    <mi>V</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">old</mi>
+      </mrow>
+    </mrow>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <msub>
+    <mi>s</mi>
+    <mi>t</mi>
+  </msub>
+  <mo stretchy="false">)</mo>
+</math>

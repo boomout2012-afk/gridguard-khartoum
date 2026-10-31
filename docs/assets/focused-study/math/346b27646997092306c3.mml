@@ -1,0 +1,56 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>S</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>&#x2113;</mi>
+      <mo>,</mo>
+      <mi>h</mi>
+    </mrow>
+  </msub>
+  <mo>&#x2212;</mo>
+  <msub>
+    <mi>C</mi>
+    <mi>h</mi>
+  </msub>
+  <mstyle scriptlevel="0">
+    <mspace width="0.278em"></mspace>
+  </mstyle>
+  <mo>&#x2265;</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="0.278em"></mspace>
+  </mstyle>
+  <mo stretchy="false">(</mo>
+  <msub>
+    <mi>q</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>&#x2113;</mi>
+      <mo>,</mo>
+      <mi>h</mi>
+    </mrow>
+  </msub>
+  <mo>&#x2212;</mo>
+  <mn>1</mn>
+  <mo stretchy="false">)</mo>
+  <mn>1.05</mn>
+  <msubsup>
+    <mi>C</mi>
+    <mi>h</mi>
+    <mn>0</mn>
+  </msubsup>
+  <mo>+</mo>
+  <msub>
+    <mi>q</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>&#x2113;</mi>
+      <mo>,</mo>
+      <mi>h</mi>
+    </mrow>
+  </msub>
+  <mn>0.95</mn>
+  <msubsup>
+    <mi>N</mi>
+    <mi>h</mi>
+    <mn>0</mn>
+  </msubsup>
+  <mo>.</mo>
+</math>

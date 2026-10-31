@@ -119,10 +119,21 @@ FIGURE_DETAILS = {
         "MAE and RMSE compare locality-sector and system-total targets on 320 held-out "
         "synthetic traces. Forecast evaluation is separate from the controller comparison.",
     ),
+    "locality": (
+        "5.7",
+        "Locality service at the end of the day",
+        FIGURES / "locality-allocation.png",
+        "Left: mean per-condition 24-hour served/demand ratios for the original 960 matched "
+        "conditions; annotations show PPO minus Constrained Optimization in percentage "
+        "points. Right: mean of the minimum locality ratio calculated within each condition. "
+        "PPO weights its five validation-selected actors equally. These descriptive endpoint "
+        "measures are distinct from hourly-mean Jain fairness and pooled energy ratios.",
+    ),
 }
 ABBREVIATIONS = (
     ("AI", "Artificial intelligence"),
     ("API", "Application programming interface"),
+    ("BC", "Behavior cloning"),
     ("CI", "Confidence interval"),
     ("CPU", "Central processing unit"),
     ("CUDA", "Compute Unified Device Architecture"),
@@ -272,6 +283,40 @@ def equation(latex: str):
 
 def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def derived_figure_evidence(markdown: str) -> dict[str, str]:
+    """Bind descriptive figure data and reject images detached from their recorded derivation."""
+    if "[[FIGURE:locality]]" not in markdown:
+        return {}
+    source = FIGURES / "locality-allocation.json"
+    sidecar = source.with_suffix(".sha256")
+    digest = sha(source)
+    expected = sidecar.read_text(encoding="utf-8").split()[0]
+    if digest != expected:
+        raise ValueError("Locality figure evidence differs from its SHA-256 record")
+    evidence = json.loads(source.read_text(encoding="utf-8"))
+    if evidence.get("schema") != "gridguard.focused_locality_interpretation.1":
+        raise ValueError("Unsupported locality figure evidence schema")
+    for name in ("locality-allocation.png", "locality-allocation.svg"):
+        if sha(FIGURES / name) != evidence.get("figure_sha256", {}).get(name):
+            raise ValueError(f"Locality figure differs from its evidence: {name}")
+    details = FIGURES / "interpretation-details.json"
+    details_sidecar = details.with_suffix(".sha256")
+    if sha(details) != details_sidecar.read_text(encoding="utf-8").split()[0]:
+        raise ValueError("Interpretation evidence differs from its SHA-256 record")
+    interpretation = json.loads(details.read_text(encoding="utf-8"))
+    if interpretation.get("schema") != "gridguard.focused_training_generator_interpretation.1":
+        raise ValueError("Unsupported interpretation evidence schema")
+    for record in (evidence, interpretation):
+        for relative, expected in record["source_sha256"].items():
+            path = (ROOT / relative).resolve()
+            if not path.is_relative_to(ROOT.resolve()) or sha(path) != expected:
+                raise ValueError(f"Interpretation source differs from its evidence: {relative}")
+    return {
+        path.relative_to(ROOT).as_posix(): sha(path)
+        for path in (source, sidecar, details, details_sidecar)
+    }
 
 
 class ThesisDocument(report.ReportDocument):
@@ -455,9 +500,9 @@ def styles():
         parent=s["body"],
         fontName="GridGuardArabicRegular",
         fontSize=13,
-        leading=19,
+        leading=18,
         alignment=2,
-        spaceAfter=10,
+        spaceAfter=7,
     )
     s["arabic_chapter"] = ParagraphStyle(
         "ArabicChapter",
@@ -661,6 +706,15 @@ def flowables(markdown, s):
             result.append(equation(part[2:-2].strip()))
         elif part.strip():
             for item in report.markdown_text_flowables(part, s):
+                if (
+                    isinstance(item, KeepTogether)
+                    and result
+                    and getattr(result[-1], "_navigation_kind", "") == "table"
+                ):
+                    result.append(KeepTogether([result.pop(), *item._content]))
+                    continue
+                if isinstance(item, Paragraph) and item.getPlainText().startswith("6.4 "):
+                    result.append(CondPageBreak(360))
                 if isinstance(item, Paragraph) and item.getPlainText().endswith(
                     "Computation and verification"
                 ):
@@ -716,9 +770,10 @@ def document_story(markdown: str, s):
                 "CaptionIndex",
                 parent=contents_styles()[1],
                 leftIndent=0,
+                rightIndent=42,
                 fontSize=9.5,
                 leading=13.5,
-                spaceBefore=5,
+                spaceBefore=3,
             )
         ]
         story += [PageBreak(), Paragraph("List of " + kind + "s", s["chapter"]), entries]
@@ -812,6 +867,7 @@ def build(output: Path, content_path: Path):
         raise ValueError("Thesis source requires an English abstract")
     if "Original study:" in markdown or "Integrated conclusion" in markdown:
         raise ValueError("Superseded fragmented chapter structure found")
+    derived_figures = derived_figure_evidence(markdown)
     prepare_math(markdown)
     # Export the same vector workflow used in the PDF for the editable Word edition.
     workflow_svg = FIGURES / "research-workflow.svg"
@@ -878,6 +934,7 @@ def build(output: Path, content_path: Path):
         "figures_sha256": {
             p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(FIGURES.rglob("*.png"))
         },
+        "derived_figure_evidence_sha256": derived_figures,
         "screenshots_sha256": {
             p.relative_to(ROOT).as_posix(): sha(p)
             for p in (SCREENSHOTS / "overview.png", SCREENSHOTS / "live-ppo.png")

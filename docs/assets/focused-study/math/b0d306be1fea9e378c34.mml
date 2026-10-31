@@ -1,0 +1,19 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>q</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>&#x2113;</mi>
+      <mo>,</mo>
+      <mi>h</mi>
+    </mrow>
+  </msub>
+  <mo>=</mo>
+  <mn>0.95</mn>
+  <msub>
+    <mi>f</mi>
+    <mi>&#x2113;</mi>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <mi>h</mi>
+  <mo stretchy="false">)</mo>
+</math>

@@ -1,0 +1,25 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>D</mi>
+    <mi>h</mi>
+  </msub>
+  <mo>=</mo>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>d</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+      <mo>,</mo>
+      <mi>h</mi>
+    </mrow>
+  </msub>
+</math>

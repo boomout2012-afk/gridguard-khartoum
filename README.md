@@ -42,6 +42,14 @@ These are post-hoc analyses on the original test scenarios, not a new independen
 See the [review response](docs/COMMITTEE_REVISION.md) and
 [follow-up protocol](docs/COMMITTEE_BASELINE_PROTOCOL.md).
 
+The thesis includes a further [fresh learning-stage audit](docs/THESIS_LEARNING_AUDIT_PROTOCOL.md)
+on 960 new matched conditions. Relative to each policy's own imitation-only initialization,
+fine-tuning and validation selection improve daily reward by **0.1801** and Jain fairness
+by **3.914 percentage points**, while serving **77.20 fewer MWh/day**. PPO's higher Jain
+fairness also coexists with lower final worst-locality service than the teacher and
+critical-aware rotation. All 13,440 trajectories were replayed. This descriptive addition
+does not replace the original results displayed in the app and presentation.
+
 The app's **Results** page reports the five-run study. **Live Scenario** uses the policy selected
 by validation, training seed 8111 at checkpoint 2500. One live scenario is separate from the
 study averages. See the [frozen study protocol](docs/FOCUSED_PPO_PROTOCOL.md) for selection rules,

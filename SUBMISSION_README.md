@@ -110,6 +110,27 @@ uv run --no-sync python tools/evaluate_committee_baseline.py --verify --sha256 $
 This recomputes the statistical summaries from the stored trajectory results and checks the
 original-study replay. A new simulator replay can be written to a fresh path with `--output`.
 
+The thesis also reports a separate fresh learning-stage audit. It compares the five
+selected actors with their own imitation-only initializations and four deterministic
+baselines, without retraining or changing the original study. Verify its saved evidence:
+
+```powershell
+uv run --no-sync python tools/evaluate_thesis_learning_audit.py --verify
+```
+
+For another complete simulator replay without overwriting the frozen receipt:
+
+```powershell
+uv run --no-sync python -c "from tools.evaluate_thesis_learning_audit import OUTPUT, verify; verify(OUTPUT, replay=True)"
+```
+
+The protocol, source freeze and replay receipt are retained as
+`docs/THESIS_LEARNING_AUDIT_PROTOCOL.md` and `data/evidence/thesis-learning-audit*`.
+These new conditions use the same synthetic generator; their results remain separate
+from the original benchmark and the app. To regenerate Figure 5.7 and the exact
+generator/learning-curve reductions, run
+`uv run --no-sync python tools/interpret_focused_study.py` on the documented CUDA setup.
+
 ## Rebuild or edit the documents
 
 The finalized PDFs can be submitted directly. The editable deck includes native charts, tables,

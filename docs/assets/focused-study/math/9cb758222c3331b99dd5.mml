@@ -1,0 +1,27 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>f</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">Severe</mi>
+      </mrow>
+    </mrow>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <mi>h</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mn>0.50</mn>
+  <mo>&#x2212;</mo>
+  <mn>0.15</mn>
+  <mrow data-mjx-texclass="ORD">
+    <mn mathvariant="bold">1</mn>
+  </mrow>
+  <mo stretchy="false">[</mo>
+  <mn>16</mn>
+  <mo>&#x2264;</mo>
+  <mi>h</mi>
+  <mo>&lt;</mo>
+  <mn>22</mn>
+  <mo stretchy="false">]</mo>
+</math>

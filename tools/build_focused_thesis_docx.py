@@ -109,10 +109,18 @@ class ThesisWordBuilder:
             style.paragraph_format.keep_with_next = True
             if name == "Heading 1":
                 style.paragraph_format.page_break_before = True
+        for level in (1, 2):
+            style = document.styles.add_style(f"toc {level}", WD_STYLE_TYPE.PARAGRAPH, builtin=True)
+            style.style_id = f"TOC{level}"
+            style.base_style = document.styles["Normal"]
+            style.paragraph_format.space_after = Pt(3)
+            if level == 2:
+                style.paragraph_format.left_indent = Pt(12)
         for name, size, bold in (
             ("Figure Caption", 10, False),
             ("Table Caption", 10, True),
             ("Frontmatter Heading", 16, True),
+            ("Contents Heading", 16, True),
             ("Arabic Thesis", 13, False),
         ):
             style = document.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
@@ -123,9 +131,12 @@ class ThesisWordBuilder:
             style.font.color.rgb = RGBColor(0, 0, 0)
             style.paragraph_format.space_after = Pt(8)
             style.paragraph_format.keep_with_next = name == "Table Caption"
-            if name == "Frontmatter Heading":
+            if name in {"Frontmatter Heading", "Contents Heading"}:
                 style.paragraph_format.page_break_before = True
                 style.paragraph_format.space_after = Pt(20)
+                outline = OxmlElement("w:outlineLvl")
+                outline.set(qn("w:val"), "0" if name == "Frontmatter Heading" else "9")
+                style.element.get_or_add_pPr().append(outline)
         settings = document.settings.element
         update = OxmlElement("w:updateFields")
         update.set(qn("w:val"), "true")
@@ -244,11 +255,12 @@ class ThesisWordBuilder:
 
     def frontmatter(self):
         for title, instruction in (
-            ("Contents", 'TOC \\o "1-2" \\h \\z \\u'),
-            ("List of figures", 'TOC \\t "Figure Caption,1" \\h \\z'),
+            ("Contents", 'TOC \\o "1-2" \\t "Frontmatter Heading,1" \\h \\z \\u'),
+            ("List of figures", "TOC \\f F \\h \\z"),
             ("List of tables", 'TOC \\t "Table Caption,1" \\h \\z'),
         ):
-            self.document.add_paragraph(title, style="Frontmatter Heading")
+            style = "Contents Heading" if title == "Contents" else "Frontmatter Heading"
+            self.document.add_paragraph(title, style=style)
             paragraph = self.document.add_paragraph()
             field(paragraph, instruction, "Updated by Microsoft Word during verification.")
         self.document.add_paragraph("List of abbreviations", style="Frontmatter Heading")
@@ -325,6 +337,7 @@ class ThesisWordBuilder:
             paragraph, label + ". " + item["title"] + ". " + item["explanation"], references=False
         )
         self.bookmark(paragraph, label)
+        field(paragraph, f'TC "{label}. {item["title"]}" \\f F \\l 1')
         self.figures.append(label)
 
     def body(self, markdown: str):

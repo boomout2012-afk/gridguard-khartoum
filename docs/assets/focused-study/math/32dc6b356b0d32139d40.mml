@@ -1,0 +1,13 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msubsup>
+    <mi>C</mi>
+    <mi>h</mi>
+    <mn>0</mn>
+  </msubsup>
+  <mo>,</mo>
+  <msubsup>
+    <mi>N</mi>
+    <mi>h</mi>
+    <mn>0</mn>
+  </msubsup>
+</math>

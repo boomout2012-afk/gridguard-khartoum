@@ -42,6 +42,11 @@ resolution. The [follow-up protocol](COMMITTEE_BASELINE_PROTOCOL.md) and
 the Fairness Rule teacher and critical-supply stress tests. These analyses preserve the
 original study and are labelled post-hoc throughout the thesis, slides and application.
 
+The [further thesis revision](THESIS_REASSESSMENT.md) adds exact generator and learning
+definitions, locality interpretation and a separately frozen fresh learning-stage audit.
+The app and slides continue to report the original study and preceding baseline audit;
+the new thesis analysis does not replace them.
+
 ## Source and runtime verification
 
 Follow the [reviewer guide](REVIEWER_GUIDE.md) for environment setup, tests, evidence
@@ -52,9 +57,11 @@ The [submission guide](../SUBMISSION_README.md) describes the separate portable 
 package and the document-build commands. That large executable package is not part of
 a Git clone.
 
-The [committee revision validation](committee-revision-validation.json) records the current
-source/GPU tests, rebuilt executable checks, document rendering and preserved scientific
-identities. The earlier [repository cleanup validation](repository-validation.json) records
+The [committee revision validation](committee-revision-validation.json) records the preceding
+source/GPU tests, unchanged executable checks, earlier document rendering and preserved
+scientific identities. The [thesis reassessment validation](thesis-reassessment-validation.json)
+records the later thesis and fresh-audit checks. The earlier
+[repository cleanup validation](repository-validation.json) records
 1,569 passing tests for the pre-revision snapshot; it does not certify the later changes.
 Eleven optional historical archive/release tests are explicitly deselected from the current
 source gate. The GitHub **Quality** workflow provides the separate portable CI result for

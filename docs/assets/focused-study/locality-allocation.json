@@ -1,0 +1,322 @@
+{
+  "aggregation": "mean of per-condition 24h served/demand ratios; equal conditions and selected runs",
+  "by_shortage_means_percent": [
+    [
+      [
+        47.2182228602469,
+        49.24286990426481,
+        48.42595928348601,
+        36.686336072161794,
+        38.31207520328462,
+        38.74828612431884,
+        41.33994223549962
+      ],
+      [
+        47.2182228602469,
+        49.24286990426481,
+        48.42595928348601,
+        36.686336072161794,
+        38.31207520328462,
+        38.74828612431884,
+        41.33994223549962
+      ],
+      [
+        45.917879808694124,
+        45.95763646066189,
+        45.149769093841314,
+        34.70167642459273,
+        36.48170790635049,
+        36.9189243670553,
+        39.503568671643734
+      ]
+    ],
+    [
+      [
+        84.7455326281488,
+        81.49028671905398,
+        76.5796369034797,
+        81.6730553098023,
+        67.81306660734117,
+        80.37143414840102,
+        73.57950341887772
+      ],
+      [
+        60.03795834258199,
+        58.45759293995798,
+        63.68853983469307,
+        64.12795937620103,
+        63.46929752267897,
+        65.07240207865834,
+        58.38565544225276
+      ],
+      [
+        62.246968587860465,
+        53.10278772376478,
+        36.32717099972069,
+        35.28095874469727,
+        34.48222171049565,
+        33.749588299542665,
+        42.61677487753332
+      ]
+    ],
+    [
+      [
+        82.50373818352818,
+        82.46053548716009,
+        80.36547223106027,
+        81.47326267510653,
+        65.47379171848297,
+        75.94160201400518,
+        77.76518390700221
+      ],
+      [
+        60.46910950914025,
+        55.23623860068619,
+        61.522146910429,
+        67.10222211107612,
+        64.00623843073845,
+        64.82674034871161,
+        58.71671930141748
+      ],
+      [
+        56.783492397516966,
+        48.9183992408216,
+        39.65845112502575,
+        38.40793697722256,
+        35.02003465779126,
+        37.574497286230326,
+        41.08784752525389
+      ]
+    ]
+  ],
+  "by_shortage_minimum_percent": [
+    [
+      36.686336072161794,
+      36.686336072161794,
+      34.70167642459273
+    ],
+    [
+      57.41527042351663,
+      47.1750517282635,
+      30.105972411110997
+    ],
+    [
+      62.356208445504315,
+      50.99315316416323,
+      33.10032797977328
+    ]
+  ],
+  "computation": "CUDA float64 CuPy reductions; PyTorch/CuPy DLPack; one final packed host transfer",
+  "figure_sha256": {
+    "locality-allocation.png": "1c6e7c3c01a85713340596155132364e5d8ff5f58c9963a523a4440387e2eed3",
+    "locality-allocation.svg": "78478ca08bf34541ad0fc4a0b96bc9636e62def85e256b72dd6c19e024d44ba4"
+  },
+  "intervals": "descriptive means only; no new confidence interval or primary claim",
+  "locality_order": [
+    "Khartoum",
+    "Omdurman",
+    "Bahri",
+    "East Nile",
+    "Jebel Awlia",
+    "Karari",
+    "Ombada"
+  ],
+  "mean_within_condition_minimum_percent": [
+    36.02478285630544,
+    44.89876485429704,
+    48.816563196480274
+  ],
+  "means_percent": [
+    [
+      46.78477517639597,
+      48.1477920897305,
+      47.333895886937775,
+      36.02478285630544,
+      37.70195277097324,
+      38.13849887189766,
+      40.727817714214325
+    ],
+    [
+      69.01015318619709,
+      64.35022246092558,
+      58.86511591263115,
+      60.36065781023353,
+      55.254861946838595,
+      59.731141508867346,
+      58.19397791288793
+    ],
+    [
+      66.58544669672847,
+      62.20505777622263,
+      60.515356755505,
+      62.327807254468404,
+      54.8333549356709,
+      59.44761321631571,
+      59.18991691122453
+    ]
+  ],
+  "minimum_aggregation": "minimum across seven localities inside each run-condition, then equal mean",
+  "new_simulation": false,
+  "paired_comparison_order": [
+    "PPO - Fixed Rotation",
+    "PPO - Constrained Optimization"
+  ],
+  "paired_minimum_shifts_pp": [
+    12.791780340174833,
+    3.9177983421832328
+  ],
+  "paired_shifts_pp": [
+    [
+      19.800671520332493,
+      14.057265686492126,
+      13.18146086856723,
+      26.30302439816296,
+      17.131402164697647,
+      21.30911434441805,
+      18.462099197010197
+    ],
+    [
+      -2.4247064894686146,
+      -2.145164684702953,
+      1.6502408428738513,
+      1.967149444234868,
+      -0.42150701116770506,
+      -0.2835282925516367,
+      0.9959389983365933
+    ]
+  ],
+  "procedure_order": [
+    "Fixed Rotation",
+    "Constrained Optimization",
+    "PPO"
+  ],
+  "runtime": {
+    "compute_capability": [
+      12,
+      0
+    ],
+    "cupy_device_count": 1,
+    "cupy_driver_version": 13040,
+    "cupy_runtime_version": 12090,
+    "cupy_version": "14.1.1",
+    "device_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "torch_cuda_version": "12.8",
+    "torch_device_count": 1,
+    "torch_version": "2.8.0+cu128",
+    "total_memory_bytes": 8518041600
+  },
+  "schema": "gridguard.focused_locality_interpretation.1",
+  "selected_run_means_percent": [
+    [
+      67.14669711577396,
+      60.31234637834132,
+      57.56156342104077,
+      63.88491331599653,
+      54.37506494112313,
+      58.28994570299984,
+      63.5805988808473
+    ],
+    [
+      66.84750160512824,
+      63.356108206013836,
+      61.87505971640348,
+      61.385557946438595,
+      55.12816900387406,
+      58.790852796907224,
+      57.78134033394357
+    ],
+    [
+      67.71820402704179,
+      61.18119332318505,
+      57.89299468509853,
+      64.17697031671801,
+      55.94625596888363,
+      57.7514007097731,
+      60.39782548633714
+    ],
+    [
+      65.91554372571409,
+      63.17910976707935,
+      62.345194832111396,
+      59.567274072517954,
+      54.639187821497515,
+      61.80663448447983,
+      57.73953303384284
+    ],
+    [
+      65.29928700998425,
+      62.99653120649358,
+      62.90197112287085,
+      62.624320620670915,
+      54.07809694297612,
+      60.599232387418546,
+      56.45028682115177
+    ]
+  ],
+  "selected_run_order": [
+    "PPO seed 1729",
+    "PPO seed 2718",
+    "PPO seed 3141",
+    "PPO seed 5772",
+    "PPO seed 8111"
+  ],
+  "shortage_order": [
+    "Mild",
+    "Moderate",
+    "Severe"
+  ],
+  "source_axes": [
+    "method",
+    "shortage",
+    "seed",
+    "base draw",
+    "locality"
+  ],
+  "source_controller_order": [
+    "Fixed Rotation",
+    "Constrained Optimization",
+    "PPO seed 1729",
+    "PPO seed 2718",
+    "PPO seed 3141",
+    "PPO seed 5772",
+    "PPO seed 8111",
+    "PPO600 seed 1729",
+    "PPO600 seed 2718",
+    "PPO600 seed 3141",
+    "PPO600 seed 5772",
+    "PPO600 seed 8111"
+  ],
+  "source_key": "final_locality_service_ratio_cube",
+  "source_sha256": {
+    "data/evidence/allocation-validation.json": "292a3f734558a1de8c818e8ab2daec14b976ca5352b82b9bef398ca0cd30ca90",
+    "data/evidence/focused-ppo-study.json": "a4d5a849612f06eedef96e0d28e08247e5e3757eba0b4f2e4f1a893e9d4b8247",
+    "data/evidence/focused-ppo-training-diagnostics.json": "b4c2c76e481e0f30e323ea22f9359212bac1b2018605f833682875d98face500",
+    "data/evidence/focused-ppo-training.json": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624",
+    "docs/FOCUSED_PPO_PROTOCOL.md": "e3e04b018846714490db047ec519ed963a371b738957ef09368fd4732be535f8",
+    "src/gridguard/allocation_study.py": "64c8b07ea84a047dd483c11498ab101efbf602417686fbd7e15634fb8483c05d",
+    "src/gridguard/constrained.py": "68bc8eec390d54b4c112d2fa5df65ccbdf291e710c5fe1617d4364e78d0d41f4",
+    "src/gridguard/constrained_ppo.py": "1b12357fff425f222aec59a1957b613dd35f3031cad50d5cc6f0a8668a699bd1",
+    "src/gridguard/controllers.py": "dcd94a9bb601493570bbbc0c2053c35ce41e6d27a6d0d2e14f8e97e21f896c73",
+    "src/gridguard/domain.py": "1031b66ada35baba6a5bc9af32a0e3dc6823803cafe3f9f4eefa6e87d309d024",
+    "src/gridguard/duration_metrics.py": "49d2e93a4463ca9888219f3772185645d0518c1ce7a139f2d638c517cc6d1f7a",
+    "src/gridguard/focused_training.py": "3676ac345d049ddc100d393e09515bdc76b19efffb7b6f24bc96fa49ac0fe383",
+    "src/gridguard/metrics.py": "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a",
+    "src/gridguard/optimization.py": "a426f28ede9e6c33fc806e4ee1014982b511fa7817c88be61b48036b908c1431",
+    "src/gridguard/ppo_experiment.py": "ff257822e175be4c28d6294a17c2ad472111f4e67c1cd60fe5c226c826acb0e7",
+    "src/gridguard/ppo_study.py": "1231ebe8d9284af74957b220f836161489d0725b0c86a788c10fdff90f6f1372",
+    "src/gridguard/ppo_training.py": "693e94daf8c851cf4e58554d6b98ada9ab11f22521804fbc0d53a8918eb9980f",
+    "src/gridguard/scenarios.py": "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990",
+    "src/gridguard/simulation.py": "a058fa35d9c63615bbe53037239705cbafa4ffab99fd96dc0ad46fa002a712b0",
+    "src/gridguard/statistics.py": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9",
+    "tools/evaluate_focused_ppo.py": "10243fe7b6228c2e59d7c9d265017531f34d4d4fd3b1d6768122d5c0819ce3c0",
+    "tools/interpret_focused_study.py": "10794f529088e4135fccedeac1979b44d5d1eb1bd8567ca35991fa9612189e83",
+    "tools/train_focused_ppo.py": "9fb869d55aa53de0002f42f1728e588da07cc8a2ce7462b68488d6be049f43fd"
+  },
+  "source_shape": [
+    12,
+    3,
+    10,
+    32,
+    7
+  ]
+}

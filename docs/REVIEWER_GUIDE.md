@@ -49,6 +49,16 @@ Separate critical-supply stress tests report actual unmet demand. These analyses
 post-hoc and do not replace the primary criteria or establish universal PPO superiority.
 The app's **Follow-up comparison** tab displays these additional results.
 
+The thesis adds a separate fresh learning-stage audit in Section 5.9. It evaluates the
+same five selected actors against their own imitation-only initializations, the teacher,
+the optimizer and both rotating baselines on 960 new matched conditions. Fine-tuning
+and validation selection add 0.1801 daily reward and 3.914 Jain-fairness points over the
+initializations, while serving 77.20 fewer MWh/day. Higher time-averaged Jain fairness
+also coexists with lower final worst-locality service than the teacher and critical-aware
+rotation. This addition does not change the original criteria, models, app or presentation
+results. It is a descriptive same-generator replication, not an equal-budget algorithm
+ablation or a changed-distribution test.
+
 Training bands show mean plus/minus sample standard deviation; the between-run variance
 uses denominator four. Those bands are not confidence intervals. The two primary comparison
 claims use adjusted 97.5% paired hierarchical bootstrap intervals, as defined in the protocol.
@@ -68,7 +78,13 @@ geography supplies display context and does not model electrical-network topolog
 | [committee-baseline-audit.json](../data/evidence/committee-baseline-audit.json) | Matched follow-up baselines, paired differences and critical-shortfall stress results |
 | [COMMITTEE_BASELINE_PROTOCOL.md](COMMITTEE_BASELINE_PROTOCOL.md) | Follow-up design frozen before computing its outcomes; original test outcomes were already known |
 | [COMMITTEE_REVISION.md](COMMITTEE_REVISION.md) | Comment-by-comment revision map against the actual reviewed Word document |
-| [Committee revision validation](committee-revision-validation.json) | Current document, executable, source/GPU and provenance checks |
+| [Committee revision validation](committee-revision-validation.json) | Preceding document revision and unchanged executable checks; exact scope is hash-bound |
+| [Thesis reassessment validation](thesis-reassessment-validation.json) | Current thesis rendering, source/CUDA tests and fresh audit verification |
+| [Further thesis revision map](THESIS_REASSESSMENT.md) | Additional explanations, locality results, learning-stage attribution and scope |
+| [Fresh learning-stage protocol](THESIS_LEARNING_AUDIT_PROTOCOL.md) | Design fixed before new evaluation, motivated by previously known results |
+| [thesis-learning-audit.json](../data/evidence/thesis-learning-audit.json) | All 13,440 fresh trajectories, same-run initialization comparisons and endpoint service outcomes |
+| [Learning-stage replay receipt](../data/evidence/thesis-learning-audit.validation.json) | Exact replay and independent CUDA reconstruction checks |
+| [Locality service derivation](assets/focused-study/locality-allocation.json) | Original-study endpoint ratios and Figure 5.7 provenance |
 | [proposal-supplement.json](../data/evidence/proposal-supplement.json) | Additional forecast and earlier three-controller evaluation; separate from the current five-run study |
 | [Deployed PPO weights](../data/model/focused-ppo-study/seed-8111-selected.npz) | The deployed actor; sibling files retain every run's selected, iteration-600 and imitation-only weights |
 | [Earlier GUI/document refresh validation](gui-document-refresh-validation.json) | Historical artifact identities before the committee revision; match its hashes before using it |
@@ -144,6 +160,14 @@ The [submission guide](../SUBMISSION_README.md#reproduce-the-current-evidence) e
 evaluation and retraining into new paths. It also describes the portable academic rebuild:
 thesis formulas and graphs can be regenerated from the included sources; the editable
 PowerPoint can be exported through Microsoft PowerPoint with the supplied fonts.
+
+Check the fresh learning-stage evidence with
+`uv run --no-sync python tools/evaluate_thesis_learning_audit.py --verify`.
+For an additional full replay without replacing the existing receipt, run
+`uv run --no-sync python -c "from tools.evaluate_thesis_learning_audit import OUTPUT, verify; verify(OUTPUT, replay=True)"`.
+The included receipt already records the completed full replay. Regenerate the original
+study's descriptive locality plot and generator/training reductions with
+`uv run --no-sync python tools/interpret_focused_study.py`.
 
 ## Historical files
 

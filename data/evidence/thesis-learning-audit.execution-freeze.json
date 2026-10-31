@@ -1,0 +1,113 @@
+{
+  "frozen_at_utc": "2026-10-31T13:57:53.359483+00:00",
+  "models": {
+    "Behavior Cloning seed 1729": {
+      "path": "data/model/focused-ppo-study/seed-1729-behavior-cloning.npz",
+      "sha256": "daac228d6d3882bc21f197e8444485acae776ff6f1b40871eb4ceff6e5047e24"
+    },
+    "Behavior Cloning seed 2718": {
+      "path": "data/model/focused-ppo-study/seed-2718-behavior-cloning.npz",
+      "sha256": "48666630a9eac7d04c97b8afa711a35ec0b62ec1a49f367df828034b22856104"
+    },
+    "Behavior Cloning seed 3141": {
+      "path": "data/model/focused-ppo-study/seed-3141-behavior-cloning.npz",
+      "sha256": "88c303df5a2dad1e5da98848d638ca6a7d2d5086f1db680754b510bc8c2e3a7c"
+    },
+    "Behavior Cloning seed 5772": {
+      "path": "data/model/focused-ppo-study/seed-5772-behavior-cloning.npz",
+      "sha256": "17a3b315c077ad44781787ac468711b55f7db579fb7d48ec220f260341ea1063"
+    },
+    "Behavior Cloning seed 8111": {
+      "path": "data/model/focused-ppo-study/seed-8111-behavior-cloning.npz",
+      "sha256": "f3f3aeb9504c7bebc3b3003a2c5738278fcaff7e6ac19a0f98676ea240a8cfbc"
+    },
+    "PPO seed 1729": {
+      "path": "data/model/focused-ppo-study/seed-1729-selected.npz",
+      "sha256": "cefa8ae9db672ae332d63d37973bb69e30a31e3fbd749815df835f2054c93fef"
+    },
+    "PPO seed 2718": {
+      "path": "data/model/focused-ppo-study/seed-2718-selected.npz",
+      "sha256": "81612e01e59fe5434e6b9ebef489a5be63955d6d42a2032ae8527a796a1ae2ac"
+    },
+    "PPO seed 3141": {
+      "path": "data/model/focused-ppo-study/seed-3141-selected.npz",
+      "sha256": "59c0d9790c9b327d4cda862d8d2a5ca435d8842101b33b3fa19ba36118630c6d"
+    },
+    "PPO seed 5772": {
+      "path": "data/model/focused-ppo-study/seed-5772-selected.npz",
+      "sha256": "5022e12916c27d191e34389426f63cc05098441c5dd9fb5fc7f68837d8a42cf7"
+    },
+    "PPO seed 8111": {
+      "path": "data/model/focused-ppo-study/seed-8111-selected.npz",
+      "sha256": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3"
+    }
+  },
+  "protocol_freeze_sha256": "310b6282536bcf0edcdf6053c4408afbe042a8513554809c2138ee35f953adb0",
+  "recipe": {
+    "batch_size": 32,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20261031,
+    "fairness_reward_tolerance": 0.005,
+    "fresh_scenario_execution": true,
+    "interval_confidence": 0.95,
+    "interval_role": "descriptive pointwise nominal intervals; no new primary pass/fail claims",
+    "metric_tolerances": {
+      "energy_mwh": 0.01,
+      "episode_reward": 5e-05,
+      "other": 5e-06
+    },
+    "post_hoc_motivation": true,
+    "shortages": [
+      "mild",
+      "moderate",
+      "severe"
+    ],
+    "stage_interpretation": "fine-tuning plus validation-selection relative to own fixed BC actor",
+    "test_seeds": [
+      132201,
+      132202,
+      132203,
+      132204,
+      132205,
+      132206,
+      132207,
+      132208,
+      132209,
+      132210
+    ],
+    "training_seeds": [
+      1729,
+      2718,
+      3141,
+      5772,
+      8111
+    ]
+  },
+  "schema": "gridguard.thesis_learning_execution_freeze.1",
+  "source_sha256": {
+    "data/evidence/allocation-validation.json": "292a3f734558a1de8c818e8ab2daec14b976ca5352b82b9bef398ca0cd30ca90",
+    "docs/FOCUSED_PPO_PROTOCOL.md": "e3e04b018846714490db047ec519ed963a371b738957ef09368fd4732be535f8",
+    "docs/THESIS_LEARNING_AUDIT_PROTOCOL.md": "b1d2572b4e29e772df5e200fe1bfb1382a8377603ec984bddf81a7ab61f585e1",
+    "src/gridguard/allocation_study.py": "64c8b07ea84a047dd483c11498ab101efbf602417686fbd7e15634fb8483c05d",
+    "src/gridguard/committee_baseline.py": "e349d452073201b8c54092a9f61fbf17f384330aa9640e13013e7622846b9317",
+    "src/gridguard/constrained.py": "68bc8eec390d54b4c112d2fa5df65ccbdf291e710c5fe1617d4364e78d0d41f4",
+    "src/gridguard/constrained_ppo.py": "1b12357fff425f222aec59a1957b613dd35f3031cad50d5cc6f0a8668a699bd1",
+    "src/gridguard/controllers.py": "dcd94a9bb601493570bbbc0c2053c35ce41e6d27a6d0d2e14f8e97e21f896c73",
+    "src/gridguard/domain.py": "1031b66ada35baba6a5bc9af32a0e3dc6823803cafe3f9f4eefa6e87d309d024",
+    "src/gridguard/duration_metrics.py": "49d2e93a4463ca9888219f3772185645d0518c1ce7a139f2d638c517cc6d1f7a",
+    "src/gridguard/focused_training.py": "3676ac345d049ddc100d393e09515bdc76b19efffb7b6f24bc96fa49ac0fe383",
+    "src/gridguard/metrics.py": "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a",
+    "src/gridguard/optimization.py": "a426f28ede9e6c33fc806e4ee1014982b511fa7817c88be61b48036b908c1431",
+    "src/gridguard/ppo_experiment.py": "ff257822e175be4c28d6294a17c2ad472111f4e67c1cd60fe5c226c826acb0e7",
+    "src/gridguard/ppo_study.py": "1231ebe8d9284af74957b220f836161489d0725b0c86a788c10fdff90f6f1372",
+    "src/gridguard/ppo_training.py": "693e94daf8c851cf4e58554d6b98ada9ab11f22521804fbc0d53a8918eb9980f",
+    "src/gridguard/scenarios.py": "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990",
+    "src/gridguard/simulation.py": "a058fa35d9c63615bbe53037239705cbafa4ffab99fd96dc0ad46fa002a712b0",
+    "src/gridguard/statistics.py": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9",
+    "src/gridguard/thesis_learning_audit.py": "193ff46e17d11b7ae4a3fee858bd89c962f491f029aec65735e1e80f6aa8c8df",
+    "tests/test_thesis_learning_audit.py": "3657d780c75b454ac7f54d72ad3436b7296b26f61a545cb70d3bee513fe07a3f",
+    "tools/evaluate_focused_ppo.py": "10243fe7b6228c2e59d7c9d265017531f34d4d4fd3b1d6768122d5c0819ce3c0",
+    "tools/evaluate_thesis_learning_audit.py": "e7478913943da1fb57174bab47cf0c5c451d43175ed03f75ed2b43b835f55b54",
+    "tools/train_focused_ppo.py": "9fb869d55aa53de0002f42f1728e588da07cc8a2ce7462b68488d6be049f43fd"
+  }
+}

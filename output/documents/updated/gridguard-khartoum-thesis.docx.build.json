@@ -1,13 +1,13 @@
 {
   "schema": "gridguard.focused_thesis_word.1",
-  "docx_sha256": "3e10330ed5eb2262765db2832f983385f0e253165b2e9f96733477e796bd9c8c",
+  "docx_sha256": "47ae38f7d8fc8b15c8837c89dda3ae8164e27d03ce4992bb529769aac40ea0d3",
   "template_sha256": "d6f5cef5d56bdcb7f6c78989d68f8c586ba9b9289ecf5b765ebd34a8e26d3d59",
-  "source_sha256": "05a52a0d44a26e808c01022b7464a296a4bddf9cd3e8c59e89fa308b262b8473",
-  "pdf_build_sha256": "ef2065ae916d9eb7e783bf97cf5898ef6a041e02469fcf63db96c017b7abd0b4",
-  "builder_sha256": "121cfb41c150616819df3f86c0bcc0e7aaf38d50c78194760c08401c63dfe8e7",
+  "source_sha256": "60be9bbdce0b456b701937982fac5e428baeadbef1a787abcdbdf78ddd51b5e4",
+  "pdf_build_sha256": "a0fff2c7ce34cc449cfe81e1c42386697a8e9570d4975dd7ce37fdff9d06f23b",
+  "builder_sha256": "7146de0156c388f0b099e7907e07cb090eadbf17a541867e7a38da9cc8887fa0",
   "cover_metadata_sha256": "25c764752f78930d28675c55253633fd0d25c67b8084008217544e6fd1473d60",
   "office_math_transform_sha256": "fdbb663cbbf0ab0b8387d1c65f6691ac6771e96bbb8b4a256af251834e35ed72",
-  "native_math_count": 118,
+  "native_math_count": 153,
   "figures": [
     "Figure 3.1",
     "Figure 4.1",
@@ -17,14 +17,15 @@
     "Figure 5.3",
     "Figure 5.4",
     "Figure 5.5",
-    "Figure 5.6"
+    "Figure 5.6",
+    "Figure 5.7"
   ],
-  "numbered_table_count": 18,
+  "numbered_table_count": 21,
   "fields_require_refresh": false,
   "word_export": {
     "renderer": "Microsoft Word",
-    "page_count": 56,
-    "pdf_sha256": "6396976c85075c3b27d1bab675ab8e435b7c0b0e8bd98514f682f191a5b25f1e",
+    "page_count": 62,
+    "pdf_sha256": "2c4123d1c55ed74dd62084777e01c66dfc8e44d0cdf7331c73a392eeffb66128",
     "export_script_sha256": "5d9bfbd3246a9463dd45a350201928e1923cf8ba7f26130e47cdff295ff8ff97"
   }
 }

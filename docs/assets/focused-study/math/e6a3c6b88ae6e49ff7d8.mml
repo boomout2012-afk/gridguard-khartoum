@@ -1,0 +1,11 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mi>h</mi>
+  <mo>&#x2208;</mo>
+  <mo fence="false" stretchy="false">{</mo>
+  <mn>0</mn>
+  <mo>,</mo>
+  <mo>&#x2026;</mo>
+  <mo>,</mo>
+  <mn>23</mn>
+  <mo fence="false" stretchy="false">}</mo>
+</math>

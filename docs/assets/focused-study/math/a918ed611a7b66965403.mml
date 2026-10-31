@@ -1,0 +1,15 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>f</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">Mild</mi>
+      </mrow>
+    </mrow>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <mi>h</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mn>0.80</mn>
+</math>

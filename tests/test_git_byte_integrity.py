@@ -18,12 +18,14 @@ PUBLISHED_FILES = (
     "docs/REVIEWER_GUIDE.md",
     "docs/REPOSITORY_REVIEW.md",
     "docs/COMMITTEE_REVISION.md",
+    "docs/THESIS_REASSESSMENT.md",
     "docs/source/REVIEWED_TEMPLATE.md",
     "docs/FOCUSED_THESIS.md",
     "docs/ALLOCATION_STUDY_PROTOCOL.md",
     "docs/CONSTRAINED_PPO_PROTOCOL.md",
     "docs/FOCUSED_PPO_PROTOCOL.md",
     "docs/COMMITTEE_BASELINE_PROTOCOL.md",
+    "docs/THESIS_LEARNING_AUDIT_PROTOCOL.md",
     "docs/PROPOSAL_EXTENSION.md",
     "docs/PROPOSAL_RESULTS.md",
     "docs/academic-cover.json",
@@ -50,6 +52,9 @@ PUBLISHED_FILES = (
     "tools/render_thesis_math.cjs",
     "tools/plot_focused_thesis.py",
     "tools/plot_training_diagnostics.py",
+    "tools/assemble_focused_thesis_content.py",
+    "tools/thesis_learning_content.py",
+    "tools/interpret_focused_study.py",
 )
 
 
@@ -57,7 +62,7 @@ def _is_project_file(value: object) -> bool:
     if not isinstance(value, str) or "/" not in value or "\\" in value:
         return False
     path = Path(value)
-    if path.parts[0] not in {"data", "docs", "src", "tools", "scripts", "packaging"}:
+    if path.parts[0] not in {"data", "docs", "src", "tools", "scripts", "packaging", "tests"}:
         return value in PUBLISHED_FILES and (ROOT / path).is_file()
     return not path.is_absolute() and ".." not in path.parts and (ROOT / path).is_file()
 
@@ -96,6 +101,13 @@ def _published_paths() -> list[str]:
         if path.suffix == ".json":
             paths.update(_referenced_paths(json.loads(path.read_text(encoding="utf-8"))))
     return sorted(paths)
+
+
+def test_fresh_audit_frozen_dependencies_are_in_published_package() -> None:
+    freeze = json.loads(
+        (ROOT / "data/evidence/thesis-learning-audit.execution-freeze.json").read_text()
+    )
+    assert set(freeze["source_sha256"]).issubset(_published_paths())
 
 
 def test_git_stage_and_clean_checkout_preserve_published_bytes(tmp_path: Path) -> None:

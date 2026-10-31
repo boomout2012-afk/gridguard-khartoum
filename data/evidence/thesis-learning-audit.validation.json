@@ -1,0 +1,12 @@
+{
+  "artifact_sha256": "4e4d9980b7083cac053b660e1ac53c4186ae794478c3dae3d4f03493be7a6ebe",
+  "execution_freeze_sha256": "537c2fab2916702b13d1fa1bbf29c75550c644fe2f602b42584f322847d522bd",
+  "full_replay": true,
+  "means_and_all_intervals_reconstructed_on_cuda": true,
+  "original_artifacts_unchanged": true,
+  "passed": true,
+  "protocol_freeze_sha256": "310b6282536bcf0edcdf6053c4408afbe042a8513554809c2138ee35f953adb0",
+  "replayed_trajectories": 13440,
+  "schema": "gridguard.thesis_learning_validation.1",
+  "verified_at_utc": "2026-10-31T13:59:55.686898+00:00"
+}

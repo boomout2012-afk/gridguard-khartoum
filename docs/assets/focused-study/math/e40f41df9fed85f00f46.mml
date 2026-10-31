@@ -1,0 +1,42 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>&#x3B7;</mi>
+    <mi>k</mi>
+  </msub>
+  <mo>=</mo>
+  <mn>0.0003</mn>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">(</mo>
+    <mn>1</mn>
+    <mo>&#x2212;</mo>
+    <mfrac>
+      <mi>k</mi>
+      <mn>2999</mn>
+    </mfrac>
+    <mo data-mjx-texclass="CLOSE">)</mo>
+  </mrow>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>c</mi>
+    <mi>H</mi>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <mi>k</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mn>0.01</mn>
+  <mo>+</mo>
+  <mo stretchy="false">(</mo>
+  <mn>0.001</mn>
+  <mo>&#x2212;</mo>
+  <mn>0.01</mn>
+  <mo stretchy="false">)</mo>
+  <mfrac>
+    <mi>k</mi>
+    <mn>2999</mn>
+  </mfrac>
+  <mo>.</mo>
+</math>

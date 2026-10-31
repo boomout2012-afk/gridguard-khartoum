@@ -7,11 +7,17 @@ import hashlib
 import json
 from pathlib import Path
 
+from thesis_learning_content import learning_stage_text
+
 ROOT = Path(__file__).resolve().parents[1]
 TRAINING = "data/evidence/focused-ppo-training.json"
 STUDY = "data/evidence/focused-ppo-study.json"
 DIAGNOSTICS = "data/evidence/focused-ppo-training-diagnostics.json"
 FOLLOWUP = "data/evidence/committee-baseline-audit.json"
+LEARNING_AUDIT = "data/evidence/thesis-learning-audit.json"
+LEARNING_AUDIT_HASH = "4e4d9980b7083cac053b660e1ac53c4186ae794478c3dae3d4f03493be7a6ebe"
+LEARNING_VALIDATION = "data/evidence/thesis-learning-audit.validation.json"
+LEARNING_VALIDATION_HASH = "de79e31a219762802a68da5a6ace2fcd6c2067300f1497076bc1d3ac3392493c"
 SUPPLEMENT = "data/evidence/proposal-supplement.json"
 SUPPLEMENT_HASH = "fae5c875b1be148d7a069259b19df9b04666fe97e2182ce8898f45fed7b0a43e"
 FIXED = "PPO - Fixed Rotation"
@@ -143,8 +149,8 @@ def followup_text(audit):
         "The reward interval's lower endpoint remains below the earlier +0.01 reference. "
         "The utilization interval is entirely below the earlier -0.2-point margin. "
         "These references provide context, not a newly declared confirmatory test. "
-        "A positive pooled reward difference is insufficient to claim uniform teacher "
-        "superiority or an operational improvement."
+        "A positive pooled reward difference is insufficient to claim uniform "
+        "superiority over the teacher or an operational improvement."
     )
     severity = audit["shortage_paired_inference"]["PPO - Fairness Rule"]
     parts.append(
@@ -222,6 +228,17 @@ def main(training_sha, study_sha):
     diagnostics = load(DIAGNOSTICS, diagnostics_sha)
     followup_sha = (ROOT / FOLLOWUP).with_suffix(".sha256").read_text().split()[0]
     followup = load(FOLLOWUP, followup_sha)
+    learning_audit = load(LEARNING_AUDIT, LEARNING_AUDIT_HASH)
+    learning_validation = load(LEARNING_VALIDATION, LEARNING_VALIDATION_HASH)
+    if (
+        learning_validation["artifact_sha256"] != LEARNING_AUDIT_HASH
+        or learning_validation["replayed_trajectories"] != 13440
+        or not all(
+            learning_validation[key]
+            for key in ("passed", "full_replay", "means_and_all_intervals_reconstructed_on_cuda")
+        )
+    ):
+        raise ValueError("Fresh learning-stage audit lacks a matching successful full replay")
     if diagnostics["training_sha256"] != training_sha:
         raise ValueError("Training diagnostics do not use the pinned training record")
     load(SUPPLEMENT, SUPPLEMENT_HASH)
@@ -445,8 +462,8 @@ def main(training_sha, study_sha):
     abstract += (
         "The declared optimizer-comparison criterion was met."
         if claims[OPT]["passed"]
-        else "The declared optimizer-comparison criterion was not met; individual advantages "
-        "must be interpreted alongside the remaining tradeoffs."
+        else "Utilization falls by 0.40 percentage points and switching increases, "
+        "so the full declared optimizer-comparison criterion is not met."
     )
     abstract += (
         " A post-hoc matched audit finds improved allocation over a critical-aware "
@@ -454,6 +471,14 @@ def main(training_sha, study_sha):
         "but loses 0.308 utilization percentage points and 16.68 served MWh per day; "
         "the pooled gain is concentrated in Severe shortage. Stress tests verify "
         "partial critical-service fallback when the supply cannot cover critical demand."
+    )
+    stage = learning_audit["paired_inference"]["PPO - own Behavior Cloning"]
+    abstract += (
+        " A separate fresh 960-condition audit of the same five runs finds that "
+        f"fine-tuning and validation selection add {stage['episode_reward']['mean']:.4f} "
+        "daily reward over imitation alone, while serving "
+        f"{-stage['served_mwh']['mean']:.2f} fewer MWh per day. Higher mean Jain fairness "
+        "does not ensure higher final service to the worst-served locality."
     )
 
     interpretation = []
@@ -544,19 +569,22 @@ def main(training_sha, study_sha):
     )
 
     eligible_count = sum(r["selected"]["eligible"] for r in runs)
+    eligible_text = (
+        "All five selections" if eligible_count == 5 else f"{eligible_count} of the five selections"
+    )
     training_summary = (
         f"Five fresh training seeds completed 3,000 iterations each: 18,432,000 transitions "
         f"per run and 92,160,000 overall. Total recorded training time was {seconds / 60:.2f} "
         f"minutes; final evaluation took {study['elapsed_seconds']:.2f} seconds. "
         f"Validation selected iterations {', '.join(map(str, selected))} for seeds "
         f"{', '.join(str(run['seed']) for run in runs)}, respectively. "
-        f"{eligible_count} of the five selections met "
+        f"{eligible_text} met "
         "the validation eligibility requirements. The final report uses the equal-run "
         "procedure mean rather than selecting the best performer on the final test."
     )
     training_summary += (
-        "\n\nTable 17 reports the validation scores used for selection; Table 11 separately "
-        "reports those actors' final-test scores.\n\n**Table 17. Training cost and "
+        "\n\nTable 19 reports the validation scores used for selection; Table 11 separately "
+        "reports those actors' final-test scores.\n\n**Table 19. Training cost and "
         "validation-selected checkpoints; reward is from validation, not the final test.**\n\n"
         + table(
             ["Training seed", "Selected iteration", "Validation reward", "Training minutes"],
@@ -588,6 +616,7 @@ def main(training_sha, study_sha):
         "RESEARCH_WORKFLOW_FIGURE": "[[FIGURE:workflow]]",
         "LITERATURE_REVIEW_STATUS": "",
         "FOLLOWUP_AUDIT": followup_text(followup),
+        "LEARNING_STAGE_AUDIT": learning_stage_text(learning_audit),
     }
     payload = {
         "evidence_sha256": {
@@ -596,6 +625,8 @@ def main(training_sha, study_sha):
             SUPPLEMENT: SUPPLEMENT_HASH,
             DIAGNOSTICS: diagnostics_sha,
             FOLLOWUP: followup_sha,
+            LEARNING_AUDIT: LEARNING_AUDIT_HASH,
+            LEARNING_VALIDATION: LEARNING_VALIDATION_HASH,
         },
         "replacements": replacements,
     }
