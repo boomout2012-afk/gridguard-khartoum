@@ -74,12 +74,25 @@
       "elapsed_seconds": 12.04,
       "passed": 40
     },
-    "unique_selected_tests_passed": 1653,
+    "unique_selected_tests_passed": 1654,
     "selected_tests_skipped": 0,
     "optional_historical_tests_deselected": 11,
     "ruff_check": "pass",
     "ruff_format_check": "pass",
-    "ruff_python_files": 230
+    "ruff_python_files": 231,
+    "post_gate_portability_check": {
+      "passed": true,
+      "tests_passed": 11,
+      "new_unique_test": 1,
+      "existing_audit_tests_rerun_on_cuda": 10,
+      "nested_gpu_disabled_result": "5 CPU tests passed; 5 CUDA tests deselected by the gpu marker",
+      "complete_source_gate_collected_count_after_change": 1654,
+      "reason": "Frozen audit tests initially omitted gpu collection markers. External conftest metadata preserves their SHA-bound bytes and keeps all cases in the complete CUDA gate.",
+      "source_sha256": {
+        "tests/conftest.py": "e0127775d6b52ad137cdaefbdc03738ba91d8a2105a1caddd1222fb8c95498e2",
+        "tests/test_portable_audit_selection.py": "5bf14457849862f18461d3cd0c1a5979336b3a2ed29fbd9820602a7631a1a484"
+      }
+    }
   },
   "limits": [
     "Validation is scoped to recorded artifacts; it is not an official academic grade.",

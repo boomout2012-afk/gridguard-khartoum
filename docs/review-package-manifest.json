@@ -3278,8 +3278,8 @@
     },
     {
       "path": "docs/thesis-reassessment-validation.json",
-      "size_bytes": 3805,
-      "sha256": "2b3cfa315b667d3d4c754d974d276f5fc1b945925951f37edabd23bfcc988f2a"
+      "size_bytes": 4572,
+      "sha256": "22a0d2f158cd622973283b9bfea4b9afee2697ed1f25975845716a463f63e3c0"
     },
     {
       "path": "output/documents/updated/gridguard-khartoum-thesis.docx",
@@ -3667,9 +3667,19 @@
       "sha256": "d46febbcfd10310f1d33720b26773ef1243963ea4b9805adc60a3ceb441dd65e"
     },
     {
+      "path": "tests/conftest.py",
+      "size_bytes": 1397,
+      "sha256": "e0127775d6b52ad137cdaefbdc03738ba91d8a2105a1caddd1222fb8c95498e2"
+    },
+    {
       "path": "tests/test_committee_baseline.py",
       "size_bytes": 7983,
       "sha256": "019227d88b14ebc38f2c019cb5767dd9043cabee5e8076484743f014abc10aff"
+    },
+    {
+      "path": "tests/test_portable_audit_selection.py",
+      "size_bytes": 791,
+      "sha256": "5bf14457849862f18461d3cd0c1a5979336b3a2ed29fbd9820602a7631a1a484"
     },
     {
       "path": "tests/test_thesis_learning_audit.py",
