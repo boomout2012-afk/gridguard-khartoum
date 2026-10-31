@@ -1,0 +1,14 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mo data-mjx-texclass="OP" movablelimits="true">min</mo>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">supply</mi>
+  </mrow>
+  <mo>,</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">total</mi>
+    <mtext>&#xA0;</mtext>
+    <mi data-mjx-auto-op="false">demand</mi>
+  </mrow>
+  <mo stretchy="false">)</mo>
+</math>

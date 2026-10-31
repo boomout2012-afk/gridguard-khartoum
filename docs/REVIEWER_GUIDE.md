@@ -2,14 +2,14 @@
 
 GridGuard Khartoum is a graduation project at the University of Khartoum, Faculty of
 Mathematical Sciences and Informatics, for the Bachelor of Computer Science degree.
-The supervisor is Mrs. Abubakr Siraj. The three project authors and index numbers are
+The supervisor is Dr. Abubakr Siraj. The three project authors and index numbers are
 recorded in the [shared cover metadata](academic-cover.json) used by the academic documents.
 
 ## Suggested reading order
 
 1. Read the [current thesis](../output/pdf/updated/gridguard-khartoum-thesis.pdf) for the
-   problem, methods, results and limitations. Its editable source is
-   [FOCUSED_THESIS.md](FOCUSED_THESIS.md).
+   problem, methods, results and limitations. The [editable Word document](../output/documents/updated/gridguard-khartoum-thesis.docx)
+   shares its content with [FOCUSED_THESIS.md](FOCUSED_THESIS.md).
 2. Use the [presentation](../output/pdf/updated/gridguard-khartoum-project-presentation.pdf)
    for the defense overview and the [GUI collection](../output/pdf/gridguard-khartoum-gui-pages.pdf)
    for all application pages and detail tabs.
@@ -30,7 +30,7 @@ PPO passes the complete declared comparison against Fixed Rotation. Against the 
 current-hour optimizer, PPO improves fairness and daily reward, but its utilization loss
 means the overall comparison does not pass. A positive reward difference alone is not a
 successful overall comparison. The optimizer evaluates the same critical-feasible actions
-and causal state as PPO; it does not solve the full-day optimum.
+and history-only state as PPO; it does not solve the full-day optimum.
 
 The **Results** page reports the equal-weight five-run study. **Live Scenario** uses the
 validation-selected policy, training seed 8111 at checkpoint 2500, for one user-selected
@@ -39,8 +39,16 @@ to have identical values. Live results never replace frozen study values.
 
 Fixed Rotation uses Off and Full Service and is supply-blind. The constrained methods
 explicitly protect critical service, so their advantage over Fixed Rotation cannot be
-attributed to learning alone. Fairness Rule demonstrations initialize PPO; that teacher
-role is disclosed in the protocol rather than presented as a primary comparison result.
+attributed to learning alone. A separately frozen follow-up adds Critical-aware Fixed
+Rotation and the Fairness Rule teacher used to initialize PPO. It replays all original
+methods before comparing the added baselines on the same 960 conditions. PPO serves
+241.63 MWh/day more than critical-aware rotation, with zero critical interruption for both
+in normal scenarios. Against the teacher, PPO gains 0.0102 mean daily reward while serving
+16.68 MWh/day less; the reward difference also varies by shortage and training seed.
+Separate critical-supply stress tests report actual unmet demand. These analyses are
+post-hoc and do not replace the primary criteria or establish universal PPO superiority.
+The app's **Follow-up comparison** tab displays these additional results.
+
 Training bands show mean plus/minus sample standard deviation; the between-run variance
 uses denominator four. Those bands are not confidence intervals. The two primary comparison
 claims use adjusted 97.5% paired hierarchical bootstrap intervals, as defined in the protocol.
@@ -57,9 +65,13 @@ geography supplies display context and does not model electrical-network topolog
 | [focused-ppo-study.json](../data/evidence/focused-ppo-study.json) | Current full-precision outcomes, per-condition results, intervals and criterion decisions |
 | [focused-ppo-training-diagnostics.json](../data/evidence/focused-ppo-training-diagnostics.json) | Training diagnostic means, sample SD and between-run variance |
 | [focused-ppo-validation.json](focused-ppo-validation.json) | Independent replay and evidence-validation record |
+| [committee-baseline-audit.json](../data/evidence/committee-baseline-audit.json) | Matched follow-up baselines, paired differences and critical-shortfall stress results |
+| [COMMITTEE_BASELINE_PROTOCOL.md](COMMITTEE_BASELINE_PROTOCOL.md) | Follow-up design frozen before computing its outcomes; original test outcomes were already known |
+| [COMMITTEE_REVISION.md](COMMITTEE_REVISION.md) | Comment-by-comment revision map against the actual reviewed Word document |
+| [Committee revision validation](committee-revision-validation.json) | Current document, executable, source/GPU and provenance checks |
 | [proposal-supplement.json](../data/evidence/proposal-supplement.json) | Additional forecast and earlier three-controller evaluation; separate from the current five-run study |
 | [Deployed PPO weights](../data/model/focused-ppo-study/seed-8111-selected.npz) | The deployed actor; sibling files retain every run's selected, iteration-600 and imitation-only weights |
-| [GUI/document refresh validation](gui-document-refresh-validation.json) | Final PDF, deck, screenshot, logo and executable identities from the academic refresh |
+| [Earlier GUI/document refresh validation](gui-document-refresh-validation.json) | Historical artifact identities before the committee revision; match its hashes before using it |
 | [Cover metadata](academic-cover.json) | Shared names, index numbers, institution, degree, supervisor and submission date |
 
 Hashes bind evidence to its declared models and scientific sources. They detect a changed
@@ -85,6 +97,7 @@ domain -> scenarios -> controllers/simulation -> metrics/evaluation/evidence
 | Constrained action selection | [constrained.py](../src/gridguard/constrained.py), [constrained_ppo.py](../src/gridguard/constrained_ppo.py) |
 | PPO training and study | [ppo_training.py](../src/gridguard/ppo_training.py), [focused_training.py](../src/gridguard/focused_training.py) |
 | Current result integrity | [focused_results.py](../src/gridguard/focused_results.py) |
+| Follow-up calculation and display integrity | [committee_baseline.py](../src/gridguard/committee_baseline.py), [committee_results.py](../src/gridguard/committee_results.py) |
 | Deployed policy identity | [live_policy.py](../src/gridguard/live_policy.py) |
 | Forecasting and interruption durations | [forecast_model.py](../src/gridguard/forecast_model.py), [duration_metrics.py](../src/gridguard/duration_metrics.py) |
 | Live comparison and interface | [live_runner.py](../src/gridguard/ui/live_runner.py), [window.py](../src/gridguard/ui/window.py) |

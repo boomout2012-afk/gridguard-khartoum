@@ -1,0 +1,17 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>d</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+  <mrow data-mjx-texclass="ORD">
+    <mo>/</mo>
+  </mrow>
+  <msub>
+    <mi>P</mi>
+    <mi>i</mi>
+  </msub>
+</math>

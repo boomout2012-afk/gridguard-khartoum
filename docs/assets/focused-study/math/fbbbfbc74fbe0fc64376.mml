@@ -1,0 +1,74 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mrow data-mjx-texclass="ORD">
+      <mover>
+        <mi mathvariant="normal">&#x394;</mi>
+        <mo>^</mo>
+      </mover>
+    </mrow>
+    <mi>m</mi>
+  </msub>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <mrow>
+      <mn>5</mn>
+      <mo>&#xD7;</mo>
+      <mn>960</mn>
+    </mrow>
+  </mfrac>
+  <munderover>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>j</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mn>5</mn>
+    </mrow>
+  </munderover>
+  <munderover>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>c</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mn>960</mn>
+    </mrow>
+  </munderover>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">(</mo>
+    <msubsup>
+      <mi>m</mi>
+      <mrow data-mjx-texclass="ORD">
+        <mi>j</mi>
+        <mo>,</mo>
+        <mi>c</mi>
+      </mrow>
+      <mrow data-mjx-texclass="ORD">
+        <mrow data-mjx-texclass="ORD">
+          <mi data-mjx-auto-op="false">PPO</mi>
+        </mrow>
+      </mrow>
+    </msubsup>
+    <mo>&#x2212;</mo>
+    <msubsup>
+      <mi>m</mi>
+      <mrow data-mjx-texclass="ORD">
+        <mi>j</mi>
+        <mo>,</mo>
+        <mi>c</mi>
+      </mrow>
+      <mrow data-mjx-texclass="ORD">
+        <mrow data-mjx-texclass="ORD">
+          <mi data-mjx-auto-op="false">comparator</mi>
+        </mrow>
+      </mrow>
+    </msubsup>
+    <mo data-mjx-texclass="CLOSE">)</mo>
+  </mrow>
+  <mo>.</mo>
+</math>

@@ -1,0 +1,25 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>C</mi>
+  <mo>+</mo>
+  <munderover>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mn>7</mn>
+    </mrow>
+  </munderover>
+  <msub>
+    <mi>x</mi>
+    <mi>i</mi>
+  </msub>
+  <msub>
+    <mi>b</mi>
+    <mi>i</mi>
+  </msub>
+  <mo>&#x2264;</mo>
+  <mi>S</mi>
+</math>

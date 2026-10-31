@@ -1,0 +1,13 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mi>cos</mi>
+  <mo data-mjx-texclass="NONE">&#x2061;</mo>
+  <mo stretchy="false">(</mo>
+  <mn>2</mn>
+  <mi>&#x3C0;</mi>
+  <mi>t</mi>
+  <mrow data-mjx-texclass="ORD">
+    <mo>/</mo>
+  </mrow>
+  <mn>24</mn>
+  <mo stretchy="false">)</mo>
+</math>

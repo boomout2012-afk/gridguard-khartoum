@@ -1,0 +1,12 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>&#x3F5;</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">clip</mi>
+      </mrow>
+    </mrow>
+  </msub>
+  <mo>=</mo>
+  <mn>0.2</mn>
+</math>

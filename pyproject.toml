@@ -20,8 +20,12 @@ dev = [
   "ruff>=0.12,<1",
 ]
 docs = [
+  "arabic-reshaper==3.0.0",
+  "lxml>=6,<7",
   "pdfplumber>=0.11,<1",
   "pypdf>=6,<7",
+  "python-bidi>=0.6,<0.7",
+  "python-docx>=1.2,<2",
   "PyYAML>=6,<7",
   "reportlab>=4.4,<5",
 ]
@@ -52,6 +56,8 @@ exclude = ["/RELEASE_MANIFEST.json"]
 "data/evidence/proposal-supplement.json" = "gridguard/_bundled/data/evidence/proposal-supplement.json"
 "data/evidence/focused-ppo-study.json" = "gridguard/_bundled/data/evidence/focused-ppo-study.json"
 "data/evidence/focused-ppo-training.json" = "gridguard/_bundled/data/evidence/focused-ppo-training.json"
+"data/evidence/committee-baseline-audit.json" = "gridguard/_bundled/data/evidence/committee-baseline-audit.json"
+"data/evidence/committee-baseline-audit.validation.json" = "gridguard/_bundled/data/evidence/committee-baseline-audit.validation.json"
 "docs/focused-ppo-validation.json" = "gridguard/_bundled/docs/focused-ppo-validation.json"
 "data/evidence/source-manifest.json" = "gridguard/_bundled/data/evidence/source-manifest.json"
 "data/model/manifest.json" = "gridguard/_bundled/data/model/manifest.json"

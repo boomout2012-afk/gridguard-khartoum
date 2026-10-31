@@ -1,0 +1,27 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="double-struck">E</mi>
+  </mrow>
+  <mstyle scriptlevel="0">
+    <mspace width="-0.167em"></mspace>
+  </mstyle>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">[</mo>
+    <munderover>
+      <mo data-mjx-texclass="OP">&#x2211;</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi>t</mi>
+        <mo>=</mo>
+        <mn>0</mn>
+      </mrow>
+      <mrow data-mjx-texclass="ORD">
+        <mn>23</mn>
+      </mrow>
+    </munderover>
+    <msub>
+      <mi>r</mi>
+      <mi>t</mi>
+    </msub>
+    <mo data-mjx-texclass="CLOSE">]</mo>
+  </mrow>
+</math>

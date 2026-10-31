@@ -1,0 +1,13 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>a</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>&#x2208;</mo>
+  <msub>
+    <mrow data-mjx-texclass="ORD">
+      <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">A</mi>
+    </mrow>
+    <mi>t</mi>
+  </msub>
+</math>

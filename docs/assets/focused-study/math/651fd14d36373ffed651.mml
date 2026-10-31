@@ -1,0 +1,13 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msubsup>
+    <mi>E</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mo>&#x2212;</mo>
+    </mrow>
+  </msubsup>
+</math>

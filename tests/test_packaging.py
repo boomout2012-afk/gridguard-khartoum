@@ -91,8 +91,12 @@ GRIDGUARD_METADATA_CONTENTS = {
         b"Requires-Dist: pytest<10,>=8.4; extra == 'dev'\n"
         b"Requires-Dist: ruff<1,>=0.12; extra == 'dev'\n"
         b"Provides-Extra: docs\n"
+        b"Requires-Dist: arabic-reshaper==3.0.0; extra == 'docs'\n"
+        b"Requires-Dist: lxml<7,>=6; extra == 'docs'\n"
         b"Requires-Dist: pdfplumber<1,>=0.11; extra == 'docs'\n"
         b"Requires-Dist: pypdf<7,>=6; extra == 'docs'\n"
+        b"Requires-Dist: python-bidi<0.7,>=0.6; extra == 'docs'\n"
+        b"Requires-Dist: python-docx<2,>=1.2; extra == 'docs'\n"
         b"Requires-Dist: pyyaml<7,>=6; extra == 'docs'\n"
         b"Requires-Dist: reportlab<5,>=4.4; extra == 'docs'\n"
     ),
@@ -1830,7 +1834,10 @@ def test_pyinstaller_spec_resolves_inputs_from_the_repository_root(
         and "_bundled/src/gridguard" not in _target
         and "_bundled/data/evidence/accepted-sources/" not in _target
     }
-    assert runtime_sources == set(RUNTIME_PACKAGE_FILES)
+    assert runtime_sources == set(RUNTIME_PACKAGE_FILES) | {
+        "data/evidence/committee-baseline-audit.json",
+        "data/evidence/committee-baseline-audit.validation.json",
+    }
     assert all(
         not Path(source).is_dir()
         for source, _target in captured["datas"]

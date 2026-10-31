@@ -1,7 +1,7 @@
 {
   "schema": "gridguard.current_app_capture.1",
-  "captured_utc": "2026-10-23T11:27:32.527493+00:00",
-  "capture_method": "PySide6 QWidget.grab from the actual application; Qt offscreen platform, scale factor 1",
+  "captured_utc": "2026-10-31T10:26:25.886091+00:00",
+  "capture_method": "Actual PySide6 QWidget.grab; Qt offscreen platform, scale factor 1",
   "capture_size": [
     1366,
     768
@@ -27,25 +27,77 @@
     "genuine_cuda_execution": true
   },
   "sources": {
-    "src/gridguard/ui/window.py": "ad6d2f70ef3001fbe6c0b2ec12a93d4fa46867ba0fef697a8163e865d546d764",
-    "src/gridguard/ui/overview_page.py": "a01e30315d15a97b34eb4a13b1eee2d83e68dcf471ac53b7b2754dcbeca02b69",
-    "src/gridguard/ui/live_page.py": "ed2709c00a76088567b4accba8d00e8619a99c9b0d34969da5fb6987f13e1d5a",
+    "src/gridguard/__init__.py": "5b2649f6dfc13c5058050a49783208032755c43e05faac2414efd1b756882c24",
+    "src/gridguard/allocation_study.py": "64c8b07ea84a047dd483c11498ab101efbf602417686fbd7e15634fb8483c05d",
+    "src/gridguard/benchmark_migration.py": "7293181b33d1cdd6ca3e707ca72577cca8d41bdbdc26cdc54c35c54ceeb20a34",
+    "src/gridguard/claim_contract.py": "cafc5848930d3115f5909ef25c231cc800385b1b3fdd1f7aff04a10c58327de9",
+    "src/gridguard/cli.py": "5d112a5bc137ff8cdcb3baa2778659726abb5dee2ebaf6aa9398fb4745c0fc15",
+    "src/gridguard/committee_baseline.py": "e349d452073201b8c54092a9f61fbf17f384330aa9640e13013e7622846b9317",
+    "src/gridguard/committee_results.py": "6f290fb527b6e5af632f0ad8ab5e34c86cd5a162abca83796b7bd08107dfa9ff",
+    "src/gridguard/constrained.py": "68bc8eec390d54b4c112d2fa5df65ccbdf291e710c5fe1617d4364e78d0d41f4",
+    "src/gridguard/constrained_ppo.py": "1b12357fff425f222aec59a1957b613dd35f3031cad50d5cc6f0a8668a699bd1",
+    "src/gridguard/controllers.py": "dcd94a9bb601493570bbbc0c2053c35ce41e6d27a6d0d2e14f8e97e21f896c73",
+    "src/gridguard/domain.py": "1031b66ada35baba6a5bc9af32a0e3dc6823803cafe3f9f4eefa6e87d309d024",
+    "src/gridguard/duration_metrics.py": "49d2e93a4463ca9888219f3772185645d0518c1ce7a139f2d638c517cc6d1f7a",
+    "src/gridguard/evaluation.py": "a9addfee69647f9111122c2c1b29fbe0d1523a2be9c0578427ef0d2b3eeb36b1",
+    "src/gridguard/focused_results.py": "81c8f63096608fa3619d0be02dd19b0a29bbba42c54af4010890d987a6c4bca5",
+    "src/gridguard/focused_training.py": "3676ac345d049ddc100d393e09515bdc76b19efffb7b6f24bc96fa49ac0fe383",
+    "src/gridguard/forecast.py": "9d11f80ed6246466da84203138c48439c2a44cbd707dc53c458d307bb16deeea",
+    "src/gridguard/forecast_model.py": "80970d419f41202fb0273c3f157be083aeba5a4605fe57100174707283570a33",
+    "src/gridguard/gpu.py": "01bff7672cef64d2071d780ac59d667dbbc5cb0ac922105a4b073b85eeaf9d83",
+    "src/gridguard/hybrid.py": "ae22cb29a8aa7dd2e1a801d90e256e84e5fbc6b7974d89aef61a357729f0f35d",
+    "src/gridguard/live_policy.py": "05faa0593236fd653e5c80670b25cc23db461793ab3f097c5e4c745f895f236c",
+    "src/gridguard/metrics.py": "4a0eb676b3f7ffb0759ff107141cd95653faa653115bec7654422c1e45f9534a",
+    "src/gridguard/optimization.py": "a426f28ede9e6c33fc806e4ee1014982b511fa7817c88be61b48036b908c1431",
+    "src/gridguard/paired_inference.py": "59ee10d34e780f44f91d6cb30abaf4cc1e8862c4718cc5738cd90dd08cc4e9de",
+    "src/gridguard/policy.py": "22f17e11822c89104fab9b145ee5749c7ee8ea45f0eebc1a9ee314efc084a6f9",
+    "src/gridguard/ppo_experiment.py": "ff257822e175be4c28d6294a17c2ad472111f4e67c1cd60fe5c226c826acb0e7",
+    "src/gridguard/ppo_study.py": "1231ebe8d9284af74957b220f836161489d0725b0c86a788c10fdff90f6f1372",
+    "src/gridguard/ppo_training.py": "693e94daf8c851cf4e58554d6b98ada9ab11f22521804fbc0d53a8918eb9980f",
+    "src/gridguard/proposal_evidence.py": "f96b784dbcdc4d11719221bf91600aeaefb986155617f1225833de8b9acb4b79",
+    "src/gridguard/proposal_provenance.py": "be931933faa36f84487326800f4fa221dbc5cec558e3bd54f36cb4292a8c670b",
+    "src/gridguard/provenance.py": "f890c46c9aebd3299e496d751c40cf5bf2a867bb09d91993125723d4f2e9ab57",
+    "src/gridguard/resources.py": "999fad4a47b1e84299fc751f36d04cb9488a41d46d53e0ea917d196456b6d347",
+    "src/gridguard/robustness.py": "68c5f59d81a1cec877bc65b59130bcb0b3aef03ff6d3a8c36c097e483943f309",
+    "src/gridguard/robustness_inference.py": "814fa97fd62e08f83fb149fa2afb83382fe3efb9362f178f2d4f1ec536661798",
+    "src/gridguard/robustness_provenance.py": "edc944525407967eb56c4d65d3e60bc68008275598b62648cbb133d0f0adf539",
+    "src/gridguard/scenarios.py": "2b875642c7c89af6881fcc6795d5126bf2d439b4bcacd4335daf9ca8d5d34990",
+    "src/gridguard/simulation.py": "a058fa35d9c63615bbe53037239705cbafa4ffab99fd96dc0ad46fa002a712b0",
+    "src/gridguard/statistics.py": "1473de613fa19d68dae4a0625333068d74edcd34b18b1ade4c370d33d92391a9",
+    "src/gridguard/ui/__init__.py": "1e1bf47ff5f02d12f90d949b5bbabc79c53833e1ca7f4a609fa58d6fd3070d4e",
+    "src/gridguard/ui/app.py": "a8de01cfa280845bcb73c99969f0e6ddb338673ea8f6e2f947cbb4fb0a424e2c",
+    "src/gridguard/ui/committee_results.py": "a6dbaa0524ce8cb7618c5c3c7b8d8995dac99be72f126e5761ed5ea454ff5186",
+    "src/gridguard/ui/components.py": "5bc5b2bdb293c43d6399704cca46d258714e64e7e365ccc525c38a6c70b67e83",
+    "src/gridguard/ui/focused_results.py": "49d691d7f9bda66c9693645f0c76e6f2c765e0cd70a983698ca974c9aeda6742",
     "src/gridguard/ui/live_components.py": "dff601b5db00478aaf9f3c7366b91d2aba0f2a25952d97cb5aa9804959cf3b69",
     "src/gridguard/ui/live_controls.py": "404a2176399be1b45b9562fe993b9b2692e17b1e8f8ea49428f53411d21835d7",
+    "src/gridguard/ui/live_models.py": "fb2fe3b7536767b4b2fbdc8d5a5c1314833bb64688d1a932bf7c98fddf98dc6a",
+    "src/gridguard/ui/live_page.py": "ed2709c00a76088567b4accba8d00e8619a99c9b0d34969da5fb6987f13e1d5a",
     "src/gridguard/ui/live_runner.py": "bc92a5b02c6417be13630a932c8446083226a34eace5649af9ddf7411a5cef10",
-    "src/gridguard/ui/focused_results.py": "61adf94e48e497d7d33fcbe10744518dd3e0249a8cecb59e6d5a074815d2bf90",
-    "src/gridguard/ui/results_page.py": "d2d59ffdcc392a2fb6d6cf6d3c2eb3b8f67282a8c1c2fa9c6e340d40be83ba50",
-    "src/gridguard/ui/results_components.py": "1376b55ffc31a81c5b3e97bab0ad8a9ee709b773e63a6814fa8953ac58907396",
+    "src/gridguard/ui/live_visualization.py": "02fa115be48cb16232c78825413dd7f2da443ca857bf502fb9b43c2c2c195ffc",
+    "src/gridguard/ui/live_worker.py": "98aff5e9bbf7fa7737c9ea14b27f2cb02f69e1531e88f5c9f7e0d08074bdf760",
+    "src/gridguard/ui/map_asset.py": "4e04927362266762e82f5303d870bdfc1a3bb2e78f534703ba44b7e9d08469c8",
+    "src/gridguard/ui/map_items.py": "426c8f41cf6ff821849cc3c404f848d92a45e3894b2cf98c75eb73997c4ae460",
+    "src/gridguard/ui/map_view.py": "b96cc69afcc03505a3ad4a9b96bdbe835063e9f66292d25d856a3fba7577fdfb",
+    "src/gridguard/ui/methodology_page.py": "79df42a24675f2650ab6b5fb4a9ba1317dfa8dd64e63bc96142170437bca52dd",
+    "src/gridguard/ui/overview_page.py": "a01e30315d15a97b34eb4a13b1eee2d83e68dcf471ac53b7b2754dcbeca02b69",
+    "src/gridguard/ui/power_trace.py": "f30cb2631a14ed03ec16700768661c8d4c428ff09e6ee07deceec415324c36a3",
+    "src/gridguard/ui/presentation_model.py": "77d42e4eeafdba5cbaef84111d7e47ef75e2dbc2ce5921c78e9e950b778c06ca",
     "src/gridguard/ui/proposal_results.py": "ceb0164c9c0b4b505d87b7c0f74b69ec0392dc6835baf40ed976bcc910ec3f08",
+    "src/gridguard/ui/results_components.py": "1376b55ffc31a81c5b3e97bab0ad8a9ee709b773e63a6814fa8953ac58907396",
+    "src/gridguard/ui/results_page.py": "d2d59ffdcc392a2fb6d6cf6d3c2eb3b8f67282a8c1c2fa9c6e340d40be83ba50",
     "src/gridguard/ui/theme.py": "300dffccf3d6903b8f96a5f410cb0479ea8f343211477c3fad3da090289fddf6",
-    "src/gridguard/live_policy.py": "05faa0593236fd653e5c80670b25cc23db461793ab3f097c5e4c745f895f236c",
+    "src/gridguard/ui/window.py": "ad6d2f70ef3001fbe6c0b2ec12a93d4fa46867ba0fef697a8163e865d546d764",
+    "src/gridguard/ui/window_components.py": "d46febbcfd10310f1d33720b26773ef1243963ea4b9805adc60a3ceb441dd65e",
     "data/evidence/focused-ppo-study.json": "a4d5a849612f06eedef96e0d28e08247e5e3757eba0b4f2e4f1a893e9d4b8247",
     "data/evidence/focused-ppo-training.json": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624",
+    "data/evidence/committee-baseline-audit.json": "8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b",
+    "data/evidence/committee-baseline-audit.validation.json": "ac65f72300936713cde15e66817ae040e64761730aced9d853c7f8fd37fd3ea4",
     "data/model/focused-ppo-study/seed-8111-selected.npz": "9c3dbed2cdd979bdd566004ecaada8c78a3aef26397eb7e90a2b953d1da4f2d3"
   },
   "capture_script": {
-    "path": "tmp/capture_current_app_refresh.py",
-    "sha256": "aa07f0394a04d9ea2671945dcfabc94aab02ce4d6fa849ef452958e826bdfdae"
+    "path": "tools/capture_current_app.py",
+    "sha256": "5453956649f832edb900738f2a89a830a687ed6054d40467e35e0af9dba9f130"
   },
   "coverage": {
     "main_navigation_pages": [
@@ -53,7 +105,7 @@
       "Live Scenario",
       "Results"
     ],
-    "live_states": "Ready plus all three controllers on one matched 24-hour CUDA run; noon/East Nile selected.",
+    "live_states": "Ready plus three controllers; Moderate/501, noon, East Nile",
     "current_study_tabs": [
       "PPO vs Fixed Rotation",
       "PPO vs optimizer",
@@ -61,10 +113,15 @@
       "Shortage levels",
       "Evidence"
     ],
-    "earlier_results": "Earlier results and all evidence scroll sections captured.",
-    "extended_study": "Controllers, all paired-comparison choices and Forecasting captured.",
-    "excluded": "Transient loading/error messages, dropdown menus, tooltips and every possible scenario/hour/locality combination are interaction states, not separate pages.",
-    "dialog_size": "Resizable dialogs expanded to the same 1366 x 768 presentation surface."
+    "followup_tabs": [
+      "Controller means",
+      "Paired differences",
+      "Critical shortfall"
+    ],
+    "earlier_results": "Earlier results and every evidence scroll section",
+    "extended_study": "Controllers, all paired-comparison choices and Forecasting",
+    "excluded": "Transient messages, menus, tooltips and every parameter combination",
+    "dialog_size": "Resizable dialogs expanded to 1366 x 768"
   },
   "pages": [
     {
@@ -77,8 +134,7 @@
         768
       ],
       "state": {},
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
       "page": 2,
@@ -90,8 +146,7 @@
         768
       ],
       "state": {},
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
       "page": 3,
@@ -109,8 +164,7 @@
         "controller": "PPO",
         "locality": "East Nile"
       },
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
       "page": 4,
@@ -128,8 +182,7 @@
         "controller": "Fixed Rotation",
         "locality": "East Nile"
       },
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
       "page": 5,
@@ -147,14 +200,13 @@
         "controller": "Optimization",
         "locality": "East Nile"
       },
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
       "page": 6,
       "title": "Results · current five-run study",
       "filename": "results.png",
-      "sha256": "53ba115a1eb5f02c77d88bbb5da266bee03ba6b16b032e748fc9c10a6eec2d89",
+      "sha256": "772c6c96104d1e13879b5492e877e2de02847e279fe6d302e42276c34b2be77a",
       "size": [
         1366,
         768
@@ -168,11 +220,86 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
       "page": 7,
+      "title": "Follow-up · Controller means",
+      "filename": "followup-controllers.png",
+      "sha256": "fc51b50178ab4db80847d99ee740516c7c2dbfcf7ed54e117a19ac9aed0f6e6e",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 0,
+        "study": "post-hoc matched audit"
+      },
+      "tables": [
+        {
+          "name": "Five-controller follow-up means",
+          "rows": 5,
+          "columns": 7,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ]
+    },
+    {
+      "page": 8,
+      "title": "Follow-up · Paired differences",
+      "filename": "followup-paired.png",
+      "sha256": "3e4d9447154af2323a9beb310bb8d5ee12734a8d67e45f541e43385086718b0e",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 1,
+        "study": "post-hoc matched audit"
+      },
+      "tables": [
+        {
+          "name": "PPO vs Critical-aware Fixed Rotation",
+          "rows": 4,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        },
+        {
+          "name": "PPO vs Fairness Rule",
+          "rows": 4,
+          "columns": 3,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ]
+    },
+    {
+      "page": 9,
+      "title": "Follow-up · Critical shortfall",
+      "filename": "followup-stress.png",
+      "sha256": "72f7d6560a4f5b1e2c7b7ab1776c6f56aa3bd5af663db229851d7d65d4b8fa01",
+      "size": [
+        1366,
+        768
+      ],
+      "state": {
+        "tab": 2,
+        "study": "post-hoc matched audit"
+      },
+      "tables": [
+        {
+          "name": "Infeasible critical-supply stress outcomes",
+          "rows": 10,
+          "columns": 7,
+          "horizontal_scroll_maximum": 0,
+          "vertical_scroll_maximum": 0
+        }
+      ]
+    },
+    {
+      "page": 10,
       "title": "Current study · PPO vs Fixed Rotation",
       "filename": "current-paired-fixed.png",
       "sha256": "07d4e1bf3622c6240b8e9bba488d87211a3f8eda08899d57808e0664cb0598bd",
@@ -191,11 +318,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 8,
+      "page": 11,
       "title": "Current study · PPO vs optimizer",
       "filename": "current-paired-optimizer.png",
       "sha256": "65d1c50ffaa89c7f612dff19dd73b223ac13b11503b0c70f93b7acd8e2005157",
@@ -214,11 +340,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 9,
+      "page": 12,
       "title": "Current study · Individual runs",
       "filename": "current-individual-runs.png",
       "sha256": "a409a77185d170fb8c6231425376edf145ce52848a423937fbe0ab763723301e",
@@ -237,11 +362,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 10,
+      "page": 13,
       "title": "Current study · Shortage levels",
       "filename": "current-shortage-levels.png",
       "sha256": "e85244106bc2f49a1201c3e6c7fadc34e7705bd000ee2406625b3aae0fed6b0f",
@@ -260,11 +384,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 11,
+      "page": 14,
       "title": "Current study · Evidence",
       "filename": "current-evidence.png",
       "sha256": "2efe504998b39b58e2cfadaf201b8fde15df22a8d31e5a8308b3e610ff08c4ca",
@@ -275,11 +398,10 @@
       "state": {
         "tab": 4
       },
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
-      "page": 12,
+      "page": 15,
       "title": "Earlier frozen results",
       "filename": "earlier-results.png",
       "sha256": "b4c042d7d3c9014a6e9cd8b9d6c3a0774ea4f8594f2b8354d40764cb843d5396",
@@ -296,11 +418,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 13,
+      "page": 16,
       "title": "Earlier evidence · section 1 of 1",
       "filename": "earlier-evidence-01.png",
       "sha256": "58402fc0bcbaabfd1b0cfa23f851b81059864f154ae24e9dd88088a84c7a9b40",
@@ -312,11 +433,10 @@
         "scroll_offset": 0,
         "scroll_maximum": 0
       },
-      "tables": [],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      "tables": []
     },
     {
-      "page": 14,
+      "page": 17,
       "title": "Extended study · controller outcomes",
       "filename": "extended-controllers.png",
       "sha256": "8406c92c760914a1fa1a038c667c5f91a5442e7c1d73cba4168e863b888d86ff",
@@ -333,11 +453,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 15,
+      "page": 18,
       "title": "Extended study · PPO - Fixed Rotation",
       "filename": "extended-paired-01.png",
       "sha256": "240fd47312c727bffe3bfc1fff450f0a5ded764b4dd29fb3fe216ad4a8e0d688",
@@ -356,11 +475,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 16,
+      "page": 19,
       "title": "Extended study · Optimization - Fixed Rotation",
       "filename": "extended-paired-02.png",
       "sha256": "3a6828fda2aaab7995c652d19588bc90768a0a34df4a2659aa2a9df380a8e3e4",
@@ -379,11 +497,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 17,
+      "page": 20,
       "title": "Extended study · PPO - Optimization",
       "filename": "extended-paired-03.png",
       "sha256": "df7256cd42a29f28bd8de5d54e39dc60d224b16493f2529f9092871adbe74329",
@@ -402,11 +519,10 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     },
     {
-      "page": 18,
+      "page": 21,
       "title": "Extended study · forecasting",
       "filename": "extended-forecast.png",
       "sha256": "90593053487f9fac0027a3418a4cccf9485b2efb5aba2cc454aa7660b84f1083",
@@ -423,34 +539,7 @@
           "horizontal_scroll_maximum": 0,
           "vertical_scroll_maximum": 0
         }
-      ],
-      "visual_review": "passed: genuine rendered Qt view; no clipped scientific content, overlaps or missing rows"
+      ]
     }
-  ],
-  "capture_validation": {
-    "settled_reproduction_script": {
-      "path": "tmp/capture_current_app_settled.py",
-      "sha256": "bf40aa386973f7830e1ac778d5766390212ca90f628f46edd9d5ad90625e902b"
-    },
-    "all_18_images_byte_identical_to_settled_reproduction": true,
-    "visual_review": {
-      "pages_reviewed": 18,
-      "passed": true,
-      "reviewed_after_removal_of_requested_ui_sentences": true
-    },
-    "all_tables_have_zero_horizontal_and_vertical_scroll_maxima": true,
-    "historical_close_button_bounds": {
-      "x": 1285,
-      "y": 713,
-      "width": 70,
-      "height": 44,
-      "within_canvas": true
-    },
-    "focused_tests": {
-      "passed": 5,
-      "command": "uv run pytest tests/ui/test_focused_results_page.py -q"
-    },
-    "ruff_check_and_format": "passed",
-    "live_policy_and_frozen_scientific_evidence": "unchanged"
-  }
+  ]
 }

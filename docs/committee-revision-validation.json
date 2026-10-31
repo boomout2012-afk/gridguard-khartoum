@@ -1,0 +1,225 @@
+{
+  "schema": "gridguard.committee_revision_validation.1",
+  "review_date": "2026-10-31",
+  "passed": true,
+  "status": "PASS: documents, scientific audit, rebuilt app and all current selected source tests",
+  "scope": "Committee revision of the supplied reviewed Word thesis, academic PDFs/deck and offline app; original scientific study remains frozen.",
+  "reviewed_source": {
+    "path": "docs/source/reviewed-thesis-template.docx",
+    "sha256": "d6f5cef5d56bdcb7f6c78989d68f8c586ba9b9289ecf5b765ebd34a8e26d3d59"
+  },
+  "artifacts": {
+    "output/pdf/updated/gridguard-khartoum-thesis.pdf": {
+      "pages": 52,
+      "bytes": 4869483,
+      "sha256": "26f627250466d4ac1ced246fd661a7db8ed46324c6f05c1116c6249438a2925a"
+    },
+    "output/pdf/updated/gridguard-khartoum-project-presentation.pdf": {
+      "pages": 32,
+      "bytes": 1239740,
+      "sha256": "077e9e3ad4eac279ced54e6b3320697bb84e6b7fc751262590ab6df153936025"
+    },
+    "output/pdf/gridguard-khartoum-gui-pages.pdf": {
+      "pages": 22,
+      "bytes": 1693737,
+      "sha256": "2d908e8bb6921179ee72ea318c87a1bcad70c734b7ebf933e336133c34f8c373"
+    },
+    "output/presentation/updated/gridguard-khartoum-defense.pptx": {
+      "bytes": 1100216,
+      "sha256": "b75b81954fe131b3289bd9ab35005200e93df797d0d6240c7f181a8fd1fb50a6"
+    },
+    "output/documents/updated/gridguard-khartoum-thesis.docx": {
+      "bytes": 3016529,
+      "sha256": "3e10330ed5eb2262765db2832f983385f0e253165b2e9f96733477e796bd9c8c"
+    }
+  },
+  "visual_review": {
+    "thesis_pdf_pages": 52,
+    "word_rendered_pages": 56,
+    "presentation_slides": 32,
+    "gui_pdf_pages": 22,
+    "app_capture_views": 21,
+    "all_pages_and_slides_inspected": true,
+    "word_renderer": "Microsoft Word",
+    "presentation_renderer": "Microsoft PowerPoint",
+    "docx_render_fallback": "Bundled LibreOffice was unavailable; native Microsoft Word updated fields and produced the reviewed PDF."
+  },
+  "manuscript": {
+    "resolved_committee_concerns": 15,
+    "resolution_map": "docs/COMMITTEE_REVISION.md",
+    "numbered_figures": 9,
+    "numbered_tables": 18,
+    "word_native_equations": 118,
+    "word_resolved_page_references": 131,
+    "word_navigation_fields_refreshed": true,
+    "reference_style": "Harvard author-date",
+    "english_arabic_abstracts_reconciled": true
+  },
+  "cover": {
+    "supervisor": "Dr. Abubakr Siraj",
+    "degree": "Bachelor of Computer Science",
+    "submission_date": "October 2026",
+    "metadata_sha256": "25c764752f78930d28675c55253633fd0d25c67b8084008217544e6fd1473d60",
+    "shared_across_artifacts": true
+  },
+  "scientific_audit": {
+    "artifact": "data/evidence/committee-baseline-audit.json",
+    "sha256": "8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b",
+    "validation_receipt": "data/evidence/committee-baseline-audit.validation.json",
+    "validation_sha256": "ac65f72300936713cde15e66817ae040e64761730aced9d853c7f8fd37fd3ea4",
+    "nominal_conditions": 960,
+    "nominal_trajectories": 8640,
+    "stress_trajectories": 5760,
+    "frozen_ppo_policies": 5,
+    "scope": "Post-hoc explanatory follow-up on previously evaluated scenarios; no retraining, tuning or new confirmatory claim",
+    "original_replay": "Exact original input hashes, action hashes and per-condition canonical metrics for all seven unchanged methods",
+    "scientific_tests_passed": 45
+  },
+  "preserved_scientific_identities": {
+    "passed": true,
+    "checked_at_utc": "2026-10-31T10:37:52.6894626Z",
+    "original_scientific_sources": 19,
+    "original_models": 15,
+    "followup_frozen_sources": 22,
+    "followup_models": 5,
+    "mismatches": []
+  },
+  "executable": {
+    "path": "output/app/GridGuard Khartoum/GridGuard Khartoum.exe",
+    "sha256": "70f5fc0f07ba75464f4c1e5babc87bfbb4ff5e54b7a760c81e6034fb1bb9f224",
+    "bytes": 38541553,
+    "actual_process_exit_code": 0,
+    "followup_results": {
+      "controller_rows": 5,
+      "display_matches_pinned_audit": true,
+      "evidence": {
+        "data/evidence/committee-baseline-audit.json": "8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b",
+        "data/evidence/committee-baseline-audit.validation.json": "ac65f72300936713cde15e66817ae040e64761730aced9d853c7f8fd37fd3ea4"
+      },
+      "paired_tables": 2,
+      "scope_statement": "Post-hoc follow-up \u00b7 previously evaluated scenarios \u00b7 no retraining or new confirmatory claim.",
+      "status": "PASS",
+      "stress_rows": 10
+    },
+    "followup_visual_review": "All three actual executable follow-up views inspected at 1366x768; complete tables and no clipping"
+  },
+  "isolated_installed_wheel": {
+    "passed": true,
+    "controller_rows": 5,
+    "paired_comparisons": 2,
+    "stress_rows": 10,
+    "pinned_files": {
+      "data/evidence/committee-baseline-audit.json": "8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b",
+      "data/evidence/committee-baseline-audit.validation.json": "ac65f72300936713cde15e66817ae040e64761730aced9d853c7f8fd37fd3ea4"
+    }
+  },
+  "source_checks": {
+    "initial_full_run": {
+      "command": "uv run --no-sync pytest -m 'not source_archive and not release_artifact' --junitxml=tmp/repo-finalization/committee-final-source-tests.xml",
+      "status": "Initial complete run: 1631 passed, 4 failed, zero skipped, 11 deselected",
+      "log": "tmp/repo-finalization/committee-final-source-tests.log",
+      "junit": "tmp/repo-finalization/committee-final-source-tests.xml",
+      "selected": 1635,
+      "passed": 1631,
+      "failed": 4,
+      "skipped": 0,
+      "deselected": 11,
+      "elapsed_seconds": 691.27,
+      "junit_sha256": "b0e615ec2aa69fad998a7dad0947b8147aeab0b74ff620262700b871cb22be94",
+      "log_sha256": "deaf011a1a5e9ed54e80736bb4eaae8bc8dec1b06d5a98fdf6ebbaae5bbb324c"
+    },
+    "current_collection": {
+      "selected": 1637,
+      "total": 1648,
+      "deselected": 11,
+      "log": "tmp/repo-finalization/committee-final-source-collection.log",
+      "added_during_full_run": "Two native Word operator tests in tests/test_thesis_word_math.py; executed in committee-final-native-word.xml"
+    },
+    "final_coverage": {
+      "passed": true,
+      "unique_selected": 1637,
+      "unresolved_failures": 0,
+      "skipped": 0,
+      "deselected": 11,
+      "inventory": "tmp/repo-finalization/committee-final-test-inventory.json",
+      "inventory_sha256": "b6419743fc8e3440058f3ee65655a5c92f8aee2ac427b7e14ebddb14a918b3b8",
+      "runs": [
+        {
+          "junit": "tmp/repo-finalization/committee-final-source-tests.xml",
+          "junit_sha256": "b0e615ec2aa69fad998a7dad0947b8147aeab0b74ff620262700b871cb22be94",
+          "log": "tmp/repo-finalization/committee-final-source-tests.log",
+          "log_sha256": "deaf011a1a5e9ed54e80736bb4eaae8bc8dec1b06d5a98fdf6ebbaae5bbb324c",
+          "tests": 1635,
+          "failures": 4,
+          "errors": 0,
+          "skipped": 0,
+          "elapsed_seconds": 691.245
+        },
+        {
+          "junit": "tmp/repo-finalization/committee-final-corrections.xml",
+          "junit_sha256": "73d697c3b5a964cda0d8d7b367ca7ffd66ccb88e8e4bfa2f3b386248d3abeba1",
+          "log": "tmp/repo-finalization/committee-final-corrections.log",
+          "log_sha256": "e999f5974e2049e5b352bdae0ed5015ad50ecbeba5e13a6b8ed5affde0f7d5d8",
+          "tests": 37,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "elapsed_seconds": 37.789
+        },
+        {
+          "junit": "tmp/repo-finalization/committee-final-byte-integrity.xml",
+          "junit_sha256": "501a84a69a19719db7b031fdaef0e7fe8420e3fb081c3a665d6a31990fa13808",
+          "log": "tmp/repo-finalization/committee-final-byte-integrity.log",
+          "log_sha256": "8f13ac2e3f9eed44e2d800ce5231be55feffd4fe7f896b26e2b72b1c44dfadde",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "elapsed_seconds": 7.702
+        },
+        {
+          "junit": "tmp/repo-finalization/committee-final-native-word.xml",
+          "junit_sha256": "ac3772b27ce305a469fe23c09d3c166439c022f8f1e5505d52a2e645715145b1",
+          "log": "tmp/repo-finalization/committee-final-native-word.log",
+          "log_sha256": "03f7b690fbd4d34690e565d0a9eef4d6dd7b86898d4246c559dcb83a98d23206",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "elapsed_seconds": 0.222
+        }
+      ]
+    },
+    "ruff": {
+      "check": "passed",
+      "format": "passed",
+      "python_files": 222
+    },
+    "deselected_scope": "11 optional historical external source_archive/release_artifact tests; no selected test skipped"
+  },
+  "publication_integrity": {
+    "manifest": "docs/review-package-manifest.json",
+    "verification_command": "python tools/verify_review_package.py",
+    "git_line_ending_preservation_test": "passed",
+    "manifest_is_not_self_hashed": true
+  },
+  "limits": [
+    "Post-hoc follow-up reuses the original final conditions; it is not a new independent holdout.",
+    "The original optimizer-comparison criterion remains unmet.",
+    "Synthetic decision support is not field validation.",
+    "The executable bundle is separate from Git; its hash records the locally verified build.",
+    "Historical validation records certify only their named earlier artifacts.",
+    "Checksums establish consistency, not independent authenticity."
+  ],
+  "distribution_checks": {
+    "offline_sdist_and_wheel_build": "passed",
+    "installed_wheel_pinned_followup_loader": "passed",
+    "final_source_archive_artifacts": "verified as part of publication checks"
+  },
+  "validation_record_sha256": {
+    "tmp/committee-revision/thesis-artifact-validation.json": "47f99c17d93d855f5b078258958b0cdab37ed73d5537bc4689e825d62903cde6",
+    "tmp/committee-revision/document-independent-checks.json": "a95bb6642864d949cb899a17eac1ec2ca3322e98c954fc0dc45aeee6a83144d8",
+    "tmp/repo-finalization/committee-final-test-inventory.json": "b6419743fc8e3440058f3ee65655a5c92f8aee2ac427b7e14ebddb14a918b3b8",
+    "tmp/repo-finalization/committee-science-app-review.json": "a353c616caf5a19c71deca9ac3684277407ee8c4d6930a3be8ac1b9fc04600fa"
+  }
+}

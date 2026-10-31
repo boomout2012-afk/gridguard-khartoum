@@ -10,12 +10,15 @@ const {SVG} = requireMath('mathjax-full/js/output/svg.js');
 const {liteAdaptor} = requireMath('mathjax-full/js/adaptors/liteAdaptor.js');
 const {RegisterHTMLHandler} = requireMath('mathjax-full/js/handlers/html.js');
 const {AllPackages} = requireMath('mathjax-full/js/input/tex/AllPackages.js');
+const {SerializedMmlVisitor} = requireMath('mathjax-full/js/core/MmlTree/SerializedMmlVisitor.js');
+const {STATE} = requireMath('mathjax-full/js/core/MathItem.js');
 const sharp = require(process.env.GRIDGUARD_SHARP_PATH ||
   path.join(process.env.USERPROFILE, '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/sharp'));
 const adaptor = liteAdaptor();
 RegisterHTMLHandler(adaptor);
 const tex = new TeX({packages: AllPackages, formatError(_jax, error) { throw error; }});
 const document = mathjax.document('', {InputJax: tex, OutputJax: new SVG({fontCache: 'none'})});
+const mathmlVisitor = new SerializedMmlVisitor();
 
 async function main() {
   const request = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
@@ -38,8 +41,12 @@ async function main() {
     const stem = path.join(request.directory, item.id);
     fs.writeFileSync(stem + '.svg', markup);
     await sharp(Buffer.from(markup)).png().toFile(stem + '.png');
+    const mathml = mathmlVisitor.visitTree(document.convert(item.latex, {
+      display: item.display, end: STATE.CONVERT,
+    }));
+    fs.writeFileSync(stem + '.mml', mathml);
     rendered[item.id] = {latex: item.latex, display: item.display, width, height, baseline,
-      png: stem + '.png', svg: stem + '.svg'};
+      png: stem + '.png', svg: stem + '.svg', mathml: stem + '.mml'};
   }
   fs.writeFileSync(request.manifest, JSON.stringify(rendered, null, 2));
   console.log(`Rendered ${Object.keys(rendered).length} LaTeX expressions.`);

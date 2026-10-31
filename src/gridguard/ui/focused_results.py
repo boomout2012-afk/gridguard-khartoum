@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from gridguard.committee_results import CommitteeResultsView, load_committee_results
 from gridguard.focused_results import (
     DisplayTable,
     FocusedStudyError,
@@ -27,6 +28,7 @@ from gridguard.focused_results import (
     load_focused_results,
 )
 from gridguard.resources import ResourceLocationError
+from gridguard.ui.committee_results import FollowupResultsPage
 from gridguard.ui.presentation_model import PresentationSnapshot
 from gridguard.ui.results_components import INK, LINE, MUTED, PRIMARY, result_label
 from gridguard.ui.results_page import ResultsPage
@@ -164,6 +166,7 @@ class FocusedResultsPage(QWidget):
         parent=None,
         *,
         loader: Callable[[], FocusedStudyView] = load_focused_results,
+        followup_loader: Callable[[], CommitteeResultsView] = load_committee_results,
     ) -> None:
         super().__init__(parent)
         self.setObjectName("FocusedResultsPage")
@@ -198,7 +201,8 @@ class FocusedResultsPage(QWidget):
         heading = QVBoxLayout()
         heading.setSpacing(1)
         heading.addWidget(result_label("Results", size=48, bold=True))
-        heading.addWidget(result_label("Current study", size=16, bold=True, color=PRIMARY))
+        self.section_label = result_label("Current study", size=16, bold=True, color=PRIMARY)
+        heading.addWidget(self.section_label)
         header.addLayout(heading, 1)
         self.earlier_button = QPushButton("Earlier results")
         self.earlier_button.setObjectName("StudyAction")
@@ -209,6 +213,17 @@ class FocusedResultsPage(QWidget):
         header.addWidget(self.earlier_button)
         header.addWidget(self.details_button)
         layout.addLayout(header)
+        self.results_tabs = QTabWidget()
+        self.results_tabs.setAccessibleName("Primary study and post-hoc follow-up")
+        self.current_study_page = QWidget()
+        self.results_tabs.addTab(self.current_study_page, "Current study")
+        self.followup_page = FollowupResultsPage(followup_loader, _table)
+        self.results_tabs.addTab(self.followup_page, "Follow-up comparison")
+        self.results_tabs.currentChanged.connect(self._select_results_tab)
+        layout.addWidget(self.results_tabs, 1)
+        layout = QVBoxLayout(self.current_study_page)
+        layout.setContentsMargins(0, 3, 0, 0)
+        layout.setSpacing(7)
         try:
             self.study_view = view = loader()
         except (FocusedStudyError, ResourceLocationError) as error:
@@ -271,3 +286,8 @@ class FocusedResultsPage(QWidget):
         if self.details_dialog is None:
             self.details_dialog = CurrentStudyDetails(self.study_view, self)
         self.details_dialog.open()
+
+    def _select_results_tab(self, index: int) -> None:
+        self.section_label.setText(self.results_tabs.tabText(index))
+        self.details_button.setVisible(index == 0)
+        self.earlier_button.setVisible(index == 0)

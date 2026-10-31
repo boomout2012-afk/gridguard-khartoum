@@ -1,0 +1,12 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>y</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+</math>

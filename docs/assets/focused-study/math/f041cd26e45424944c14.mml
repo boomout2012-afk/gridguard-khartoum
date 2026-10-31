@@ -1,0 +1,26 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>S</mi>
+    <mi>t</mi>
+  </msub>
+  <mrow data-mjx-texclass="ORD">
+    <mo>/</mo>
+  </mrow>
+  <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+  <mo stretchy="false">(</mo>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mi>i</mi>
+  </munder>
+  <msub>
+    <mi>d</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+  <mo>,</mo>
+  <mi>&#x3B5;</mi>
+  <mo stretchy="false">)</mo>
+</math>

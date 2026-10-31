@@ -1,0 +1,29 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mrow data-mjx-texclass="OP">
+      <mi>arg</mi>
+      <mstyle scriptlevel="0">
+        <mspace width="0.167em"></mspace>
+      </mstyle>
+      <mi>max</mi>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mi>a</mi>
+    </mrow>
+  </msub>
+  <mstyle scriptlevel="0">
+    <mspace width="0.167em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>r</mi>
+    <mi>t</mi>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <msub>
+    <mi>s</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>,</mo>
+  <mi>a</mi>
+  <mo stretchy="false">)</mo>
+</math>

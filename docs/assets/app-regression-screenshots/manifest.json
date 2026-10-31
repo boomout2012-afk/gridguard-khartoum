@@ -35,11 +35,11 @@
     },
     {
       "path": "results.png",
-      "sha256": "ed31f21d8f5953ce6903d26560c4327b1420540e9636a200bdfda2fa3748f77e",
+      "sha256": "21e25bf6dfb40c3767af87e99a60a9e2a117b125c3f62075cc42e552dfb5f26a",
       "width": 1366,
       "height": 768,
       "visually_reviewed": true
     }
   ],
-  "visual_findings": "All three screens inspected at 1366x768: complete layout, current trained-policy caption, three live controllers, and canonical current-study table. The requested sentences are absent. Live demonstration values and frozen study values are clearly separated."
+  "visual_findings": "All three screens inspected at 1366x768: complete layout, current trained-policy caption, three live controllers, and canonical current-study table. The Results navigation includes the separate post-hoc Follow-up comparison; the original Current study remains selected and its frozen values are unchanged. Two independent current CUDA captures are byte-identical; Overview and Live match the prior golden bytes. The requested sentences are absent. Live demonstration values and frozen study values are clearly separated."
 }

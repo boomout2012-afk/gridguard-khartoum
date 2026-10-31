@@ -1,15 +1,17 @@
 # GridGuard Khartoum submission guide
 
 Submission date: October 2026. University of Khartoum, Faculty of Mathematical Sciences and
-Informatics. Bachelor of Computer Science. Supervisor: Mrs. Abubakr Siraj.
+Informatics. Bachelor of Computer Science. Supervisor: Dr. Abubakr Siraj.
 
 Authors: Murtada Asim Ibrahim Bakhit (18-317), Suliman Elawad Suliman Babiker (18-310),
 and Abdalhay Abass Mobarak Abass (15-306).
 
 ## Open the submitted project
 
-The portable submission has Documents, App, Source and Verification folders. Documents contains
-the final 35-page thesis, 24-slide presentation PDF, editable PowerPoint and 19-page GUI collection.
+The separate portable submission has Documents, App, Source and Verification folders. The current
+repository provides the revised thesis PDF and editable Word document, 32-slide presentation PDF,
+editable PowerPoint and 22-page GUI collection. An older portable archive is not automatically
+updated by a Git pull; check its manifest against the current files before submitting it.
 Double-click `Run GridGuard.cmd` to start the app. Keep the complete App folder together.
 No Python installation or network connection is needed to run the packaged application.
 
@@ -25,6 +27,11 @@ The complete comparison passes against Fixed Rotation. Against Constrained Optim
 improves fairness and daily reward but loses utilization; it does not pass the full comparison.
 These are synthetic decision-support results, not measurements or operational recommendations
 for Sudan's electrical grid. The constrained optimizer optimizes each hour, not the full day.
+
+The separate Follow-up comparison tab includes Critical-aware Fixed Rotation, the Fairness Rule
+teacher and critical-supply stress tests. This post-hoc audit preserves the original study and
+reports both improvements and energy/switching tradeoffs. Its protocol is
+`docs/COMMITTEE_BASELINE_PROTOCOL.md`; `docs/COMMITTEE_REVISION.md` maps the review corrections.
 
 ## Source contents
 
@@ -93,6 +100,16 @@ The frozen seeds, training budget, model selection and uncertainty methods are d
 `docs/FOCUSED_PPO_PROTOCOL.md`. Re-training is not promised to be bitwise identical on different
 hardware; exact submitted model weights and full-precision evaluation evidence are included.
 
+Verify the follow-up audit independently without replacing its evidence:
+
+```powershell
+$auditSha = (Get-Content data/evidence/committee-baseline-audit.sha256).Split()[0]
+uv run --no-sync python tools/evaluate_committee_baseline.py --verify --sha256 $auditSha
+```
+
+This recomputes the statistical summaries from the stored trajectory results and checks the
+original-study replay. A new simulator replay can be written to a fresh path with `--output`.
+
 ## Rebuild or edit the documents
 
 The finalized PDFs can be submitted directly. The editable deck includes native charts, tables,
@@ -119,6 +136,29 @@ Subsequent builds can omit `-InstallDependencies`. For graphs only, use
 `tools/export_training_telemetry.py` and the existing `tools/plot_training_diagnostics.py --render-only`
 with the training hash above. The SD bands are not confidence intervals; the variance denominator
 is five minus one.
+
+The editable Word thesis retains the supplied academic template and uses native Office equations.
+Install the supplied Noto Naskh Arabic regular/bold fonts from `docs/assets/fonts` to preserve
+the Arabic abstract when editing or exporting Word; their OFL license is included.
+After rebuilding the PDF source and math assets, generate it with Microsoft Word installed:
+
+```powershell
+uv run --no-sync python tools/build_focused_thesis_docx.py --source output/pdf/updated/gridguard-khartoum-thesis.source.md --layout output/pdf/updated/gridguard-khartoum-thesis.build.json
+pwsh -NoProfile -File scripts/export-submission-thesis.ps1 -DocumentPath output/documents/updated/gridguard-khartoum-thesis.docx -PdfPath tmp/reviewed-word-export.pdf
+```
+
+The second command requires PowerShell 7 and updates the Word contents, lists and cross-reference
+fields before saving. The Word export and designed thesis PDF share the resolved manuscript,
+equations, results and screenshots; their pagination differs. The unchanged supplied template is
+preserved in `docs/source/reviewed-thesis-template.docx`. Document generation uses Microsoft's
+locally installed math transform; that proprietary stylesheet is not redistributed.
+
+Refresh all 21 application screenshots from the real CUDA app and build the GUI PDF with:
+
+```powershell
+uv run --no-sync python tools/capture_current_app.py
+uv run --no-sync python tools/build_current_gui_pdf.py
+```
 
 The original `tools/build_focused_presentation.mjs` generator is also preserved for traceability.
 It uses OpenAI's Codex artifact authoring runtime and its finalizer and is not a standalone npm

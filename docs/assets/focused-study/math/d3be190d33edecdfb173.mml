@@ -1,0 +1,104 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>D</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>d</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="1em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>Q</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>q</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="1em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>Y</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>y</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>k</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="1em"></mspace>
+  </mstyle>
+  <msubsup>
+    <mi>P</mi>
+    <mi>t</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>u</mi>
+    </mrow>
+  </msubsup>
+  <mo>=</mo>
+  <mo data-mjx-texclass="OP" movablelimits="true">min</mo>
+  <mo stretchy="false">(</mo>
+  <msub>
+    <mi>S</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>,</mo>
+  <msub>
+    <mi>D</mi>
+    <mi>t</mi>
+  </msub>
+  <mo stretchy="false">)</mo>
+  <mo>.</mo>
+</math>

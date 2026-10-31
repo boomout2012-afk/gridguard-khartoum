@@ -1,0 +1,9 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msubsup>
+    <mi>P</mi>
+    <mi>t</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>u</mi>
+    </mrow>
+  </msubsup>
+</math>

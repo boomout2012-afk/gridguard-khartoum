@@ -24,6 +24,8 @@ _AUDITED_RUNTIME_FILES = (
     "data/evidence/proposal-supplement.json",
     "data/evidence/focused-ppo-study.json",
     "data/evidence/focused-ppo-training.json",
+    "data/evidence/committee-baseline-audit.json",
+    "data/evidence/committee-baseline-audit.validation.json",
     "docs/focused-ppo-validation.json",
     "data/evidence/source-manifest.json",
     "data/model/manifest.json",

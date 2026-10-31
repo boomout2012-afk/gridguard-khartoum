@@ -42,14 +42,20 @@ docs/FOCUSED_THESIS.md -text whitespace=cr-at-eol
 docs/ALLOCATION_STUDY_PROTOCOL.md -text whitespace=cr-at-eol
 docs/CONSTRAINED_PPO_PROTOCOL.md -text whitespace=cr-at-eol
 docs/FOCUSED_PPO_PROTOCOL.md -text whitespace=cr-at-eol
+docs/COMMITTEE_BASELINE_PROTOCOL.md -text whitespace=cr-at-eol
 docs/PROPOSAL_EXTENSION.md -text whitespace=cr-at-eol
 docs/PROPOSAL_RESULTS.md -text whitespace=cr-at-eol
 output/**/*.build.json -text whitespace=cr-at-eol
 output/**/*.source.md -text whitespace=cr-at-eol
 src/gridguard/ui/live_components.py -text whitespace=cr-at-eol
 src/gridguard/ui/theme.py -text whitespace=cr-at-eol
+src/gridguard/ui/components.py -text whitespace=cr-at-eol
+src/gridguard/committee_baseline.py -text whitespace=cr-at-eol
+tools/evaluate_committee_baseline.py -text whitespace=cr-at-eol
+tools/build_focused_thesis.py -text whitespace=cr-at-eol
 packaging/gridguard.spec -text whitespace=cr-at-eol
 scripts/release-integrity.ps1 -text whitespace=cr-at-eol
+scripts/export-submission-thesis.ps1 -text whitespace=cr-at-eol
 
 # Keep generated evidence and rendered artifacts available without obscuring code review.
 data/evidence/** linguist-generated=true
@@ -62,5 +68,6 @@ output/** linguist-generated=true
 # Preserve generator/license whitespace in frozen non-code publication inputs.
 docs/assets/focused-study/*.svg -whitespace
 docs/assets/fonts/OFL.txt -whitespace
+docs/assets/fonts/NotoNaskhArabic-OFL.txt -whitespace
 docs/FOCUSED_THESIS.md whitespace=cr-at-eol,-blank-at-eof
 output/**/*.source.md whitespace=cr-at-eol,-blank-at-eof

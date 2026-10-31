@@ -1,0 +1,93 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>W</mi>
+    <mn>0</mn>
+  </msub>
+  <mo>=</mo>
+  <mn>0</mn>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="1em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>W</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <mn>7</mn>
+  </mfrac>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mi>i</mi>
+  </munder>
+  <mrow data-mjx-texclass="ORD">
+    <mn mathvariant="bold">1</mn>
+  </mrow>
+  <mo stretchy="false">[</mo>
+  <msub>
+    <mi>a</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+    </mrow>
+  </msub>
+  <mo>&#x2260;</mo>
+  <msub>
+    <mi>a</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>t</mi>
+      <mo>&#x2212;</mo>
+      <mn>1</mn>
+    </mrow>
+  </msub>
+  <mo stretchy="false">]</mo>
+  <mtext>&#xA0;</mtext>
+  <mo stretchy="false">(</mo>
+  <mi>t</mi>
+  <mo>&gt;</mo>
+  <mn>0</mn>
+  <mo stretchy="false">)</mo>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="1em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>O</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+      <mo stretchy="false">(</mo>
+      <mn>0</mn>
+      <mo>,</mo>
+      <msub>
+        <mi>Q</mi>
+        <mi>t</mi>
+      </msub>
+      <mo>&#x2212;</mo>
+      <msub>
+        <mi>S</mi>
+        <mi>t</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+    <mrow>
+      <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>D</mi>
+        <mi>t</mi>
+      </msub>
+      <mo>,</mo>
+      <mi>&#x3B5;</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </mfrac>
+</math>

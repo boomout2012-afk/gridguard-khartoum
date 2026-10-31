@@ -1,0 +1,14 @@
+{
+  "frozen_at_utc": "2026-10-31T09:58:34.678168+00:00",
+  "no_retraining_or_selection": true,
+  "original_evidence": {
+    "data/evidence/focused-ppo-study.json": "a4d5a849612f06eedef96e0d28e08247e5e3757eba0b4f2e4f1a893e9d4b8247",
+    "data/evidence/focused-ppo-training.json": "e4f8b8f7c73693f713ecef69a06434ce75a3a101d2541654d7009398c4eb5624"
+  },
+  "protocol": {
+    "path": "docs/COMMITTEE_BASELINE_PROTOCOL.md",
+    "sha256": "92c4e247210225e62b9221229107fccd078a33ad23cffd4a8e5f4164bd7a1612"
+  },
+  "schema": "gridguard.committee_baseline_protocol_freeze.1",
+  "stage": "design frozen before follow-up outcomes; original final-test outcomes already known"
+}

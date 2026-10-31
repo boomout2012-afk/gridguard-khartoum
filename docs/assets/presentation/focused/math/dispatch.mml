@@ -1,0 +1,40 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>&#x3B1;</mi>
+  <mo>=</mo>
+  <mo data-mjx-texclass="OP" movablelimits="true">min</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="-0.167em"></mspace>
+  </mstyle>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">(</mo>
+    <mn>1</mn>
+    <mo>,</mo>
+    <mfrac>
+      <mi>S</mi>
+      <mrow>
+        <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+        <mo stretchy="false">(</mo>
+        <mi>Q</mi>
+        <mo>,</mo>
+        <mi>&#x3B5;</mi>
+        <mo stretchy="false">)</mo>
+      </mrow>
+    </mfrac>
+    <mo data-mjx-texclass="CLOSE">)</mo>
+  </mrow>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">delivered</mi>
+  </mrow>
+  <mo>=</mo>
+  <mi>&#x3B1;</mi>
+  <mstyle scriptlevel="0">
+    <mspace width="0.167em"></mspace>
+  </mstyle>
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">requested</mi>
+  </mrow>
+</math>

@@ -1,0 +1,23 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <msub>
+    <mi>P</mi>
+    <mi>i</mi>
+  </msub>
+  <mo>=</mo>
+  <mn>700</mn>
+  <msub>
+    <mi>w</mi>
+    <mi>i</mi>
+  </msub>
+  <mrow data-mjx-texclass="ORD">
+    <mo>/</mo>
+  </mrow>
+  <munder>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mi>j</mi>
+  </munder>
+  <msub>
+    <mi>w</mi>
+    <mi>j</mi>
+  </msub>
+</math>

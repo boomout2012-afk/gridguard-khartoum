@@ -1,0 +1,102 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>C</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <munder>
+        <mo data-mjx-texclass="OP">&#x2211;</mo>
+        <mi>i</mi>
+      </munder>
+      <munder>
+        <mo data-mjx-texclass="OP">&#x2211;</mo>
+        <mrow data-mjx-texclass="ORD">
+          <mi>k</mi>
+          <mo>&#x2208;</mo>
+          <msub>
+            <mrow data-mjx-texclass="ORD">
+              <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">K</mi>
+            </mrow>
+            <mi>c</mi>
+          </msub>
+        </mrow>
+      </munder>
+      <msub>
+        <mi>y</mi>
+        <mrow data-mjx-texclass="ORD">
+          <mi>i</mi>
+          <mo>,</mo>
+          <mi>k</mi>
+          <mo>,</mo>
+          <mi>t</mi>
+        </mrow>
+      </msub>
+    </mrow>
+    <mrow>
+      <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+      <mo stretchy="false">(</mo>
+      <munder>
+        <mo data-mjx-texclass="OP">&#x2211;</mo>
+        <mi>i</mi>
+      </munder>
+      <munder>
+        <mo data-mjx-texclass="OP">&#x2211;</mo>
+        <mrow data-mjx-texclass="ORD">
+          <mi>k</mi>
+          <mo>&#x2208;</mo>
+          <msub>
+            <mrow data-mjx-texclass="ORD">
+              <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">K</mi>
+            </mrow>
+            <mi>c</mi>
+          </msub>
+        </mrow>
+      </munder>
+      <msub>
+        <mi>d</mi>
+        <mrow data-mjx-texclass="ORD">
+          <mi>i</mi>
+          <mo>,</mo>
+          <mi>k</mi>
+          <mo>,</mo>
+          <mi>t</mi>
+        </mrow>
+      </msub>
+      <mo>,</mo>
+      <mi>&#x3B5;</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </mfrac>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <msub>
+    <mi>U</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>=</mo>
+  <mfrac>
+    <msub>
+      <mi>Y</mi>
+      <mi>t</mi>
+    </msub>
+    <mrow>
+      <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+      <mo stretchy="false">(</mo>
+      <msubsup>
+        <mi>P</mi>
+        <mi>t</mi>
+        <mrow data-mjx-texclass="ORD">
+          <mi>u</mi>
+        </mrow>
+      </msubsup>
+      <mo>,</mo>
+      <mi>&#x3B5;</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </mfrac>
+  <mo>.</mo>
+</math>

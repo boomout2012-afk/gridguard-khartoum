@@ -1,0 +1,30 @@
+{
+  "schema": "gridguard.committee_presentation.1",
+  "slide_count": 32,
+  "native_chart_count": 21,
+  "native_table_count": 15,
+  "pptx_sha256": "b75b81954fe131b3289bd9ab35005200e93df797d0d6240c7f181a8fd1fb50a6",
+  "pdf_sha256": "077e9e3ad4eac279ced54e6b3320697bb84e6b7fc751262590ab6df153936025",
+  "cover_metadata_sha256": "25c764752f78930d28675c55253633fd0d25c67b8084008217544e6fd1473d60",
+  "builder_sha256": "aa22f0544858762642953f0f5f08c23e19b78fee41a1dd3762fe731ac9340cf4",
+  "audit_sha256": "8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b",
+  "finalizer_receipt_sha256": "622f8cb5fadb1cd580d86248561e08face998fb2581bda80690f7af8cbb605f8",
+  "renderer": "Microsoft PowerPoint",
+  "visual_review": {
+    "all_32_slides_inspected": true,
+    "changed_final_slides_reinspected": [
+      7,
+      8,
+      13,
+      14,
+      15,
+      20,
+      29
+    ],
+    "remaining_25_final_slides_pixel_identical_to_reviewed_candidate": true
+  },
+  "screenshot_sha256": {
+    "docs/assets/current-app-screenshots/overview.png": "a39b52499d9c6c1963decece3e2f8198ccc2f50ddf85f8be25576fe91156ee7e",
+    "docs/assets/current-app-screenshots/results.png": "772c6c96104d1e13879b5492e877e2de02847e279fe6d302e42276c34b2be77a"
+  }
+}

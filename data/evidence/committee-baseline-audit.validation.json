@@ -1,0 +1,39 @@
+{
+  "audit": {
+    "path": "data/evidence/committee-baseline-audit.json",
+    "sha256": "8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b"
+  },
+  "execution_freeze": {
+    "path": "data/evidence/committee-baseline-audit.execution-freeze.json",
+    "sha256": "f75b41f2aec6d601598e3cefe5ef8d7224441fe26e425bd3151c97b1e3bb6429"
+  },
+  "original_frozen_integrity": {
+    "models": 15,
+    "passed": true,
+    "scientific_sources": 19
+  },
+  "passed": true,
+  "protocol_freeze": {
+    "path": "data/evidence/committee-baseline-audit.protocol-freeze.json",
+    "sha256": "3edf52690bfaeab771d9f80668e9a83e434e2ed27ea251c146c2890db2f2e0a7"
+  },
+  "schema": "gridguard.committee_baseline_validation.1",
+  "scope": "Post-hoc explanatory audit on previously evaluated scenarios, not an untouched holdout or new confirmatory claim.",
+  "tests": {
+    "failures": 0,
+    "passed": 45,
+    "path": "tests/test_committee_baseline.py",
+    "sha256": "019227d88b14ebc38f2c019cb5767dd9043cabee5e8076484743f014abc10aff",
+    "skipped": 0
+  },
+  "verification": {
+    "command": "uv run --no-sync python tools/evaluate_committee_baseline.py --verify",
+    "nominal_conditions": 960,
+    "nominal_trajectories": 8640,
+    "original_seven_controllers": "Exact input hashes, action hashes and per-condition canonical metric replay matched the earlier focused study.",
+    "passed": true,
+    "stress_trajectories": 5760,
+    "uncertainty": "All descriptive paired hierarchical, severity and conditional intervals reconstructed on CUDA/CuPy."
+  },
+  "verified_at_utc": "2026-10-31T10:11:36.876024+00:00"
+}

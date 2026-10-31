@@ -30,8 +30,15 @@ def test_frozen_smoke_captures_all_three_native_pages(qtbot, qapp, tmp_path):
     capture(qapp, window, tmp_path / "frozen-smoke.json")
 
     files = sorted((tmp_path / "screenshots").glob("*.png"))
-    assert [path.name for path in files] == ["live.png", "overview.png", "results.png"]
-    assert len({path.read_bytes() for path in files}) == 3
+    assert [path.name for path in files] == [
+        "followup-means.png",
+        "followup-paired.png",
+        "followup-stress.png",
+        "live.png",
+        "overview.png",
+        "results.png",
+    ]
+    assert len({path.read_bytes() for path in files}) == 6
     for path in files:
         image = QImage(str(path))
         assert not image.isNull()

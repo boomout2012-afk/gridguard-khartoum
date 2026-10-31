@@ -216,7 +216,18 @@ def _capture_presentation_pages(
             if not window.grab().save(str(temporary_path), "PNG"):
                 raise OSError(f"could not encode packaged presentation screenshot: {output_path}")
             temporary_path.replace(output_path)
+        window.tabs.setCurrentIndex(2)
+        window.results_page.results_tabs.setCurrentIndex(1)
+        for index, name in enumerate(("followup-means", "followup-paired", "followup-stress")):
+            window.results_page.followup_page.detail_tabs.setCurrentIndex(index)
+            application.processEvents()
+            output_path = destination / f"{name}.png"
+            temporary_path = destination / f".{name}.png.tmp"
+            if not window.grab().save(str(temporary_path), "PNG"):
+                raise OSError(f"could not encode packaged follow-up screenshot: {output_path}")
+            temporary_path.replace(output_path)
     finally:
+        window.results_page.results_tabs.setCurrentIndex(0)
         window.tabs.setCurrentIndex(previous_index)
         window.resize(previous_size)
         application.processEvents()
@@ -243,6 +254,37 @@ def _focused_study_smoke_facts(page: object) -> dict[str, object]:
         "fixed_rotation_conclusion": view.fixed_conclusion,
         "optimizer_conclusion": view.optimizer_conclusion,
         "live_policy_boundary": view.live_statement,
+    }
+
+
+def _followup_smoke_facts(page: object) -> dict[str, object]:
+    """Require every follow-up table to display its separately pinned audit values."""
+    followup = getattr(page, "followup_page", None)
+    view = getattr(followup, "view", None)
+    means = getattr(followup, "means_table", None)
+    stress = getattr(followup, "stress_table", None)
+    paired = getattr(followup, "paired_tables", ())
+    if view is None or means is None or stress is None or len(paired) != len(view.paired):
+        raise RuntimeError("packaged follow-up evidence could not be verified")
+    tables = [(means, view.means), (stress, view.stress)] + [
+        (table, data) for table, (_, data) in zip(paired, view.paired, strict=True)
+    ]
+    for table, data in tables:
+        if table.rowCount() != len(data.rows) or table.columnCount() != len(data.columns):
+            raise RuntimeError("packaged follow-up table shape differs from evidence")
+        for row, cells in enumerate(data.rows):
+            for column, expected in enumerate(cells):
+                item = table.item(row, column)
+                if item is None or item.text() != expected:
+                    raise RuntimeError("packaged follow-up display differs from evidence")
+    return {
+        "status": "PASS",
+        "display_matches_pinned_audit": True,
+        "controller_rows": means.rowCount(),
+        "paired_tables": len(paired),
+        "stress_rows": stress.rowCount(),
+        "scope_statement": view.scope_statement,
+        "evidence": dict(view.evidence),
     }
 
 
@@ -297,6 +339,7 @@ def _run_frozen_smoke(report_path: Path) -> int:
         if results_table_rows != expected_results_table_rows:
             raise RuntimeError("frozen presentation results table is missing expected rows")
         current_study_facts = _focused_study_smoke_facts(window.results_page)
+        followup_facts = _followup_smoke_facts(window.results_page)
         window.live_page.controller_combo.setCurrentText("PPO")
         application.processEvents()
         live_facts.update(
@@ -309,6 +352,7 @@ def _run_frozen_smoke(report_path: Path) -> int:
             }
         )
         _capture_presentation_pages(application, window, report_path)
+        _write_smoke_report(report_path.parent / "followup-smoke.json", followup_facts)
         _write_smoke_report(
             report_path,
             {

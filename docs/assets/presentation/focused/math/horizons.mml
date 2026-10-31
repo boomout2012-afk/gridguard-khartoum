@@ -1,0 +1,86 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msubsup>
+    <mi>a</mi>
+    <mi>t</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">opt</mi>
+      </mrow>
+    </mrow>
+  </msubsup>
+  <mo>=</mo>
+  <msub>
+    <mrow data-mjx-texclass="OP">
+      <mi>arg</mi>
+      <mstyle scriptlevel="0">
+        <mspace width="0.167em"></mspace>
+      </mstyle>
+      <mi>max</mi>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mi>a</mi>
+      <mo>&#x2208;</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">A</mi>
+      </mrow>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>s</mi>
+        <mi>t</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msub>
+  <msub>
+    <mi>r</mi>
+    <mi>t</mi>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <msub>
+    <mi>s</mi>
+    <mi>t</mi>
+  </msub>
+  <mo>,</mo>
+  <mi>a</mi>
+  <mo stretchy="false">)</mo>
+  <mo>,</mo>
+  <mstyle scriptlevel="0">
+    <mspace width="2em"></mspace>
+  </mstyle>
+  <msup>
+    <mi>&#x3C0;</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">PPO</mi>
+      </mrow>
+    </mrow>
+  </msup>
+  <mo>:</mo>
+  <mtext>&#xA0;</mtext>
+  <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="double-struck">E</mi>
+  </mrow>
+  <mstyle scriptlevel="0">
+    <mspace width="-0.167em"></mspace>
+  </mstyle>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">[</mo>
+    <munderover>
+      <mo data-mjx-texclass="OP">&#x2211;</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi>t</mi>
+        <mo>=</mo>
+        <mn>0</mn>
+      </mrow>
+      <mrow data-mjx-texclass="ORD">
+        <mn>23</mn>
+      </mrow>
+    </munderover>
+    <msub>
+      <mi>r</mi>
+      <mi>t</mi>
+    </msub>
+    <mo data-mjx-texclass="CLOSE">]</mo>
+  </mrow>
+</math>

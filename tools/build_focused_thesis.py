@@ -17,7 +17,15 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import Image, KeepTogether, PageBreak, Paragraph, Spacer
+from reportlab.platypus import (
+    CondPageBreak,
+    Flowable,
+    Image,
+    KeepTogether,
+    PageBreak,
+    Paragraph,
+    Spacer,
+)
 from reportlab.platypus.tableofcontents import TableOfContents
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,9 +41,176 @@ SCREENSHOTS = ROOT / "docs/assets/current-app-screenshots"
 COVER_PATH = ROOT / "docs/academic-cover.json"
 COVER = json.loads(COVER_PATH.read_text(encoding="utf-8"))
 TITLE = COVER["project_title"]
-DATE = "23 October 2026"
+DATE = COVER["submission_date"]
 INLINE_MARKUP = report._inline_markup
 MATH = {}
+REFERENCE_TARGETS = {}
+REFERENCE_PAGES = {}
+REFERENCE_PATTERN = re.compile(
+    r"\b(?:Figure|Table|Section|Chapter) (?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)*)\b"
+)
+FIGURE_DETAILS = {
+    "workflow": (
+        "3.1",
+        "Research workflow",
+        None,
+        "Common synthetic inputs support matched control evaluation. Demand prediction "
+        "is evaluated separately; forecasts are not fed into the controllers.",
+    ),
+    "overview": (
+        "4.1",
+        "Desktop overview",
+        SCREENSHOTS / "overview.png",
+        "The seven-locality map and saved evidence support offline inspection "
+        "of synthetic scenarios.",
+    ),
+    "live": (
+        "4.2",
+        "Live Scenario inspection",
+        SCREENSHOTS / "live-ppo.png",
+        "The validation-selected seed-8111 checkpoint-2500 policy runs one matched episode. "
+        "This demonstration is distinct from the frozen five-run results.",
+    ),
+    "outcomes": (
+        "5.1",
+        "Main controller outcomes",
+        FIGURES / "controller-outcomes.png",
+        "Results use 960 fresh matched test conditions. PPO is the equal-weight mean "
+        "of five validation-selected policies. Each panel has its own units.",
+    ),
+    "intervals": (
+        "5.2",
+        "Paired PPO effects against Constrained Optimization",
+        FIGURES / "paired-effects.png",
+        "Panels show critical interruption, Jain fairness, utilization and daily reward. "
+        "Effects subtract the optimizer from PPO; intervals have 97.5% coverage for the "
+        "two primary comparisons. Percentage outcomes use percentage-point differences.",
+    ),
+    "training": (
+        "5.3",
+        "Validation learning trajectories",
+        FIGURES / "training-curves.png",
+        "Top: daily reward. Middle: Jain service fairness. Bottom: supply utilization. "
+        "Each curve represents one training seed on fixed validation scenarios. Dots mark "
+        "selected checkpoints; the dashed line marks iteration 600. These are not test results.",
+    ),
+    "diagnostics": (
+        "5.4",
+        "TensorBoard training diagnostics",
+        FIGURES / "tensorboard-diagnostics.png",
+        "Rollout reward, policy loss, value loss, policy entropy, approximate KL and clipped "
+        "fraction are recorded every 25 iterations without smoothing. The thick line is "
+        "the five-run mean and shading is one sample standard deviation, "
+        "not a confidence interval.",
+    ),
+    "variance": (
+        "5.5",
+        "Between-run validation variance",
+        FIGURES / "training-variance.png",
+        "Panels show sample variance of run-mean daily reward, fairness and utilization "
+        "at 31 matched checkpoints. The denominator is four. Units are squared score or "
+        "squared percentage points; this is not within-scenario variance "
+        "or critic explained variance.",
+    ),
+    "forecast": (
+        "5.6",
+        "Held-out forecasting error",
+        FIGURES / "forecast-errors.png",
+        "MAE and RMSE compare locality-sector and system-total targets on 320 held-out "
+        "synthetic traces. Forecast evaluation is separate from the controller comparison.",
+    ),
+}
+ABBREVIATIONS = (
+    ("AI", "Artificial intelligence"),
+    ("API", "Application programming interface"),
+    ("CI", "Confidence interval"),
+    ("CPU", "Central processing unit"),
+    ("CUDA", "Compute Unified Device Architecture"),
+    ("GAE", "Generalized advantage estimation"),
+    ("GPU", "Graphics processing unit"),
+    ("GUI", "Graphical user interface"),
+    ("KL", "Kullback-Leibler divergence"),
+    ("MAE", "Mean absolute error"),
+    ("MDP", "Markov decision process"),
+    ("MW / MWh", "Megawatt / megawatt-hour"),
+    ("PPO", "Proximal Policy Optimization"),
+    ("pp", "Percentage points"),
+    ("ReLU", "Rectified linear unit"),
+    ("RL", "Reinforcement learning"),
+    ("RMSE", "Root mean square error"),
+    ("SD", "Sample standard deviation"),
+    ("SHA-256", "Secure Hash Algorithm, 256-bit digest"),
+)
+
+
+def reference_key(label: str) -> str:
+    return label.lower().replace(" ", "-").replace(".", "-")
+
+
+def navigation_inventory(markdown: str) -> dict[str, str]:
+    """Reject missing captions and dangling references before rendering any PDF."""
+    targets = {}
+    for level, title in re.findall(r"(?m)^(#{1,3})\s+(.+)$", markdown):
+        number = re.match(r"(\d+(?:\.\d+)*|[A-Z]\.\d+)\s", title)
+        if number:
+            label = ("Chapter " if len(level) == 1 else "Section ") + number[1]
+            targets[label] = reference_key(label)
+    for name in re.findall(r"\[\[FIGURE:([a-z]+)\]\]", markdown):
+        if name not in FIGURE_DETAILS:
+            raise ValueError(f"Unknown figure: {name}")
+        label = "Figure " + FIGURE_DETAILS[name][0]
+        if label in targets:
+            raise ValueError(f"Duplicate caption: {label}")
+        targets[label] = reference_key(label)
+    pending_caption = None
+    in_table = False
+    for line in markdown.splitlines():
+        caption = re.fullmatch(r"\*\*(Table \d+)\. (.+)\*\*", line.strip())
+        if caption:
+            if pending_caption:
+                raise ValueError(f"Table caption has no table: {pending_caption}")
+            label = caption[1]
+            if label in targets:
+                raise ValueError(f"Duplicate caption: {label}")
+            targets[label] = reference_key(label)
+            pending_caption = label
+        elif line.startswith("|"):
+            if not in_table:
+                if pending_caption is None:
+                    raise ValueError("Every thesis table requires a numbered caption")
+                pending_caption = None
+            in_table = True
+            continue
+        elif line.strip() and pending_caption:
+            raise ValueError(f"Table caption must immediately precede its table: {pending_caption}")
+        in_table = False
+    if pending_caption:
+        raise ValueError(f"Table caption has no table: {pending_caption}")
+    table_numbers = [int(label.split()[1]) for label in targets if label.startswith("Table ")]
+    if table_numbers and table_numbers != list(range(1, len(table_numbers) + 1)):
+        raise ValueError("Table captions must be numbered consecutively in document order")
+    for label in REFERENCE_PATTERN.findall(markdown):
+        if label not in targets:
+            raise ValueError(f"Unresolved thesis reference: {label}")
+    prose = re.sub(r"(?m)^\*\*Table \d+\. .+\*\*$", "", markdown)
+    callouts = set(REFERENCE_PATTERN.findall(prose))
+    for label in targets:
+        if label.startswith(("Figure ", "Table ")) and label not in callouts:
+            raise ValueError(f"Missing in-text reference to {label}")
+    return targets
+
+
+def linked_references(markup: str) -> str:
+    def link(match):
+        label = match[0]
+        destination = REFERENCE_TARGETS.get(label)
+        if destination is None:
+            return label
+        page = REFERENCE_PAGES.get(destination)
+        suffix = f" (p. {page})" if page is not None else " (p. 00)"
+        return f'<link href="#{destination}" color="#137B73">{label}{suffix}</link>'
+
+    return REFERENCE_PATTERN.sub(link, markup)
 
 
 def math_id(latex: str, display: bool) -> str:
@@ -84,7 +259,7 @@ def inline_math(value: str) -> str:
     markup = INLINE_MARKUP(re.sub(r"(?<!\\)\$([^$\n]+)\$", replace, value))
     for token, image_markup in images.items():
         markup = markup.replace(token, image_markup)
-    return markup
+    return linked_references(markup)
 
 
 def equation(latex: str):
@@ -100,6 +275,10 @@ def sha(path: Path) -> str:
 
 
 class ThesisDocument(report.ReportDocument):
+    def beforeDocument(self):
+        self.reference_pages = {}
+        self.caption_entries = {"figure": [], "table": []}
+
     def _draw_page(self, canvas, document):
         canvas.saveState()
         w, h = A4
@@ -123,10 +302,101 @@ class ThesisDocument(report.ReportDocument):
             canvas.drawRightString(w - 18 * mm, 11 * mm, f"{document.page:02}")
         canvas.restoreState()
 
-    def notify(self, kind, stuff):
-        if kind == "TOCEntry" and stuff[0] > 0:
+    def afterFlowable(self, flowable):
+        if not isinstance(flowable, Paragraph):
             return
-        return super().notify(kind, stuff)
+        kind = getattr(flowable, "_navigation_kind", None)
+        if kind:
+            label = flowable._navigation_label
+            key = reference_key(label)
+            self.canv.bookmarkPage(key)
+            self.reference_pages[key] = self.page
+            title = flowable._navigation_title
+            self.caption_entries[kind].append((title, self.page, key))
+            self.notify(kind + "Entry", (0, title, self.page, key))
+            return
+        levels = {"Chapter": 0, "Section": 1, "Subsection": 2, "ArabicChapter": 0}
+        level = levels.get(flowable.style.name)
+        if level is None:
+            return
+        title = getattr(flowable, "_navigation_heading", flowable.getPlainText())
+        number = re.match(r"(\d+(?:\.\d+)*|[A-Z]\.\d+)\s", title)
+        if number:
+            label = ("Chapter " if level == 0 else "Section ") + number[1]
+            key = reference_key(label)
+        else:
+            key = "heading-" + hashlib.sha256(title.encode()).hexdigest()[:12]
+        self.reference_pages[key] = self.page
+        self.canv.bookmarkPage(key)
+        self.canv.addOutlineEntry(title, key, level=level, closed=level > 0)
+        if level <= 1 and title != "Contents":
+            self.notify("TOCEntry", (level, title, self.page, key))
+
+
+class CaptionContents(TableOfContents):
+    def __init__(self, kind: str):
+        super().__init__()
+        self.kind = kind
+
+    def notify(self, kind, stuff):
+        if kind == self.kind + "Entry":
+            self.addEntry(*stuff)
+
+
+def arabic_visual(text: str) -> str:
+    """Shape a single logical line, then apply Unicode bidirectional ordering."""
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+
+    return get_display(arabic_reshaper.reshape(text), base_dir="R")
+
+
+class ArabicParagraph(Flowable):
+    """Wrap logical Arabic before visual reordering, preserving each line's order."""
+
+    def __init__(self, text: str, style: ParagraphStyle):
+        super().__init__()
+        self.text = text
+        self.style = style
+        self.spaceAfter = style.spaceAfter
+
+    def wrap(self, width, height):
+        self.width = width
+        self.lines = []
+        line = ""
+        for word in self.text.split():
+            candidate = (line + " " + word).strip()
+            visual = arabic_visual(candidate)
+            if (
+                line
+                and pdfmetrics.stringWidth(visual, self.style.fontName, self.style.fontSize) > width
+            ):
+                self.lines.append(line)
+                line = word
+            else:
+                line = candidate
+        if line:
+            self.lines.append(line)
+        self.height = len(self.lines) * self.style.leading
+        return self.width, self.height
+
+    def split(self, width, height):
+        self.wrap(width, height)
+        count = int(height // self.style.leading)
+        if count < 2 or len(self.lines) - count < 2:
+            return []
+        return [
+            ArabicParagraph(" ".join(self.lines[:count]), self.style),
+            ArabicParagraph(" ".join(self.lines[count:]), self.style),
+        ]
+
+    def draw(self):
+        self.canv.setFillColor(self.style.textColor)
+        self.canv.setFont(self.style.fontName, self.style.fontSize)
+        for index, line in enumerate(self.lines):
+            self.canv.drawRightString(
+                self.width, self.height - (index + 0.8) * self.style.leading, arabic_visual(line)
+            )
 
 
 def styles():
@@ -142,6 +412,13 @@ def styles():
         italic="GridGuardAtkinsonItalic",
         boldItalic="GridGuardAtkinsonBoldItalic",
     )
+    for weight in ("Regular", "Bold"):
+        pdfmetrics.registerFont(
+            TTFont(
+                "GridGuardArabic" + weight,
+                ROOT / "docs/assets/fonts" / f"NotoNaskhArabic-{weight}.ttf",
+            )
+        )
     report.REPORT_FONTS = design.F
     report.INK = report.NAVY = report.SLATE = design.DEEP
     report.MUTED = design.MUTED
@@ -164,6 +441,32 @@ def styles():
     s["table_header"].textColor = design.WHITE
     s["caption"].fontSize = 8.6
     s["caption"].leading = 12
+    s["table_caption"] = ParagraphStyle(
+        "TableCaption",
+        parent=s["caption"],
+        fontName=design.F.body_bold,
+        textColor=design.TEAL,
+        keepWithNext=True,
+        spaceBefore=9,
+        spaceAfter=6,
+    )
+    s["arabic"] = ParagraphStyle(
+        "ArabicBody",
+        parent=s["body"],
+        fontName="GridGuardArabicRegular",
+        fontSize=13,
+        leading=19,
+        alignment=2,
+        spaceAfter=10,
+    )
+    s["arabic_chapter"] = ParagraphStyle(
+        "ArabicChapter",
+        parent=s["chapter"],
+        fontName="GridGuardArabicBold",
+        fontSize=27,
+        leading=34,
+        alignment=2,
+    )
     return s
 
 
@@ -252,7 +555,12 @@ def workflow():
             "3  MEASURED OUTCOMES",
             ["Critical downtime · fairness", "utilization · daily reward"],
         ),
-        (0, 12, "PREDICTION STUDY", ["Causal ridge forecast", "Evaluated separately from control"]),
+        (
+            0,
+            12,
+            "PREDICTION STUDY",
+            ["History-only ridge forecast", "Evaluated separately from control"],
+        ),
         (
             171,
             12,
@@ -303,60 +611,20 @@ def workflow():
     return d
 
 
+def caption(kind: str, label: str, title: str, explanation: str, s):
+    style = s["table_caption"] if kind == "table" else s["caption"]
+    text = f"<b>{label}. {INLINE_MARKUP(title.rstrip('.') + '.')}</b>"
+    if explanation:
+        text += " " + INLINE_MARKUP(explanation)
+    paragraph = Paragraph(text, style)
+    paragraph._navigation_kind = kind
+    paragraph._navigation_label = label
+    paragraph._navigation_title = f"{label}. {title}"
+    return paragraph
+
+
 def figure(name: str, s):
-    mapping = {
-        "workflow": (
-            None,
-            "Figure 1. Project structure. Prediction is a separate evaluated component; "
-            "forecasts are not fed into the controller study.",
-        ),
-        "overview": (
-            SCREENSHOTS / "overview.png",
-            "Figure 2. The desktop overview presents the seven localities and saved evidence. "
-            "The application is an offline decision-support demonstration using synthetic data.",
-        ),
-        "live": (
-            SCREENSHOTS / "live-ppo.png",
-            "Figure 3. Live Scenario uses the validation-selected PPO policy (seed 8111, "
-            "iteration 2500) on matched inputs. Its single episode remains distinct from "
-            "the frozen five-run study.",
-        ),
-        "training": (
-            FIGURES / "training-curves.png",
-            "Figure 6. Validation learning curves for all five training runs. Dots mark selected "
-            "checkpoints; the dashed vertical line marks the retained 600-iteration reference.",
-        ),
-        "outcomes": (
-            FIGURES / "controller-outcomes.png",
-            "Figure 4. Main controller outcomes on 960 fresh matched conditions. PPO is the mean "
-            "of five validation-selected policies; panels use separate units.",
-        ),
-        "intervals": (
-            FIGURES / "paired-effects.png",
-            "Figure 5. Paired PPO effects against the constrained optimizer, with 97.5% intervals "
-            "adjusted for the two primary claims. Both baseline comparisons are reported in the "
-            "tables. Percentage outcomes use percentage-point differences.",
-        ),
-        "forecast": (
-            FIGURES / "forecast-errors.png",
-            "Figure 9. Learned forecasting reduces error on 320 held-out synthetic traces. "
-            "MAE and RMSE are reported separately for locality-sector and system-total targets. "
-            "This prediction experiment is separate from the controller comparison.",
-        ),
-        "diagnostics": (
-            FIGURES / "tensorboard-diagnostics.png",
-            "Figure 7. TensorBoard training diagnostics for all five PPO runs, without "
-            "smoothing. Shading is one sample standard deviation across runs, not a "
-            "confidence interval. Iteration zero has no PPO update diagnostics.",
-        ),
-        "variance": (
-            FIGURES / "training-variance.png",
-            "Figure 8. Sample variance across five independently trained policies on the "
-            "fixed validation scenarios. The variance uses a denominator of four; each "
-            "panel reports its own squared units.",
-        ),
-    }
-    path, caption = mapping[name]
+    number, title, path, explanation = FIGURE_DETAILS[name]
     if path is None:
         visual = workflow()
     else:
@@ -370,20 +638,138 @@ def figure(name: str, s):
             target_width *= 175 * mm / target_height
             target_height = 175 * mm
         visual = Image(str(path), width=target_width, height=target_height)
-    return KeepTogether([Spacer(1, 6), visual, Paragraph(caption, s["caption"])])
+    return KeepTogether(
+        [
+            Spacer(1, 6),
+            visual,
+            caption("figure", "Figure " + number, title, explanation, s),
+        ]
+    )
 
 
 def flowables(markdown, s):
     result = []
-    for part in re.split(r"(\[\[FIGURE:[a-z]+\]\]|\$\$[\s\S]*?\$\$)", markdown):
+    pattern = r"(\[\[FIGURE:[a-z]+\]\]|\$\$[\s\S]*?\$\$|^\*\*Table \d+\. .+\*\*$)"
+    for part in re.split(pattern, markdown, flags=re.M):
         marker = re.fullmatch(r"\[\[FIGURE:([a-z]+)\]\]", part)
+        table_caption = re.fullmatch(r"\*\*(Table \d+)\. (.+)\*\*", part)
         if marker:
             result.append(figure(marker[1], s))
+        elif table_caption:
+            result.append(caption("table", table_caption[1], table_caption[2], "", s))
         elif part.startswith("$$"):
             result.append(equation(part[2:-2].strip()))
         elif part.strip():
-            result.extend(report.markdown_text_flowables(part, s))
+            for item in report.markdown_text_flowables(part, s):
+                if isinstance(item, Paragraph) and item.getPlainText().endswith(
+                    "Computation and verification"
+                ):
+                    result.append(CondPageBreak(400))
+                if isinstance(item, Paragraph) and re.search(
+                    r"[\u0600-\u06ff]", item.getPlainText()
+                ):
+                    if item.style.name == "Chapter":
+                        item = Paragraph(arabic_visual(item.getPlainText()), s["arabic_chapter"])
+                        item._navigation_heading = "Arabic abstract"
+                    else:
+                        item = ArabicParagraph(item.getPlainText(), s["arabic"])
+                result.append(item)
     return result
+
+
+def contents_styles():
+    return [
+        ParagraphStyle(
+            "ContentsChapter",
+            fontName=design.F.body_bold,
+            fontSize=10.5,
+            leading=15,
+            textColor=design.DEEP,
+            spaceBefore=8,
+            rightIndent=24,
+        ),
+        ParagraphStyle(
+            "ContentsSection",
+            fontName=design.F.body,
+            fontSize=9.5,
+            leading=13.5,
+            textColor=design.MUTED,
+            leftIndent=13,
+            firstLineIndent=0,
+            rightIndent=24,
+            spaceBefore=3,
+        ),
+    ]
+
+
+def document_story(markdown: str, s):
+    first_chapter = markdown.index("\n# 1 ")
+    abstract, chapters = markdown[:first_chapter], markdown[first_chapter:]
+    toc = TableOfContents()
+    toc.levelStyles = contents_styles()
+    story = cover(s) + flowables(abstract, s)
+    story += [PageBreak(), Paragraph("Contents", s["chapter"]), Spacer(1, 5 * mm), toc]
+    for kind in ("figure", "table"):
+        entries = CaptionContents(kind)
+        entries.levelStyles = [
+            ParagraphStyle(
+                "CaptionIndex",
+                parent=contents_styles()[1],
+                leftIndent=0,
+                fontSize=9.5,
+                leading=13.5,
+                spaceBefore=5,
+            )
+        ]
+        story += [PageBreak(), Paragraph("List of " + kind + "s", s["chapter"]), entries]
+    story += [PageBreak(), Paragraph("List of abbreviations", s["chapter"])]
+    story += [design.table_flowable([["Abbreviation", "Meaning"], *ABBREVIATIONS], s)]
+    chapter_body, reference_heading, reference_text = chapters.partition("\n# References")
+    story += flowables(chapter_body, s)
+    if reference_heading:
+        reference_styles = dict(s)
+        for key in ("body", "list_body"):
+            reference_styles[key] = ParagraphStyle(
+                "Reference" + key,
+                parent=s[key],
+                fontSize=9.5,
+                leading=12.5,
+                spaceAfter=7,
+                leftIndent=12,
+                firstLineIndent=-12,
+            )
+        story += flowables(reference_heading + reference_text, reference_styles)
+    return story
+
+
+def render_document(markdown: str, output: Path) -> dict[str, int]:
+    """Resolve captions, contents and prose page references until pagination is stable."""
+    REFERENCE_TARGETS.clear()
+    REFERENCE_TARGETS.update(navigation_inventory(markdown))
+    REFERENCE_PAGES.clear()
+    s = styles()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    for _ in range(6):
+        doc = ThesisDocument(
+            str(output),
+            pagesize=A4,
+            leftMargin=18 * mm,
+            rightMargin=18 * mm,
+            topMargin=23 * mm,
+            bottomMargin=22 * mm,
+            title=TITLE,
+            author="; ".join(author["name"] for author in COVER["authors"]),
+            pageCompression=1,
+        )
+        doc.multiBuild(document_story(markdown, s), canvasmaker=report._report_canvas)
+        if doc.reference_pages == REFERENCE_PAGES:
+            missing = set(REFERENCE_TARGETS.values()) - doc.reference_pages.keys()
+            if missing:
+                raise ValueError(f"Missing rendered destinations: {sorted(missing)}")
+            return dict(doc.reference_pages)
+        REFERENCE_PAGES.clear()
+        REFERENCE_PAGES.update(doc.reference_pages)
+    raise ValueError("Thesis page references did not converge")
 
 
 def build(output: Path, content_path: Path):
@@ -410,6 +796,7 @@ def build(output: Path, content_path: Path):
     markdown = body + separator + references
     for key, value in content["replacements"].items():
         markdown = markdown.replace("{{" + key + "}}", value)
+    markdown = markdown.replace("{{SUPERVISOR}}", COVER["supervisor"])
     unresolved = re.findall(r"\{\{.*?\}\}", markdown)
     if unresolved:
         raise ValueError(f"Unresolved thesis content: {unresolved}")
@@ -419,64 +806,66 @@ def build(output: Path, content_path: Path):
         raise ValueError("The final thesis must stand alone without proposal references")
     if re.search(r"\[\d+(?:\s*[,;–-]\s*\d+)*\]", markdown):
         raise ValueError("Use Harvard author-date citations instead of numeric citations")
-    if not markdown.lstrip().startswith("# Abstract"):
-        raise ValueError("Thesis source must begin with # Abstract")
+    if not re.match(r"# (?:Declaration|Dedication|Abstract)\s*\n", markdown.lstrip()):
+        raise ValueError("Thesis source must begin with its declared front matter")
+    if "\n# Abstract\n" not in "\n" + markdown:
+        raise ValueError("Thesis source requires an English abstract")
     if "Original study:" in markdown or "Integrated conclusion" in markdown:
         raise ValueError("Superseded fragmented chapter structure found")
-    first_chapter = markdown.index("\n# 1 ")
-    abstract, chapters = markdown[:first_chapter], markdown[first_chapter:]
     prepare_math(markdown)
-    s = styles()
-    toc = TableOfContents()
-    toc.levelStyles = [
-        ParagraphStyle(
-            "ContentsEntry",
-            fontName=design.F.body,
-            fontSize=11,
-            leading=18,
-            textColor=design.DEEP,
-            spaceBefore=10,
-        )
-    ]
-    story = cover(s) + flowables(abstract, s)
-    story += [PageBreak(), Paragraph("Contents", s["chapter"]), Spacer(1, 8 * mm), toc]
-    chapter_body, reference_heading, reference_text = chapters.partition("\n# References")
-    story += flowables(chapter_body, s)
-    if reference_heading:
-        reference_styles = dict(s)
-        for key in ("body", "list_body"):
-            reference_styles[key] = ParagraphStyle(
-                "Reference" + key,
-                parent=s[key],
-                fontSize=9.5,
-                leading=12.5,
-                spaceAfter=7,
-                leftIndent=12,
-                firstLineIndent=-12,
-            )
-        story += flowables(reference_heading + reference_text, reference_styles)
+    # Export the same vector workflow used in the PDF for the editable Word edition.
+    workflow_svg = FIGURES / "research-workflow.svg"
+    workflow_png = workflow_svg.with_suffix(".png")
+    workflow_svg.write_text(workflow().asString("svg"), encoding="utf-8")
+    node_modules = (
+        Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules"
+    )
+    subprocess.run(
+        [
+            "node",
+            "-e",
+            "require(process.env.GRIDGUARD_SHARP_PATH || process.argv[1])"
+            "(process.argv[2], {density: 300})"
+            ".png().toFile(process.argv[3])"
+            ".catch(e => { console.error(e); process.exit(1); });",
+            str(node_modules / "sharp"),
+            str(workflow_svg),
+            str(workflow_png),
+        ],
+        check=True,
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.exists():
         backup = ROOT / "output/pdf/.previous" / f"{output.stem}-{sha(output)[:12]}.pdf"
         backup.parent.mkdir(parents=True, exist_ok=True)
         if not backup.exists():
             shutil.copy2(output, backup)
-    doc = ThesisDocument(
-        str(output),
-        pagesize=A4,
-        leftMargin=18 * mm,
-        rightMargin=18 * mm,
-        topMargin=23 * mm,
-        bottomMargin=22 * mm,
-        title=TITLE,
-        author="Murtada Bakhit; Suliman Babiker; Abdalhay Abass",
-        pageCompression=1,
-    )
-    doc.multiBuild(story, canvasmaker=report._report_canvas)
+    reference_pages = render_document(markdown, output)
     rendered_source = output.with_suffix(".source.md")
     rendered_source.write_text(markdown, encoding="utf-8")
     receipt = {
-        "schema": "gridguard.focused_thesis_build.1",
+        "schema": "gridguard.focused_thesis_build.2",
+        "navigation_pages": reference_pages,
+        "figure_metadata": {
+            name: {
+                "number": number,
+                "title": title,
+                "path": (path or workflow_png).relative_to(ROOT).as_posix(),
+                "explanation": explanation,
+            }
+            for name, (number, title, path, explanation) in FIGURE_DETAILS.items()
+        },
+        "abbreviations": ABBREVIATIONS,
+        "front_matter": [
+            "Declaration",
+            "Dedication",
+            "Abstract",
+            "Arabic abstract",
+            "Contents",
+            "List of figures",
+            "List of tables",
+            "List of abbreviations",
+        ],
         "pdf_sha256": sha(output),
         "source_sha256": sha(SOURCE),
         "resolved_source_sha256": sha(rendered_source),

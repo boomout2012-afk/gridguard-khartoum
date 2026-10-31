@@ -25,6 +25,7 @@ The current academic deliverables are:
 | Artifact | Location |
 | --- | --- |
 | Thesis | [Current thesis PDF](../output/pdf/updated/gridguard-khartoum-thesis.pdf) |
+| Editable thesis | [Current Word document](../output/documents/updated/gridguard-khartoum-thesis.docx) |
 | Presentation | [Current presentation PDF](../output/pdf/updated/gridguard-khartoum-project-presentation.pdf) |
 | Editable presentation | [Current PowerPoint](../output/presentation/updated/gridguard-khartoum-defense.pptx) |
 | Complete GUI capture | [GUI pages PDF](../output/pdf/gridguard-khartoum-gui-pages.pdf) |
@@ -34,6 +35,12 @@ The [focused protocol](FOCUSED_PPO_PROTOCOL.md), [training evidence](../data/evi
 [training diagnostics](../data/evidence/focused-ppo-training-diagnostics.json) support the
 current results. The Results page represents all five independent runs; Live Scenario
 uses the validation-selected seed-8111 checkpoint-2500 model for one matched scenario.
+
+The [committee revision record](COMMITTEE_REVISION.md) maps each review concern to its
+resolution. The [follow-up protocol](COMMITTEE_BASELINE_PROTOCOL.md) and
+[baseline audit](../data/evidence/committee-baseline-audit.json) add critical-aware rotation,
+the Fairness Rule teacher and critical-supply stress tests. These analyses preserve the
+original study and are labelled post-hoc throughout the thesis, slides and application.
 
 ## Source and runtime verification
 
@@ -45,11 +52,13 @@ The [submission guide](../SUBMISSION_README.md) describes the separate portable 
 package and the document-build commands. That large executable package is not part of
 a Git clone.
 
-The [31 October 2026 validation record](repository-validation.json) records 1,569 passing
-source/GPU tests with zero failures or skips, Ruff checks, an isolated installed-wheel
-smoke test and a successful integrity check of the exact staged Git checkout. Eleven
-optional historical archive/release tests were explicitly deselected. The GitHub
-**Quality** workflow provides the separate portable CI result for each published commit.
+The [committee revision validation](committee-revision-validation.json) records the current
+source/GPU tests, rebuilt executable checks, document rendering and preserved scientific
+identities. The earlier [repository cleanup validation](repository-validation.json) records
+1,569 passing tests for the pre-revision snapshot; it does not certify the later changes.
+Eleven optional historical archive/release tests are explicitly deselected from the current
+source gate. The GitHub **Quality** workflow provides the separate portable CI result for
+each published commit.
 
 Git attributes preserve the raw bytes of SHA-bound evidence, models, manuscripts,
 protocols and capture sources. A regression test stages the published files and checks

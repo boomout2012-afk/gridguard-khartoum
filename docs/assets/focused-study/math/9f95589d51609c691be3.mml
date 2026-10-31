@@ -1,0 +1,55 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msub>
+    <mi>&#x3C1;</mi>
+    <mi>t</mi>
+  </msub>
+  <mo stretchy="false">(</mo>
+  <mi>&#x3B8;</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <msub>
+        <mi>&#x3C0;</mi>
+        <mi>&#x3B8;</mi>
+      </msub>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>a</mi>
+        <mi>t</mi>
+      </msub>
+      <mo>&#x2223;</mo>
+      <msub>
+        <mi>s</mi>
+        <mi>t</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+    <mrow>
+      <msub>
+        <mi>&#x3C0;</mi>
+        <mrow data-mjx-texclass="ORD">
+          <msub>
+            <mi>&#x3B8;</mi>
+            <mrow data-mjx-texclass="ORD">
+              <mrow data-mjx-texclass="ORD">
+                <mi data-mjx-auto-op="false">old</mi>
+              </mrow>
+            </mrow>
+          </msub>
+        </mrow>
+      </msub>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>a</mi>
+        <mi>t</mi>
+      </msub>
+      <mo>&#x2223;</mo>
+      <msub>
+        <mi>s</mi>
+        <mi>t</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </mfrac>
+</math>

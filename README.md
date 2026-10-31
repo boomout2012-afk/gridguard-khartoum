@@ -14,10 +14,11 @@ it has not been validated for operating a real electrical grid.
 
 | Deliverable | Contents |
 | --- | --- |
-| [Thesis PDF](output/pdf/updated/gridguard-khartoum-thesis.pdf) | 35 pages; methodology, LaTeX formulas, results, training graphs and Harvard references |
-| [Presentation PDF](output/pdf/updated/gridguard-khartoum-project-presentation.pdf) | 24 slides for the project defense |
+| [Thesis PDF](output/pdf/updated/gridguard-khartoum-thesis.pdf) | Formal methods, explicit criteria, original and follow-up results, training graphs and Harvard references |
+| [Editable thesis](output/documents/updated/gridguard-khartoum-thesis.docx) | Word document with native equations and updated navigation fields |
+| [Presentation PDF](output/pdf/updated/gridguard-khartoum-project-presentation.pdf) | 32 slides for the project defense |
 | [Editable PowerPoint](output/presentation/updated/gridguard-khartoum-defense.pptx) | Native charts, tables and speaker notes |
-| [GUI collection](output/pdf/gridguard-khartoum-gui-pages.pdf) | Cover and 18 current application views |
+| [GUI collection](output/pdf/gridguard-khartoum-gui-pages.pdf) | Cover and 21 current application views |
 
 The [reviewer guide](docs/REVIEWER_GUIDE.md) maps the implementation, evidence and verification
 steps. The [submission guide](SUBMISSION_README.md) explains document rebuilding and the
@@ -32,10 +33,20 @@ Against Constrained Optimization, PPO improves fairness and daily reward, but it
 loss means the full comparison does not pass. The optimizer maximizes current-hour reward;
 the study does not compare PPO with a full-day optimum.
 
+A separately labelled follow-up compares the unchanged final policies with Critical-aware
+Fixed Rotation and the Fairness Rule teacher. PPO serves about **242 MWh/day more** than
+critical-aware rotation; both preserve critical service in the normal scenarios. Against
+the teacher, PPO improves mean reward and fairness but serves about **17 MWh/day less**.
+Severe critical-supply stress tests expose partial critical shortfalls for every controller.
+These are post-hoc analyses on the original test scenarios, not a new independent holdout.
+See the [review response](docs/COMMITTEE_REVISION.md) and
+[follow-up protocol](docs/COMMITTEE_BASELINE_PROTOCOL.md).
+
 The app's **Results** page reports the five-run study. **Live Scenario** uses the policy selected
 by validation, training seed 8111 at checkpoint 2500. One live scenario is separate from the
 study averages. See the [frozen study protocol](docs/FOCUSED_PPO_PROTOCOL.md) for selection rules,
 uncertainty, outcome criteria and limitations.
+The separate **Follow-up comparison** tab displays the additional baseline and stress results.
 
 ## Run from source
 
@@ -86,7 +97,7 @@ study verification and separates it from optional archive audits and historical 
 | `data/model/` | Policy weights and training provenance |
 | `docs/` | Manuscript, protocols, figures, screenshots and review records |
 | `tools/`, `scripts/`, `packaging/` | Training, evaluation, document generation and Windows packaging |
-| `output/pdf/updated/`, `output/presentation/updated/` | Current academic deliverables |
+| `output/pdf/updated/`, `output/presentation/updated/`, `output/documents/updated/` | Current academic deliverables |
 
 The large prebuilt CUDA application and local build caches are excluded from Git. The
 repository includes the source, models, evidence and documents needed for review and reproduction.

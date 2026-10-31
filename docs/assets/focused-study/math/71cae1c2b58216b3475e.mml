@@ -1,0 +1,19 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mi>R</mi>
+  <mo>=</mo>
+  <munderover>
+    <mo data-mjx-texclass="OP">&#x2211;</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>t</mi>
+      <mo>=</mo>
+      <mn>0</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mn>23</mn>
+    </mrow>
+  </munderover>
+  <msub>
+    <mi>r</mi>
+    <mi>t</mi>
+  </msub>
+</math>

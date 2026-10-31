@@ -9,7 +9,7 @@ const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const RUNTIME=path.join(process.env.USERPROFILE,'.cache/codex-runtimes/codex-primary-runtime/dependencies');
 process.env.RUNTIME_NODE_MODULES=path.join(RUNTIME,'node/node_modules');
 const NODE=path.join(RUNTIME,'node/bin/node.exe');
-const SKILL=path.join(process.env.USERPROFILE,'.codex/plugins/cache/openai-primary-runtime/presentations/26.1020.11618/skills/presentations');
+const SKILL=process.env.GRIDGUARD_PRESENTATION_SKILL || path.join(process.env.USERPROFILE,'.codex/plugins/cache/openai-primary-runtime/presentations/26.1026.10807/skills/presentations');
 const {Presentation,PresentationFile}=await import(pathToFileURL(path.join(RUNTIME,'node/node_modules/@oai/artifact-tool/dist/artifact_tool.mjs')));
 const {applyPresentationChartFont,finalizePresentation}=await import(pathToFileURL(path.join(SKILL,'container_tools/artifact_tool_utils.mjs')));
 const BUILD=path.join(ROOT,'tmp/presentation/focused');
@@ -22,6 +22,8 @@ async function readPinned(name,hash){const b=await fs.readFile(path.join(ROOT,'d
 const training=await readPinned('focused-ppo-training.json',HASH.training);
 const study=await readPinned('focused-ppo-study.json',HASH.study);
 const diagnostics=await readPinned('focused-ppo-training-diagnostics.json',HASH.diagnostics);
+HASH.followup='8029c5a6020388d412ee3263849cfe55c786227d1b16a45f665e83918e7fab6b';
+const followup=await readPinned('committee-baseline-audit.json',HASH.followup);
 const forecast=(await readPinned('proposal-supplement.json',HASH.forecast)).forecast.methods;
 if(diagnostics.training_sha256!==HASH.training || study.training_sha256!==HASH.training)throw Error('Training identity mismatch');
 const SEEDS=training.runs.map(r=>r.seed);
@@ -78,6 +80,11 @@ const equations={
  loss:String.raw`\mathcal L=-\mathbb E_t\!\left[\min\!\left(\rho_t\widehat A_t,\operatorname{clip}(\rho_t,0.8,1.2)\widehat A_t\right)\right]+0.25\mathbb E_t[(V_\phi-\widehat R_t)^2]-c_H\mathbb E_t[H(\pi_\theta)]`,
  horizons:String.raw`a_t^{\mathrm{opt}}=\operatorname{arg\,max}_{a\in\mathcal A(s_t)}r_t(s_t,a),\qquad \pi^{\mathrm{PPO}}:\ \max\mathbb E\!\left[\sum_{t=0}^{23}r_t\right]`,
  variance:String.raw`\bar x_j=\frac{1}{5}\sum_{k=1}^{5}x_{k,j},\qquad s_j^2=\frac{1}{4}\sum_{k=1}^{5}(x_{k,j}-\bar x_j)^2`,
+ criticalUtilization:String.raw`C_t=\frac{\sum_i\sum_{k\in\mathcal K_c}y_{i,k,t}}{\max(\sum_i\sum_{k\in\mathcal K_c}d_{i,k,t},\varepsilon)},\qquad U_t=\frac{Y_t}{\max(\min(S_t,D_t),\varepsilon)}`,
+ cumulativeRatio:String.raw`z_{i,t}=\frac{E^-_{i,t+1}}{\max(D^-_{i,t+1},\varepsilon)},\qquad J_t=\frac{(\sum_i z_{i,t})^2}{7\sum_i z_{i,t}^2+\varepsilon}`,
+ switchingExcess:String.raw`W_0=0,\quad W_t=\frac{1}{7}\sum_i\mathbf1[a_{i,t}\ne a_{i,t-1}]\ (t>0),\quad O_t=\frac{\max(0,Q_t-S_t)}{\max(D_t,\varepsilon)}`,
+ state:String.raw`X_t=(t,d_t,S_t,D_t^-,E_t^-,a_{t-1},\xi_t),\qquad t=0,\ldots,23`,
+ transition:String.raw`D^-_{i,t+1}=D^-_{i,t}+\Delta t\sum_k d_{i,k,t},\qquad E^-_{i,t+1}=E^-_{i,t}+\Delta t\sum_k y_{i,k,t}`,
  ar:String.raw`\widehat d_t=\max\!\left(0,\beta_0+\beta_1d_{t-1}+\beta_2d_{t-2}+\beta_3d_{t-3}\right)`
 };
 const mathRequest={directory:path.join(ASSET,'math'),manifest:path.join(ASSET,'math-manifest.json'),expressions:Object.entries(equations).map(([id,latex])=>({id,latex,display:true}))};
@@ -129,7 +136,7 @@ const ci=(v,scale=1,d=3)=>`${signed(v.mean*scale,d)}  [${signed(v.lower*scale,d)
 }
 // 5
 {
- const s=slide('Three decision procedures','The optimizer and PPO receive equivalent causal information and the same feasible set');
+ const s=slide('Three original decision procedures','The optimizer and PPO use the same current information and feasible set');
  table(s,['Controller','Decision rule','Horizon'],[['Fixed Rotation','Three localities Full Service for each three-hour block','Fixed schedule'],['Constrained Optimization','Checks 128 assignments and maximizes current reward over the feasible set','Current hour'],['PPO','Chooses the highest-logit feasible action from a learned policy','Daily training objective']],{y:225,h:286,widths:[275,610,267]});
  await eq(s,'horizons',68,549,1140,65);
 }
@@ -140,6 +147,24 @@ const ci=(v,scale=1,d=3)=>`${signed(v.mean*scale,d)}  [${signed(v.lower*scale,d)
  text(s,'C: hourly critical service     U: supply utilization     J: cumulative-service fairness\nW: fraction changing tier     O: excess requested power / total demand',64,311,1152,76,25);
  await eq(s,'jain',360,405,560,88);
  text(s,'zᵢ,t is cumulative served energy / cumulative demand. Report mean hourly Jain fairness, direct duration measures and energy separately from daily reward.',64,527,1152,85,27);
+}
+// Mathematical definitions shared by the revised thesis and slides.
+{
+ const s=slide('Definitions used in the hourly reward','All reward components are dimensionless. Power is measured in MW and energy in MWh.');
+ await eq(s,'criticalUtilization',64,211,1152,91);
+ text(s,'D: total demand    Q: requested power    Y: delivered power    S: supply',64,314,1152,38,24,C.muted);
+ await eq(s,'cumulativeRatio',130,365,1020,84);
+ await eq(s,'switchingExcess',64,484,1152,82);
+ text(s,'Fairness uses cumulative service after dispatch. Switching is zero at hour 0. ε = 10⁻⁸ protects denominators; it adds no physical supply.',64,599,1152,58,23,C.muted);
+}
+{
+ const s=slide('State, observations and transitions','A 24-hour finite-horizon decision process with action-independent demand and supply');
+ await eq(s,'state',90,218,1100,69);
+ text(s,'ξ is the scenario-generator state. The actor observes a 46-feature projection, without access to the future trace.',64,310,1152,78,27);
+ text(s,'D⁻ / E⁻: demanded / served MWh before the hour. a: locality service tier.',64,383,1152,31,22,C.muted);
+ await eq(s,'transition',64,417,1152,77);
+ text(s,'Δt = 1 hour. The action updates served-energy history and the previous tier. The scenario supplies the next demand and availability.',64,535,1152,72,27);
+ text(s,'Cumulative energy starts at zero. Episodes terminate after hour 23 with zero terminal value.',64,624,1152,32,22,C.muted);
 }
 // 7
 {
@@ -160,9 +185,32 @@ const ci=(v,scale=1,d=3)=>`${signed(v.mean*scale,d)}  [${signed(v.lower*scale,d)
  table(s,['Split','Independent base draws','Coupled conditions'],[['Validation','5 seeds × 32 = 160','480'],['Final test','10 seeds × 32 = 320','960']],{y:225,h:180,widths:[245,520,387]});
  lines(s,['12 methods: Fixed Rotation, optimizer, five selected PPO actors and five iteration-600 actors.','11,520 trajectories. Bootstrap resamples five training runs and matched base-draw clusters.','10,000 resamples. Two primary claims use adjusted 97.5% intervals.'],64,437,1152,68,25);
 }
+// These are the original frozen criteria, not rules chosen after the follow-up.
+{
+ const s=slide('Original criterion against Fixed Rotation','Every requirement must hold for the declared system-level improvement claim.');
+ table(s,['Requirement','Exact rule'],[
+ ['Adjusted overall intervals','Critical-interruption upper bound < 0; fairness and utilization lower bounds > 0'],
+ ['Every shortage level','Mean interruption difference ≤ 0; mean fairness and utilization differences ≥ 0'],
+ ['Every selected PPO trajectory','Zero critical interruptions, outages and power-balance violations'],
+ ['Validation eligibility','All five selected policies eligible under the frozen selection rule']
+ ],{y:217,h:330,widths:[355,797]});
+ text(s,'Effects are PPO minus Fixed Rotation. Equal-run and equal-condition means; adjusted 97.5% intervals for the two primary comparisons.',64,582,1152,75,25);
+ s.speakerNotes.text+=' Exact original criteria: docs/FOCUSED_PPO_PROTOCOL.md, Final outcomes and decisions. These rules were internally hash-frozen before training; this is not a claim of independently timestamped external preregistration.';
+}
+{
+ const s=slide('Original criterion against Constrained Optimization','A positive reward difference alone does not satisfy the service guardrails.');
+ table(s,['Requirement','Exact rule'],[
+ ['Adjusted overall intervals','Reward lower bound > 0; fairness and utilization lower bounds ≥ −0.002'],
+ ['Every shortage level','Mean reward difference ≥ 0; fairness and utilization differences ≥ −0.002'],
+ ['Every PPO and optimizer trajectory','Zero critical interruptions, outages and power-balance violations'],
+ ['Validation eligibility','All five selected policies eligible under the frozen selection rule']
+ ],{y:217,h:330,widths:[355,797]});
+ text(s,'Use adjusted 97.5% intervals. The 0.002 margin is 0.2 percentage points. The separate +0.01 reward reference is a research choice, not an operational threshold.',64,582,1152,75,25);
+ s.speakerNotes.text+=' Exact original criteria: docs/FOCUSED_PPO_PROTOCOL.md. All five conditions are assessed on equal-run/equal-condition means with paired hierarchical bootstrap; each stated safety condition applies to every trajectory.';
+}
 // 10
 {
- const s=slide('Main outcomes on 960 matched conditions','PPO values average the five independently trained policies equally');
+ const s=slide('Original study on 960 matched conditions','PPO values average the five independently trained policies equally');
  for(const [i,m,title,scale,max] of [[0,'critical_interruption_locality_hours','Critical interruption',1,120],[1,'fairness','Jain service fairness (%)',100,110],[2,'utilization','Supply utilization (%)',100,110]]){
  chart(s,{x:64+i*390,y:219,w:372,h:340,title,categories:['Fixed','Optimizer','PPO'],series:[{name:title,values:[F[m],O[m],P[m]].map(v=>v*scale),fill:C.teal,points:[{idx:0,fill:'#718789'},{idx:1,fill:C.coral},{idx:2,fill:C.teal}]}],type:'bar',min:0,max,format:'0.00',yTitle:i===0?'Locality-hours / day':''});}
  note(s,'PPO and the optimizer preserve critical service. Their remaining differences concern allocation.',596);
@@ -172,7 +220,7 @@ const ci=(v,scale=1,d=3)=>`${signed(v.mean*scale,d)}  [${signed(v.lower*scale,d)
  const s=slide('PPO improves service over Fixed Rotation','Paired effects are PPO minus Fixed Rotation. Intervals have adjusted 97.5% coverage.');
  table(s,['Outcome','Effect [lower, upper]'],[['Critical interruption (locality-hours)',ci(fixedCI.critical_interruption_locality_hours,1,3)],['Jain fairness (percentage points)',ci(fixedCI.fairness,100,3)],['Utilization (percentage points)',ci(fixedCI.utilization,100,3)]],{y:235,h:260,widths:[610,542]});
  text(s,'Full declared comparison: PASSED',64,536,1152,47,34,C.teal,true);
- text(s,'This compares the complete constrained system with a supply-blind fixed schedule. The critical-service rule contributes to the improvement.',64,596,1152,61,25);
+ text(s,'Critical-aware rotation also eliminates these interruptions. The follow-up comparison measures PPO’s additional allocation benefit when critical protection is shared.',64,596,1152,61,25);
 }
 // 12
 {
@@ -180,6 +228,17 @@ const ci=(v,scale=1,d=3)=>`${signed(v.mean*scale,d)}  [${signed(v.lower*scale,d)
  table(s,['Outcome','Effect [lower, upper]'],[['Daily reward',ci(optCI.episode_reward,1,4)],['Jain fairness (percentage points)',ci(optCI.fairness,100,3)],['Utilization (percentage points)',ci(optCI.utilization,100,3)],['Switching (percentage points)',ci(optCI.switching_rate,100,3)]],{y:221,h:306,widths:[610,542]});
  text(s,'Full service-guarded improvement criterion: NOT MET',64,558,1152,44,31,C.coral,true);
  text(s,'The utilization loss exceeds the allowed 0.2-point margin. Both protect critical service.',64,610,1152,43,25);
+}
+{
+ const s=slide('Practical scale of the optimizer comparison','Measured energy and public service outcomes give the composite reward context.');
+ table(s,['Measure','Optimizer','PPO','Difference'],[
+ ['Daily reward',O.episode_reward.toFixed(4),P.episode_reward.toFixed(4),signed(P.episode_reward-O.episode_reward,4)],
+ ['Served energy (MWh/day)',O.served_mwh.toFixed(2),P.served_mwh.toFixed(2),signed(P.served_mwh-O.served_mwh,2)],
+ ['Jain fairness (%)',(O.fairness*100).toFixed(2),(P.fairness*100).toFixed(2),`${signed((P.fairness-O.fairness)*100,3)} pp`],
+ ['Supply utilization (%)',(O.utilization*100).toFixed(2),(P.utilization*100).toFixed(2),`${signed((P.utilization-O.utilization)*100,3)} pp`]
+ ],{y:223,h:305,widths:[415,225,225,287]});
+ text(s,'The +0.0499 reward gain is about 0.208% of the ideal daily ceiling of 24. PPO serves 19.88 MWh less per day while distributing service more evenly.',64,566,1152,90,27);
+ s.speakerNotes.text+=' Reward is dimensionless and cannot be converted directly to MWh. The energy difference is measured from matched episode trajectories, not inferred by multiplying average utilization by average supply.';
 }
 // 13
 {
@@ -195,6 +254,38 @@ const ci=(v,scale=1,d=3)=>`${signed(v.mean*scale,d)}  [${signed(v.lower*scale,d)
  const series=[['Fixed Rotation',C.muted],['Constrained Optimization',C.coral],['PPO',C.teal]].map(([name,color])=>({name:name==='Constrained Optimization'?'Optimizer':name,values:['mild','moderate','severe'].map(level=>(name==='PPO'?study.procedure_shortage_means[level].PPO[key]:study.shortage_means[level][name][key])*100),fill:color}));
  chart(s,{x:64+i*580,y:221,w:560,h:360,title:label,categories:['Mild','Moderate','Severe'],series,type:'bar',min:0,max:110,format:'0.0',legend:true});}
  note(s,'Critical interruption is zero for PPO and the optimizer at every tested shortage level.',615);
+}
+{
+ const s=slide('Final policies against stronger simple baselines','Post-hoc audit: the same 960 final conditions, with no retraining or policy reselection.');
+ const names=['Fixed Rotation','Critical-aware Fixed Rotation','Fairness Rule','Constrained Optimization','PPO'];
+ const labels=['Fixed Rotation','Critical-aware rotation','Fairness Rule','Constrained optimizer','PPO (five-run mean)'];
+ const rows=names.map((name,i)=>{const m=name==='PPO'?followup.procedure_means.PPO:followup.controller_means[name];return[labels[i],m.critical_interruption_locality_hours.toFixed(2),(m.fairness*100).toFixed(2),(m.utilization*100).toFixed(2),m.episode_reward.toFixed(4)];});
+ table(s,['Controller','Critical locality-h','Fairness %','Utilization %','Daily reward'],rows,{y:223,h:330,widths:[310,250,190,190,212]});
+ text(s,'Critical-aware rotation reserves critical demand, then fills supply in fixed cyclic priority. Fairness Rule uses the unchanged demonstration-teacher setting.',64,580,1152,72,25);
+ s.speakerNotes.text+=` Follow-up SHA-256 ${HASH.followup}. Protocol: docs/COMMITTEE_BASELINE_PROTOCOL.md. Original final-test outcomes were already known; this is an explanatory post-hoc audit, not an untouched holdout. Teacher reward tolerance remains 0.005.`;
+}
+{
+ const s=slide('Learning beyond critical-service protection','PPO minus each baseline. Follow-up intervals are descriptive paired 95% intervals.');
+ const rows=['Critical-aware Fixed Rotation','Fairness Rule'].map(name=>{const v=followup.paired_inference[`PPO - ${name}`];return[name==='Fairness Rule'?name:'Critical-aware rotation',ci(v.served_mwh,1,2),ci(v.episode_reward,1,4),ci(v.fairness,100,3)];});
+ table(s,['Baseline','Served MWh/day','Daily reward','Fairness pp'],rows,{y:231,h:252,widths:[270,294,294,294]});
+ text(s,'PPO serves 241.63 MWh/day more than protected rotation. Against its teacher, PPO gains a small amount of reward and fairness but serves 16.68 MWh/day less.',64,515,1152,94,28);
+ text(s,'The teacher comparison varies by shortage level and training run. It does not support an unconditional PPO victory.',64,622,1152,35,22,C.coral);
+ s.speakerNotes.text+=` Follow-up SHA-256 ${HASH.followup}. 10,000 hierarchical resamples, seed 20261031; five runs and matched base-draw clusters, preserving coupled severities. Descriptive 95% intervals do not replace the original adjusted primary tests.`;
+}
+{
+ const s=slide('When critical demand exceeds supply','Stress audit: 320 matched base draws at each of two critical-supply fractions.');
+ const high=followup.stress.critical_supply_75pct.procedure_means.PPO;
+ const low=followup.stress.critical_supply_25pct.procedure_means.PPO;
+ const row=(label,key,d=2)=>[label,high[key].toFixed(d),low[key].toFixed(d)];
+ table(s,['PPO outcome','75% of critical demand','25% of critical demand'],[
+ row('All-Critical-Only fallback (hours)','all_critical_fallback_hours',0),
+ row('Critical interruption (locality-hours)','critical_interruption_locality_hours',0),
+ row('Complete critical outage (locality-hours)','complete_critical_outage_locality_hours',0),
+ row('Unmet critical energy (MWh)','unmet_critical_mwh'),
+ row('Power-balance violation rate','power_balance_violation_rate',0)
+ ],{y:220,h:333,widths:[552,300,300]});
+ text(s,'All constrained methods share the proportional fallback. Partial service deprivation affects all seven localities for 24 hours; no power limit is exceeded.',64,583,1152,75,25);
+ s.speakerNotes.text+=` Follow-up SHA-256 ${HASH.followup}. These deliberately infeasible stress families are reported separately from the nominal 960 conditions. Zero complete outages does not mean adequate critical service. The unchanged Fixed Rotation stress results remain in the full evidence.`;
 }
 // 15
 {
@@ -230,7 +321,7 @@ for(const [keys,title]of [[['episode_reward','policy_loss','value_loss'],'Traini
 {
  const s=slide('Longer training improves reward but loses utilization','Same-run iteration-600 snapshots are a within-schedule reference');
  const rows=training.runs.map(r=>{const a=study.controller_means[`PPO seed ${r.seed}`].episode_reward,b=study.controller_means[`PPO600 seed ${r.seed}`].episode_reward;return[String(r.seed),String(r.selected.iteration),b.toFixed(4),a.toFixed(4),signed(a-b,4)];});
- table(s,['Seed','Selected iteration','Reward at 600','Selected reward','Difference'],rows,{y:220,h:300,widths:[150,240,250,250,262]});
+ table(s,['Seed','Selected iteration','Test reward at 600','Selected test reward','Difference'],rows,{y:220,h:300,widths:[150,240,250,250,262]});
  text(s,'Mean daily reward +0.0295. Utilization −0.2417 percentage points.',64,554,1152,48,28,C.teal,true);
  text(s,'The full additional-training criterion fails its utilization and shortage guardrails. The 600 snapshots use the planned 3,000-iteration schedule.',64,609,1152,52,23,C.coral);
 }
@@ -247,7 +338,7 @@ for(const [keys,title]of [[['episode_reward','policy_loss','value_loss'],'Traini
 {
  const s=slide('Current study results in the desktop app','','Synthetic decision support. Live Scenario uses one selected actor. Results show the five-run study.');
  await picture(s,path.join(APP_CAPTURES,'results.png'),160,137,960,540,'Current desktop Results screen with the frozen five-run study');
- s.speakerNotes.text+=' Screenshot: current desktop Results. Live Scenario uses the constrained PPO actor from seed 8111, selected checkpoint 2500, and the study constrained optimizer. The Results page retains the five-run aggregate on 960 matched conditions. This single live policy and an individual replay do not replace those averages. The complete scientific comparison and its utilization limitation remain on slides 12 and 22.';
+ s.speakerNotes.text+=' Screenshot: current desktop Results. Live Scenario uses the constrained PPO actor from seed 8111, selected checkpoint 2500, and the study constrained optimizer. The Results page retains the five-run aggregate on 960 matched conditions. This single live policy and an individual replay do not replace those averages. The full optimizer criterion and its utilization limitation remain explicit in this deck. Follow-up results are labelled separately from the original primary experiment.';
 }
 // 22
 {
@@ -255,7 +346,7 @@ for(const [keys,title]of [[['episode_reward','policy_loss','value_loss'],'Traini
  text(s,'Against Fixed Rotation',64,198,550,40,30,C.teal,true);text(s,'The constrained PPO system improves critical service, fairness and utilization on fresh matched synthetic scenarios.',64,253,550,125,30);
  text(s,'Against the optimizer',665,198,550,40,30,C.coral,true);text(s,'PPO improves fairness and daily reward but uses less supply and switches more often. The full criterion fails.',665,253,550,125,30);
  box(s,64,411,1152,1,C.line);
- lines(s,['Ridge AR(3) improves prediction over the two simple baselines.','Earlier Fairness Rule comparisons remain unfavorable for PPO.','Measured demand and feasible feeder actions are needed before operational evaluation.'],64,449,1152,64,25);
+ lines(s,['PPO also improves allocation over critical-aware rotation in the follow-up audit.','The final teacher comparison shows a small reward gain with an energy tradeoff.','Measured demand and feasible feeder actions are needed before operational evaluation.'],64,449,1152,64,25);
 }
 // 23 and 24: alphabetized Harvard bibliography, only works actually cited.
 const references=[
@@ -274,8 +365,9 @@ for(const [i,refs]of [references.slice(0,4),references.slice(4)].entries()){
  refs.forEach((r,j)=>text(s,referenceRuns(r),64,215+j*108,1152,98,23));
  s.speakerNotes.text=refs.join('\n\n');
 }
-if(pres.slides.items.length!==24)throw Error('Unexpected slide count');
-await fs.writeFile(path.join(BUILD,'source-binding.json'),JSON.stringify({hashes:HASH,slide_count:24,native_charts:nativeCharts,native_tables:nativeTables,math_manifest:mathRequest.manifest},null,2));
+const expectedSlides=32;
+if(pres.slides.items.length!==expectedSlides)throw Error(`Unexpected slide count: ${pres.slides.items.length}`);
+await fs.writeFile(path.join(BUILD,'source-binding.json'),JSON.stringify({hashes:HASH,slide_count:expectedSlides,native_charts:nativeCharts,native_tables:nativeTables,math_manifest:mathRequest.manifest},null,2));
 const candidate=path.join(BUILD,'candidate.pptx');
 await (await PresentationFile.exportPptx(pres)).save(candidate);
 console.log('Exported candidate',candidate);
@@ -285,6 +377,6 @@ if(process.argv.includes('--preview'))for(const [i,s]of pres.slides.items.entrie
 }
 const finalStamp=Date.now();
 const final=path.join(BUILD,`validated-${finalStamp}.pptx`);
-const result=await finalizePresentation({workspaceDir:ROOT,candidatePath:candidate,finalPath:final,pythonExecutable:path.join(RUNTIME,'python/python.exe'),integrityValidatorPath:path.join(SKILL,'container_tools/inspect_presentation_package_integrity.py'),layoutValidatorPath:path.join(SKILL,'container_tools/inspect_presentation_layout_geometry.py'),layoutArgs:['--expected-slide-size-emu','12192000,6858000','--validate-heading-fit',...[...new Set(nativeTables)].flatMap(n=>['--require-native-table-slide',String(n)])],explicitTotalSlideCount:24,requiredNativeChartOwnerSlides:[...new Set(nativeCharts)],requiredNativeTableOwnerSlides:[...new Set(nativeTables)],materializeLiteralChartWorkbooks:true,nativeChartTargetApplication:'portable',fontPolicy:{basis:'design',families:[FONT]},verifyArtifactToolImport:true,receiptPath:path.join(ROOT,`tmp/presentation/focused-validation-${finalStamp}.json`)});
+const result=await finalizePresentation({workspaceDir:ROOT,candidatePath:candidate,finalPath:final,pythonExecutable:path.join(RUNTIME,'python/python.exe'),integrityValidatorPath:path.join(SKILL,'container_tools/inspect_presentation_package_integrity.py'),layoutValidatorPath:path.join(SKILL,'container_tools/inspect_presentation_layout_geometry.py'),layoutArgs:['--expected-slide-size-emu','12192000,6858000','--validate-heading-fit',...[...new Set(nativeTables)].flatMap(n=>['--require-native-table-slide',String(n)])],explicitTotalSlideCount:expectedSlides,requiredNativeChartOwnerSlides:[...new Set(nativeCharts)],requiredNativeTableOwnerSlides:[...new Set(nativeTables)],materializeLiteralChartWorkbooks:true,nativeChartTargetApplication:'portable',fontPolicy:{basis:'design',families:[FONT]},verifyArtifactToolImport:true,receiptPath:path.join(ROOT,`tmp/presentation/focused-validation-${finalStamp}.json`)});
 await fs.writeFile(path.join(BUILD,'validated-path.txt'),final);
 console.log('Validated PPTX',final,JSON.stringify(result));
